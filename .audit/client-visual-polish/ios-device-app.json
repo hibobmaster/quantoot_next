@@ -1,0 +1,50 @@
+{
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "--timeout",
+      "30",
+      "device",
+      "info",
+      "apps",
+      "--device",
+      "00008160-0000059C04C14036",
+      "--bundle-id",
+      "com.quanquan.quantoot",
+      "--include-all-apps",
+      "--json-output",
+      ".audit/client-visual-polish/ios-device-app.json"
+    ],
+    "commandType" : "devicectl.device.info.apps",
+    "environment" : {
+      "TERM" : "dumb"
+    },
+    "jsonVersion" : 5,
+    "outcome" : "success",
+    "version" : "651.32"
+  },
+  "result" : {
+    "apps" : [
+      {
+        "appClip" : false,
+        "builtByDeveloper" : true,
+        "bundleIdentifier" : "com.quanquan.quantoot",
+        "bundleVersion" : "10",
+        "containerAccessible" : true,
+        "defaultApp" : false,
+        "hidden" : false,
+        "internalApp" : false,
+        "name" : "QuanToot",
+        "removable" : true,
+        "url" : "file:///private/var/containers/Bundle/Application/22853C3F-8B7B-4002-932C-FA68B423ACE9/QuanToot.app/",
+        "version" : "0.6.4"
+      }
+    ],
+    "defaultAppsIncluded" : true,
+    "deviceIdentifier" : "A917E82B-8552-5F1D-A719-753A71F8E410",
+    "hiddenAppsIncluded" : true,
+    "internalAppsIncluded" : true,
+    "matchingBundleIdentifier" : "com.quanquan.quantoot",
+    "removableAppsIncluded" : true
+  }
+}

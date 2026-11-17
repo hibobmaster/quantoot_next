@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "984568331da0162ff0e5057b0597b67d1db7d07c",
+  "tests": 131,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "suites": 17,
+  "log": "/tmp/quantoot-064-shared-android.log",
+  "logSha256": "e1af20148cd587cc5234916b184d20424e3a706baed7464720a99e0e1e68cfbf",
+  "androidRelease": {
+    "status": "passed",
+    "signed": false,
+    "path": "androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk",
+    "sha256": "afabf8678df66cea71a12babf92e8a721a6b19a4ba53b4740449a00c2587c20b"
+  }
+}

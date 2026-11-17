@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.quanquan.quantoot.ui.ThreadBehaviorTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-11-17T15:36:22.886Z" hostname="BobMasters-Mac-mini.local" time="0.006">
+  <properties/>
+  <testcase name="deletionBeatsContextResponseAndPreservesKnownReplyAncestry" classname="com.quanquan.quantoot.ui.ThreadBehaviorTest" time="0.001"/>
+  <testcase name="contextOwnsOrderWhileEditsNeverCreateMembership" classname="com.quanquan.quantoot.ui.ThreadBehaviorTest" time="0.001"/>
+  <testcase name="repliesDuringContextRequestSurviveAndDoNotInventCounts" classname="com.quanquan.quantoot.ui.ThreadBehaviorTest" time="0.0"/>
+  <testcase name="publishedReplyRemainsVisibleBeforeTheServerContextIncludesIt" classname="com.quanquan.quantoot.ui.ThreadBehaviorTest" time="0.001"/>
+  <testcase name="unrelatedPostsAreIgnoredAndUnknownParentsWaitForContext" classname="com.quanquan.quantoot.ui.ThreadBehaviorTest" time="0.0"/>
+  <testcase name="mentionNotificationAddsRelevantReplyAndReconnectsCoalesce" classname="com.quanquan.quantoot.ui.ThreadBehaviorTest" time="0.001"/>
+  <testcase name="unrelatedPublishedRepliesCannotBecomeDescendants" classname="com.quanquan.quantoot.ui.ThreadBehaviorTest" time="0.0"/>
+  <testcase name="replyingToAnAncestorOpensTheAncestorConversation" classname="com.quanquan.quantoot.ui.ThreadBehaviorTest" time="0.001"/>
+  <testcase name="publishingOpensTheReplyParentAndFocusesTheConfirmedReply" classname="com.quanquan.quantoot.ui.ThreadBehaviorTest" time="0.0"/>
+  <testcase name="refreshErrorsKeepRowsAndBackgroundCancellationCannotReplaceThem" classname="com.quanquan.quantoot.ui.ThreadBehaviorTest" time="0.001"/>
+  <testcase name="contextFailureAndRoot404KeepLoadedReplies" classname="com.quanquan.quantoot.ui.ThreadBehaviorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

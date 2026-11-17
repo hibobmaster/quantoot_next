@@ -1,0 +1,14 @@
+{
+  "observedAtUTC": "2026-11-17T15:45:19.173152+00:00",
+  "deviceIdentifier": "A917E82B-8552-5F1D-A719-753A71F8E410",
+  "udid": "00008160-0000059C04C14036",
+  "model": "iPhone18Pro",
+  "version": "0.6.4",
+  "build": "10",
+  "bundleID": "com.quanquan.quantoot",
+  "installedInPlace": true,
+  "launchSucceeded": true,
+  "renderedAppObserved": true,
+  "screen": "screenshots/physical-release.png",
+  "screenshotSHA256": "94bc1e5fec168b52fe2f44e2b2ad3d87473d6ba175e3cea282b1b7c9c3c6608d"
+}

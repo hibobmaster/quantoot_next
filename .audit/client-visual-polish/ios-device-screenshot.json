@@ -1,0 +1,32 @@
+{
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "--timeout",
+      "30",
+      "device",
+      "capture",
+      "screenshot",
+      "--device",
+      "00008160-0000059C04C14036",
+      "--destination",
+      ".audit/client-visual-polish/screenshots/physical-release.png",
+      "--json-output",
+      ".audit/client-visual-polish/ios-device-screenshot.json"
+    ],
+    "commandType" : "devicectl.device.capture.screenshot",
+    "environment" : {
+      "TERM" : "dumb"
+    },
+    "jsonVersion" : 5,
+    "outcome" : "success",
+    "version" : "651.32"
+  },
+  "result" : {
+    "destination" : "file:///Users/bobmaster/Projects/QuanToot_Next/.audit/client-visual-polish/screenshots/physical-release.png",
+    "deviceIdentifier" : "A917E82B-8552-5F1D-A719-753A71F8E410",
+    "height" : 2622,
+    "imageFormat" : "png",
+    "width" : 1206
+  }
+}

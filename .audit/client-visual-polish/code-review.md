@@ -1,0 +1,9 @@
+# Source and comment review
+
+The root inspected the focused correction in `52fcc31` and candidate `9845683`. The existing StatusCard signature and thread data owners remain unchanged. Focal posts use the ordinary neutral fill. A single ThreadScreen positioning Boolean is keyed by the thread and requested reply, turns on after the existing focus scroll, and turns off after 650 milliseconds. The card outline fades over 450 milliseconds. Refreshes and status edits do not restart that effect. Only the requested reply gets the cue when a reply is targeted. Quoted-card borders and backgrounds are unchanged.
+
+Profile changes only the ScrollableTabRow edge padding to zero. Tab labels, selection, horizontal scrolling and feed sources remain unchanged. Settings removes the unused WenKai row and retains the five existing library notices. The native checks verify the original color, alignment and license failures on the same signed-in simulator. The focal check also compares the settled card edge with its interior to detect a lingering outline. Dark and light screenshots show matching edge and interior values.
+
+The independent gpt-6.1-sol comment reviewer inspected `5d5071f..9845683` and found no authored comment or suppression changes. It changed no files. Comment deletions and restorations are both zero. There are no HOLDs, MUST KILL flags, encoding requests, refactor requests or open comment findings. Generated XcodeGen labels and audit documents were outside its scope. That review did not claim to run builds or UI checks.
+
+Experience First selected a neutral reading surface with a brief positioning cue. Model the Domain kept the existing Boolean input and placed its transient window in the existing thread positioning effect. Prove It Works required matching-surface failing and passing native checks, actual screenshots and device delivery evidence. The root owns all runtime validation, the final build, and physical installation.
