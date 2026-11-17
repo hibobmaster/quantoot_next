@@ -378,26 +378,50 @@ class MastodonApi(
                 idempotencyKey.none { it.code < 32 || it.code == 127 }
         )
         val body =
-            FormDataContent(
-                Parameters.build {
-                    append("status", draft.text)
-                    append("visibility", draft.visibility)
-                    append("spoiler_text", draft.spoilerText)
-                    append("sensitive", draft.sensitive.toString())
-                    draft.language?.let { append("language", it) }
-                    draft.inReplyToId?.let { append("in_reply_to_id", it) }
-                    draft.mediaIds.forEach { append("media_ids[]", it) }
-                    if (editId != null && draft.mediaIds.isEmpty()) append("media_ids[]", "")
-                    draft.quotedStatusId?.let { append("quoted_status_id", it) }
-                    draft.quotePolicy?.let { append("quote_approval_policy", it) }
+            if (editId != null) {
+                buildJsonObject {
+                    put("status", draft.text)
+                    put("visibility", draft.visibility)
+                    put("spoiler_text", draft.spoilerText)
+                    put("sensitive", draft.sensitive)
+                    draft.language?.let { put("language", it) }
+                    draft.inReplyToId?.let { put("in_reply_to_id", it) }
+                    put("media_ids", JsonArray(draft.mediaIds.map(::JsonPrimitive)))
+                    draft.quotedStatusId?.let { put("quoted_status_id", it) }
+                    draft.quotePolicy?.let { put("quote_approval_policy", it) }
                     draft.poll?.let { poll ->
-                        poll.options.forEach { append("poll[options][]", it) }
-                        append("poll[expires_in]", poll.expiresIn.toString())
-                        append("poll[multiple]", poll.multiple.toString())
-                        append("poll[hide_totals]", poll.hideTotals.toString())
+                        put(
+                            "poll",
+                            buildJsonObject {
+                                put("options", JsonArray(poll.options.map(::JsonPrimitive)))
+                                put("expires_in", poll.expiresIn)
+                                put("multiple", poll.multiple)
+                                put("hide_totals", poll.hideTotals)
+                            },
+                        )
                     }
                 }
-            )
+            } else {
+                FormDataContent(
+                    Parameters.build {
+                        append("status", draft.text)
+                        append("visibility", draft.visibility)
+                        append("spoiler_text", draft.spoilerText)
+                        append("sensitive", draft.sensitive.toString())
+                        draft.language?.let { append("language", it) }
+                        draft.inReplyToId?.let { append("in_reply_to_id", it) }
+                        draft.mediaIds.forEach { append("media_ids[]", it) }
+                        draft.quotedStatusId?.let { append("quoted_status_id", it) }
+                        draft.quotePolicy?.let { append("quote_approval_policy", it) }
+                        draft.poll?.let { poll ->
+                            poll.options.forEach { append("poll[options][]", it) }
+                            append("poll[expires_in]", poll.expiresIn.toString())
+                            append("poll[multiple]", poll.multiple.toString())
+                            append("poll[hide_totals]", poll.hideTotals.toString())
+                        }
+                    }
+                )
+            }
         return decodeApi(
             request(
                     "/api/v1/statuses" + (editId?.let { "/${segment(it)}" } ?: ""),
