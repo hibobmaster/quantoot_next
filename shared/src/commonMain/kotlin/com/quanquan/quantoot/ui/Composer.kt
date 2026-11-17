@@ -2,9 +2,16 @@ package com.quanquan.quantoot.ui
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Face
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.quanquan.quantoot.data.*
@@ -22,8 +29,7 @@ class ComposerDraft(route: Screen.Compose, me: Account?) {
                     .joinToString(" ") { "@$it" } + " "
             }
             .orEmpty()
-    var text by
-        mutableStateOf(
+    private val startingText =
             edit?.let { status ->
                 val content = plainText(status.content)
                 val missing =
@@ -34,7 +40,10 @@ class ComposerDraft(route: Screen.Compose, me: Account?) {
                         .joinToString(" ") { "@${it.acct}" }
                 listOf(missing, content).filter { it.isNotBlank() }.joinToString(" ")
             } ?: replyMentions
-        )
+    var textInput by mutableStateOf(TextFieldValue(startingText, TextRange(startingText.length)))
+    var text: String
+        get() = textInput.text
+        set(value) { textInput = TextFieldValue(value, TextRange(value.length)) }
     var spoiler by mutableStateOf(edit?.spoilerText ?: route.reply?.spoilerText.orEmpty())
     var sensitive by mutableStateOf(edit?.sensitive ?: false)
     var visibility by
@@ -76,9 +85,29 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
     var discard by remember { mutableStateOf(false) }
     var emojis by remember { mutableStateOf<List<CustomEmoji>>(emptyList()) }
     var showEmoji by remember { mutableStateOf(false) }
+    var emojisLoading by remember { mutableStateOf(false) }
+    var emojisLoaded by remember { mutableStateOf(false) }
+    var suggestions by remember { mutableStateOf<List<Tag>>(emptyList()) }
+    var showWarning by remember(draft) { mutableStateOf(draft.spoiler.isNotBlank()) }
     var editingAlt by remember { mutableStateOf<MediaAttachment?>(null) }
     var alt by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+    val keyboard = LocalSoftwareKeyboardController.current
+    val hashtag = remember(draft.textInput) { hashtagAtCaret(draft.textInput) }
+    LaunchedEffect(ui.api, hashtag?.query, hashtag?.start) {
+        suggestions = emptyList()
+        val token = hashtag ?: return@LaunchedEffect
+        delay(240)
+        try {
+            suggestions = (if (token.query.isEmpty()) ui.api.trendingTags()
+                else ui.api.search(token.query, type = "hashtags").hashtags)
+                .distinctBy { it.name.lowercase() }.take(3)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            suggestions = emptyList()
+        }
+    }
     DisposableEffect(ui) {
         ui.beforeBack = { if (draft.dirty) discard = true else ui.back() }
         onDispose { ui.beforeBack = null }
@@ -152,23 +181,48 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
             Text("❞ @${it.account.acct}")
             Text(plainText(it.content).take(240), style = MaterialTheme.typography.bodySmall)
         }
+        Toggle(tr("mastodon_content_warning"), showWarning) {
+            showWarning = it
+            if (!it) draft.spoiler = ""
+        }
+        if (showWarning) OutlinedTextField(
+                draft.spoiler,
+                { draft.spoiler = it },
+                label = { Text(tr("mastodon_content_warning")) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                enabled = !busy,
+            )
         OutlinedTextField(
-            draft.spoiler,
-            { draft.spoiler = it },
-            label = { Text(tr("mastodon_content_warning")) },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !busy,
-        )
-        OutlinedTextField(
-            draft.text,
-            { draft.text = it },
+            draft.textInput,
+            { draft.textInput = it },
             label = { Text(tr("mastodon_content")) },
             placeholder = { Text(tr("mastodon_what_is_on_your_mind")) },
             modifier = Modifier.fillMaxWidth(),
             minLines = 6,
+            shape = MaterialTheme.shapes.medium,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+            ),
             enabled = !busy,
             isError = count > limit,
         )
+        if (suggestions.isNotEmpty() && hashtag != null) {
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                shape = MaterialTheme.shapes.medium,
+            ) {
+                Column {
+                    suggestions.forEach { tag ->
+                        TextButton(
+                            onClick = { draft.textInput = completeHashtag(draft.textInput, hashtag, tag.name) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text("#${tag.name}") }
+                    }
+                }
+            }
+        }
         Text(
             "$count / $limit",
             color =
@@ -182,6 +236,7 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
                         safeWebUrl(media.previewUrl ?: media.url.orEmpty()),
                         media.description,
                         Modifier.fillMaxWidth().height(120.dp),
+                        contentScale = ContentScale.Crop,
                     )
                     Text(media.description.orEmpty())
                     Row {
@@ -208,7 +263,7 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
             }
         }
         Row(Modifier.horizontalScroll(rememberScrollState())) {
-            OutlinedButton(
+            FilledTonalButton(
                 onClick = {
                     busy = true
                     scope.launch {
@@ -229,45 +284,31 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
                 },
                 enabled = !busy && !draft.pollEnabled && draft.attachments.size < 4,
             ) {
+                Icon(Icons.Default.Add, null, Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
                 Text(tr("mastodon_add_media"))
             }
-            TextButton(
+            Spacer(Modifier.width(8.dp))
+            OutlinedButton(
                 onClick = {
-                    showEmoji = !showEmoji
-                    if (emojis.isEmpty()) ui.run { emojis = ui.api.emojis() }
-                }
-            ) {
-                Text(tr("mastodon_emoji"))
-            }
-        }
-        if (showEmoji) {
-            Row(Modifier.horizontalScroll(rememberScrollState())) {
-                listOf("😀", "🎉", "❤️", "👍", "🌱").forEach { emoji ->
-                    TextButton(onClick = { draft.text += emoji }) { Text(emoji) }
-                }
-            }
-            emojis.chunked(5).forEach { row ->
-                Row {
-                    row.forEach { emoji ->
-                        TextButton(
-                            onClick = { draft.text += " :${emoji.shortcode}: " },
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Column {
-                                AsyncImage(
-                                    safeWebUrl(emoji.staticUrl.ifBlank { emoji.url }),
-                                    emoji.shortcode,
-                                    Modifier.size(28.dp),
-                                )
-                                Text(
-                                    emoji.shortcode,
-                                    maxLines = 1,
-                                    style = MaterialTheme.typography.labelSmall,
-                                )
-                            }
+                    keyboard?.hide()
+                    showEmoji = true
+                    if (!emojisLoaded && !emojisLoading) {
+                        emojisLoading = true
+                        scope.launch {
+                            try {
+                                emojis = ui.api.emojis()
+                                emojisLoaded = true
+                            } catch (e: CancellationException) { throw e }
+                            catch (e: Exception) { error = e.message }
+                            finally { emojisLoading = false }
                         }
                     }
                 }
+            ) {
+                Icon(Icons.Default.Face, null, Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(tr("mastodon_emoji"))
             }
         }
         Toggle(tr("mastodon_sensitive_content"), draft.sensitive) { draft.sensitive = it }
@@ -327,20 +368,23 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
         Choice(tr("mastodon_visibility"), draft.visibility, visibilityOptions()) {
             draft.visibility = it
         }
-        OutlinedTextField(
-            draft.language,
-            { draft.language = it },
-            label = { Text(tr("mastodon_post_language")) },
-            placeholder = { Text("en / zh / zh-TW") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        val systemLanguage = ui.platform.languageTag.substringBefore('-').lowercase()
+        val languages = listOf("" to tr("mastodon_language_default")) +
+            postLanguages.filter { it.first == systemLanguage }.map {
+                it.first to "${tr("settings_language_system")} (${it.second})"
+            } + postLanguages.filterNot { it.first == systemLanguage }
+        Choice(tr("mastodon_post_language"), draft.language,
+            if (draft.language.isNotBlank() && languages.none { it.first == draft.language })
+                languages + (draft.language to draft.language)
+            else languages,
+        ) { draft.language = it }
         Choice(tr("mastodon_compose_quote_policy"), draft.quotePolicy, quoteOptions()) {
             draft.quotePolicy = it
         }
-        Row {
+        Row(Modifier.fillMaxWidth()) {
             Button(
                 onClick = ::publish,
+                modifier = Modifier.weight(1f).heightIn(min = 52.dp),
                 enabled =
                     !busy &&
                         count <= limit &&
@@ -358,6 +402,12 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
         }
         if (busy) Loading()
     }
+    if (showEmoji) EmojiPickerSheet(
+        emojis,
+        emojisLoading,
+        onSelect = { draft.textInput = insertAtSelection(draft.textInput, it) },
+        onDismiss = { showEmoji = false },
+    )
     if (discard)
         AlertDialog(
             onDismissRequest = { discard = false },

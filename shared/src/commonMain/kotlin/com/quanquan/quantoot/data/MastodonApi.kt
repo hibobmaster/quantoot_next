@@ -619,6 +619,8 @@ class MastodonApi(
                 ?: (config?.get("urls") as? JsonObject)?.string("streaming")?.takeIf {
                     it.isNotBlank()
                 }
+        val contact = info["contact"] as? JsonObject
+        val usage = (info["usage"] as? JsonObject)?.get("users") as? JsonObject
         return ServerInfo(
                 info.string("title"),
                 info.string("description"),
@@ -627,6 +629,11 @@ class MastodonApi(
                 max,
                 stream,
                 (info["oauth"] as? JsonObject)?.get("pkce") == JsonPrimitive(true),
+                thumbnail = (info["thumbnail"] as? JsonObject)?.string("url")?.takeIf { it.isNotBlank() },
+                activeMonthlyUsers = usage?.string("active_month")?.toIntOrNull()?.takeIf { it >= 0 },
+                contactEmail = contact?.string("email").orEmpty(),
+                contactAccount = (contact?.get("account") as? JsonObject)?.let { decodeApi<Account>(it) },
+                rules = (info["rules"] as? JsonArray)?.let { decodeApi<List<ServerRule>>(it) }.orEmpty(),
             )
             .also { cachedServer = it }
     }
