@@ -100,6 +100,37 @@ final class ClientNavigationStabilityTests: XCTestCase {
     }
 
     @MainActor
+    func testLocalizedSettingsChildReturnsThroughAccounts() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-app_locale", "zh"]
+        app.launch()
+        XCTAssertTrue(app.buttons["设置"].waitForExistence(timeout: 15))
+        app.buttons["设置"].tap()
+        let server = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "关于此服务器")).firstMatch
+        for _ in 0..<6 {
+            if server.exists && server.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(server.exists && server.isHittable)
+        server.tap()
+        let title = app.staticTexts["关于此服务器"].firstMatch
+        XCTAssertTrue(title.waitForExistence(timeout: 10))
+        XCTAssertLessThan(title.frame.minY, app.frame.height * 0.2)
+        XCTAssertFalse(app.buttons["设置"].exists)
+        app.buttons["账号"].firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["账号"].firstMatch.waitForExistence(timeout: 10))
+        app.buttons["关闭"].firstMatch.tap()
+        XCTAssertTrue(title.waitForExistence(timeout: 10))
+        XCTAssertLessThan(title.frame.minY, app.frame.height * 0.2)
+        capture("Localized Settings child after Accounts", app)
+        app.buttons["关闭"].firstMatch.tap()
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "语言")).firstMatch.waitForExistence(timeout: 10))
+        app.buttons["关闭"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["个人资料"].firstMatch.waitForExistence(timeout: 10))
+    }
+
+    @MainActor
     private func launch() -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-app_locale", "en"]
