@@ -1,0 +1,30 @@
+{
+  "summary": {
+    "status": "FAILED",
+    "durationMs": 65666,
+    "counts": {
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0
+    },
+    "target": "simulator"
+  },
+  "failures": [
+    {
+      "suite": "ClientExperienceTests",
+      "test": "testLoggedInReaderCanOpenRepliesWithoutARefreshButton",
+      "message": "XCTAssertFalse failed - Timeline refresh belongs to the pull gesture.",
+      "location": "/Users/bobmaster/Projects/QuanToot_Next/iosApp/QuanTootUITests/ClientExperienceTests.swift:17"
+    },
+    {
+      "suite": "ClientExperienceTests",
+      "test": "testLoggedInReaderCanOpenRepliesWithoutARefreshButton()",
+      "message": "XCTAssertFalse failed - Timeline refresh belongs to the pull gesture."
+    }
+  ],
+  "artifacts": {
+    "buildLogPath": "~/Library/Developer/XcodeBuildMCP/workspaces/QuanToot_Next-60ddf7a34c29/logs/test_sim_2026-11-17T05-50-13-817Z_pid24740_0bc67aed.log",
+    "xcresultPath": "~/Library/Developer/XcodeBuildMCP/workspaces/QuanToot_Next-60ddf7a34c29/result-bundles/test_sim_2026-11-17T05-50-13-817Z_pid24740_6cf10b30.xcresult",
+    "testProductsPath": "~/Library/Developer/XcodeBuildMCP/workspaces/QuanToot_Next-60ddf7a34c29/test-products/test_sim_2026-11-17T05-50-13-817Z_pid24740_92a3efd4.xctestproducts"
+  }
+}

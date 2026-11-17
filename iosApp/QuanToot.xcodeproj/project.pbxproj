@@ -11,6 +11,7 @@
 		BEAE718FF4B4FFB27512F670 /* StorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A54E38DA536CDA310EC1BEF /* StorageTests.swift */; };
 		C433BA568A4306134764E975 /* QuanTootApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C68C2A03C70EF61E58802A51 /* QuanTootApp.swift */; };
 		DF824FB47265F720CA361192 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 84DF6567EEA62462242BA71C /* Assets.xcassets */; };
+		E7B3EA7E534B011D09E21318 /* ClientExperienceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F83F11E905E0A51784CE8AE4 /* ClientExperienceTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,6 +40,7 @@
 		C68C2A03C70EF61E58802A51 /* QuanTootApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuanTootApp.swift; sourceTree = "<group>"; };
 		D2CD5E37D7AB0D7C644C99B4 /* QuanTootTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = QuanTootTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F62EC1904D13C36C6A9057D6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F83F11E905E0A51784CE8AE4 /* ClientExperienceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientExperienceTests.swift; sourceTree = "<group>"; };
 		F85D906ECDC5BDD0ABAB8325 /* QuanTootUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = QuanTootUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -77,6 +79,7 @@
 		973B8B27D4EBD14F9B2F3D76 /* QuanTootUITests */ = {
 			isa = PBXGroup;
 			children = (
+				F83F11E905E0A51784CE8AE4 /* ClientExperienceTests.swift */,
 				0A9F667F2F94F3C7696FDB68 /* GuestBrowsingTests.swift */,
 			);
 			path = QuanTootUITests;
@@ -237,6 +240,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E7B3EA7E534B011D09E21318 /* ClientExperienceTests.swift in Sources */,
 				80B60207D8CA05C62B1437D7 /* GuestBrowsingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
