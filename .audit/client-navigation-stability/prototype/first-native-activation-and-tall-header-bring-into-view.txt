@@ -1,0 +1,38 @@
+id=;element=false;frame=(0.0, 0.0, 0.0, 0.0);label=
+id=;element=false;frame=(0.0, 0.0, 0.0, 0.0);label=
+id=;element=false;frame=(0.0, 0.0, 0.0, 0.0);label=
+id=;element=false;frame=(0.0, 0.0, 0.0, 0.0);label=
+id=;element=false;frame=(0.0, 0.0, 0.0, 0.0);label=
+id=;element=false;frame=(0.0, 0.0, 0.0, 0.0);label=
+id=;element=false;frame=(0.0, 0.0, 0.0, 0.0);label=
+id=;element=false;frame=(0.0, 0.0, 402.0, 874.0);label=
+id=;element=false;frame=(0.0, 0.0, 402.0, 874.0);label=
+id=;element=false;frame=(0.0, 62.0, 402.0, 778.0);label=
+id=probe:screen;element=false;frame=(0.0, 62.0, 402.0, 778.0);label=
+id=;element=false;frame=(0.0, 62.0, 402.0, 52.0);label=
+id=probe:toggle-tall;element=true;frame=(0.0, 62.0, 206.0, 52.0);label=Normal header
+id=;element=false;frame=(12.0, 70.0, 182.0, 36.0);label=Normal header
+id=probe:toggle-large;element=true;frame=(206.0, 62.0, 168.0, 52.0);label=Normal text
+id=;element=false;frame=(218.0, 70.0, 144.0, 36.0);label=Normal text
+id=probe:toggle-loading;element=true;frame=(374.0, 62.0, 28.0, 52.0);label=Loading body
+id=;element=false;frame=(386.0, 70.0, 16.0, 36.0);label=Loading body
+id=;element=false;frame=(0.0, 114.0, 402.0, 52.0);label=
+id=probe:reveal-header-top;element=true;frame=(0.0, 114.0, 69.33333587646484, 52.0);label=Top
+id=;element=false;frame=(12.0, 122.0, 45.33333206176758, 36.0);label=Top
+id=probe:reveal-header-end;element=true;frame=(69.33333587646484, 114.0, 71.00000762939453, 52.0);label=End
+id=;element=false;frame=(81.33333587646484, 122.0, 47.00000762939453, 36.0);label=End
+id=probe:reveal-body;element=true;frame=(140.3333282470703, 114.0, 87.0, 52.0);label=Body
+id=;element=false;frame=(152.3333282470703, 122.0, 63.0, 36.0);label=Body
+id=probe:clip-body;element=true;frame=(227.3333282470703, 114.0, 72.33332824707031, 52.0);label=Clip
+id=;element=false;frame=(239.3333282470703, 122.0, 48.33332824707031, 36.0);label=Clip
+id=probe:metrics;element=true;frame=(0.0, 166.0, 402.0, 173.33331298828125);label=collapse=308;header=3828;tabs=3520;bodyIndex=0;bodyOffset=0;refresh=0;refreshAt=none;headerHits=2;bodyHits=0;bodyBottom=5330;viewport=1502
+id=;element=false;frame=(177.0, 295.3333435058594, 48.0, 48.0);label=
+id=;element=false;frame=(177.0, 295.3333435058594, 48.0, 48.0);label=
+id=;element=false;frame=(193.0, 311.3333435058594, 16.0, 16.0);label=
+id=probe:viewport;element=false;frame=(0.0, 339.3333435058594, 402.0, 500.6666564941406);label=
+id=;element=false;frame=(16.0, 252.6666717529297, 370.0, 86.66667175292969);label=TEMPORARY PROFILE MOTION PROBE
+id=;element=false;frame=(16.0, 315.3333435058594, 370.0, 524.6666259765625);label=
+id=probe:header-top-action;element=true;frame=(16.0, 339.3333435058594, 269.3333435058594, 52.0);label=Header top action
+id=;element=false;frame=(40.0, 347.3333435058594, 221.33331298828125, 36.0);label=Header top action
+id=;element=false;frame=(16.0, 1271.3333740234375, 370.0, 173.3333740234375);label=Naturally measured profile fields. The header may grow beyond one viewport.
+id=probe:header-end-action;element=false;frame=(16.0, 1444.6666259765625, 274.3333435058594, 52.0);label=

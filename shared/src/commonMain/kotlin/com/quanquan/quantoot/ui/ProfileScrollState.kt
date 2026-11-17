@@ -69,7 +69,6 @@ internal class ProfileScrollState : ScrollableState {
         withMotion(scrollPriority) { block() }
     }
 
-    // Nested children cannot bypass the controller's mutation and body-scroll ownership.
     override fun dispatchRawDelta(delta: Float): Float = 0f
 
     internal suspend fun reveal(region: ProfileRegion, bounds: () -> Rect?) {

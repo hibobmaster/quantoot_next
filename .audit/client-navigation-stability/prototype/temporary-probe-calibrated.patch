@@ -1,0 +1,686 @@
+diff --git a/iosApp/QuanToot.xcodeproj/project.pbxproj b/iosApp/QuanToot.xcodeproj/project.pbxproj
+index 814bcf0..d17c338 100644
+--- a/iosApp/QuanToot.xcodeproj/project.pbxproj
++++ b/iosApp/QuanToot.xcodeproj/project.pbxproj
+@@ -7,6 +7,8 @@
+ 	objects = {
+ 
+ /* Begin PBXBuildFile section */
++		650000000000000000000001 /* TemporaryProfileAccessibilityProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 650000000000000000000003 /* TemporaryProfileAccessibilityProbeTests.swift */; };
++		650000000000000000000002 /* TemporaryProfileMotionProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 650000000000000000000004 /* TemporaryProfileMotionProbeTests.swift */; };
+ 		0330CD525E210F96C911435A /* ClientNavigationStabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97EB765E9FAFF3BEC281EF8 /* ClientNavigationStabilityTests.swift */; };
+ 		44114A3211B56289628730D6 /* ClientRefinementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB28B6302A1E48906D4BA74F /* ClientRefinementTests.swift */; };
+ 		60DFEE804F2318B18827FE5A /* ProfileTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0E8591AADE1CE930D4D45FA /* ProfileTestSupport.swift */; };
+@@ -38,6 +40,8 @@
+ /* End PBXContainerItemProxy section */
+ 
+ /* Begin PBXFileReference section */
++		650000000000000000000003 /* TemporaryProfileAccessibilityProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryProfileAccessibilityProbeTests.swift; sourceTree = "<group>"; };
++		650000000000000000000004 /* TemporaryProfileMotionProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryProfileMotionProbeTests.swift; sourceTree = "<group>"; };
+ 		0A9F667F2F94F3C7696FDB68 /* GuestBrowsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestBrowsingTests.swift; sourceTree = "<group>"; };
+ 		457AB8C12B80793595D29CE9 /* ClientInteractionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientInteractionTests.swift; sourceTree = "<group>"; };
+ 		4A54E38DA536CDA310EC1BEF /* StorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageTests.swift; sourceTree = "<group>"; };
+@@ -91,6 +95,7 @@
+ 		973B8B27D4EBD14F9B2F3D76 /* QuanTootUITests */ = {
+ 			isa = PBXGroup;
+ 			children = (
++				650000000000000000000004 /* TemporaryProfileMotionProbeTests.swift */,
+ 				F83F11E905E0A51784CE8AE4 /* ClientExperienceTests.swift */,
+ 				457AB8C12B80793595D29CE9 /* ClientInteractionTests.swift */,
+ 				A97EB765E9FAFF3BEC281EF8 /* ClientNavigationStabilityTests.swift */,
+@@ -105,6 +110,7 @@
+ 		B01CF5CF368EC62938015A18 /* QuanTootTests */ = {
+ 			isa = PBXGroup;
+ 			children = (
++				650000000000000000000003 /* TemporaryProfileAccessibilityProbeTests.swift */,
+ 				555BF0A79B45FDE763E3048B /* AuthorizedServerReadTests.swift */,
+ 				4A54E38DA536CDA310EC1BEF /* StorageTests.swift */,
+ 			);
+@@ -250,6 +256,7 @@
+ 			isa = PBXSourcesBuildPhase;
+ 			buildActionMask = 2147483647;
+ 			files = (
++				650000000000000000000001 /* TemporaryProfileAccessibilityProbeTests.swift in Sources */,
+ 				662BEAB40D40BBD682C1F610 /* AuthorizedServerReadTests.swift in Sources */,
+ 				BEAE718FF4B4FFB27512F670 /* StorageTests.swift in Sources */,
+ 			);
+@@ -259,6 +266,7 @@
+ 			isa = PBXSourcesBuildPhase;
+ 			buildActionMask = 2147483647;
+ 			files = (
++				650000000000000000000002 /* TemporaryProfileMotionProbeTests.swift in Sources */,
+ 				E7B3EA7E534B011D09E21318 /* ClientExperienceTests.swift in Sources */,
+ 				BD7F36660AACD2A8746CBBEF /* ClientInteractionTests.swift in Sources */,
+ 				0330CD525E210F96C911435A /* ClientNavigationStabilityTests.swift in Sources */,
+diff --git a/iosApp/QuanToot/QuanTootApp.swift b/iosApp/QuanToot/QuanTootApp.swift
+index 5875643..4d19b44 100644
+--- a/iosApp/QuanToot/QuanTootApp.swift
++++ b/iosApp/QuanToot/QuanTootApp.swift
+@@ -22,7 +22,14 @@ private struct SharedView: UIViewControllerRepresentable {
+     let platform: IosPlatformServices
+ 
+     func makeUIViewController(context: Context) -> UIViewController {
+-        MainViewControllerKt.MainViewController(platform: platform)
++        // TEMPORARY: isolated native probe only. Remove before integrating the Profile core.
++        if ProcessInfo.processInfo.arguments.contains("--temporary-profile-motion-probe") {
++            return TemporaryProfileMotionProbeControllerKt.temporaryProfileMotionProbeViewController(
++                tallHeader: ProcessInfo.processInfo.arguments.contains("--probe-tall-header"),
++                largeText: ProcessInfo.processInfo.arguments.contains("--probe-large-text")
++            )
++        }
++        return MainViewControllerKt.MainViewController(platform: platform)
+     }
+ 
+     func updateUIViewController(_ controller: UIViewController, context: Context) {}
+diff --git a/iosApp/QuanTootTests/TemporaryProfileAccessibilityProbeTests.swift b/iosApp/QuanTootTests/TemporaryProfileAccessibilityProbeTests.swift
+new file mode 100644
+index 0000000..b658d33
+--- /dev/null
++++ b/iosApp/QuanTootTests/TemporaryProfileAccessibilityProbeTests.swift
+@@ -0,0 +1,203 @@
++import XCTest
++import UIKit
++import QuanTootShared
++
++// TEMPORARY: invokes public UIKit accessibility actions on actual Compose accessibility elements.
++@MainActor
++final class TemporaryProfileAccessibilityProbeTests: XCTestCase {
++    private var probeWindow: UIWindow?
++    private weak var previousKeyWindow: UIWindow?
++
++    override func tearDown() {
++        probeWindow?.isHidden = true
++        probeWindow = nil
++        previousKeyWindow?.makeKeyAndVisible()
++        super.tearDown()
++    }
++
++    func testNativeAccessibilityScrollMovesEmptyHeaderDownAndUp() async throws {
++        try await host()
++        try await activate("profile:category:Media")
++        try await settle()
++        let before = try number("collapse")
++        let viewport = try requireElement("probe:viewport")
++        XCTAssertTrue(viewport.accessibilityScroll(.down))
++        await expectEventually { ((try? self.number("collapse")) ?? 0) > before + 20 }
++        try await settle()
++        XCTAssertEqual(try number("bodyIndex"), 0)
++        XCTAssertEqual(try number("bodyOffset"), 0)
++        let down = try number("collapse")
++        XCTAssertTrue(try requireElement("probe:viewport").accessibilityScroll(.up))
++        await expectEventually { ((try? self.number("collapse")) ?? down) < down - 20 }
++        try await settle()
++        attachTree("Native empty-body accessibility scrolling")
++    }
++
++    func testNativeAccessibilityScrollCrossesIntoBodyAndCanActivateActions() async throws {
++        try await host()
++        XCTAssertTrue(try requireElement("probe:viewport").accessibilityScroll(.down))
++        try await settle()
++        XCTAssertEqual(try number("collapse"), try number("header"), accuracy: 2)
++        XCTAssertTrue(try number("bodyIndex") > 0 || number("bodyOffset") > 0)
++        try await activate("probe:reveal-body")
++        await expectEventually { self.visible("probe:body-action:0") }
++        try await settle()
++        try await activate("probe:body-action:0")
++        XCTAssertEqual(try number("bodyHits"), 1)
++        let body = try requireElement("probe:body-action:0").accessibilityFrame
++        let viewport = try requireElement("probe:viewport").accessibilityFrame
++        let tabs = try requireElement("profile:categories").accessibilityFrame
++        XCTAssertGreaterThanOrEqual(body.minY, tabs.maxY - 2)
++        XCTAssertLessThanOrEqual(body.maxY, viewport.maxY + 2)
++        attachTree("Native body scroll and activation")
++    }
++
++    func testNativeActivationBringsTallHeaderActionsIntoViewAtLargeText() async throws {
++        try await host(tall: true, large: true)
++        XCTAssertFalse(visible("probe:header-end-action"))
++        try await activate("probe:reveal-header-end")
++        await expectEventually { self.visible("probe:header-end-action") }
++        try await settle()
++        XCTAssertGreaterThan(try number("collapse"), 500)
++        try await activate("probe:header-end-action")
++        XCTAssertEqual(try number("headerHits"), 1)
++        try await activate("probe:reveal-header-top")
++        await expectEventually { self.visible("probe:header-top-action") }
++        try await settle()
++        try await activate("probe:header-top-action")
++        XCTAssertEqual(try number("headerHits"), 2)
++        attachTree("Native activation and tall-header bring-into-view")
++    }
++
++    func testClippedBodyIsNotAnAccessibleActionUntilRevealed() async throws {
++        try await host()
++        XCTAssertFalse(visible("probe:body-action:0"))
++        XCTAssertEqual(try number("bodyHits"), 0)
++        try await activate("probe:reveal-body")
++        await expectEventually { self.visible("probe:body-action:0") }
++        try await settle()
++        try await activate("probe:clip-body")
++        try await settle()
++        XCTAssertGreaterThan(try number("bodyBottom"), try number("viewport") + 10,
++                             "The native focus check must start with an actually clipped action.")
++        let action = try requireElement("probe:body-action:0")
++        action.accessibilityElementDidBecomeFocused()
++        NotificationCenter.default.post(
++            name: UIAccessibility.elementFocusedNotification,
++            object: nil,
++            userInfo: [UIAccessibility.focusedElementUserInfoKey: action]
++        )
++        await expectEventually {
++            guard let bottom = try? self.number("bodyBottom"), let viewport = try? self.number("viewport") else { return false }
++            return bottom <= viewport + 2
++        }
++        try await settle()
++        XCTAssertTrue(visible("probe:body-action:0"))
++        XCTAssertTrue(action.accessibilityActivate())
++        try await settle()
++        XCTAssertEqual(try number("bodyHits"), 1)
++        attachTree("Clipped native action visibility")
++    }
++
++    private func host(tall: Bool = false, large: Bool = false) async throws {
++        continueAfterFailure = false
++        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
++        previousKeyWindow = scene?.windows.first(where: \.isKeyWindow)
++        let window = scene.map { UIWindow(windowScene: $0) } ?? UIWindow(frame: UIScreen.main.bounds)
++        window.frame = UIScreen.main.bounds
++        window.windowLevel = .normal + 1
++        window.rootViewController = TemporaryProfileMotionProbeControllerKt.temporaryProfileMotionProbeViewController(tallHeader: tall, largeText: large)
++        probeWindow = window
++        window.makeKeyAndVisible()
++        window.rootViewController?.view.layoutIfNeeded()
++        await expectEventually { self.find("probe:metrics") != nil }
++        try await settle()
++    }
++
++    private func elements() -> [NSObject] {
++        guard let probeWindow else { return [] }
++        var found: [NSObject] = []
++        var seen = Set<ObjectIdentifier>()
++        func walk(_ object: NSObject) {
++            guard seen.insert(ObjectIdentifier(object)).inserted else { return }
++            found.append(object)
++            if let children = object.accessibilityElements {
++                for child in children { if let child = child as? NSObject { walk(child) } }
++            } else {
++                let count = object.accessibilityElementCount()
++                if count > 0 && count < 1000 {
++                    for index in 0..<count {
++                        if let child = object.accessibilityElement(at: index) as? NSObject { walk(child) }
++                    }
++                }
++            }
++            if let view = object as? UIView { view.subviews.forEach(walk) }
++        }
++        walk(probeWindow)
++        return found
++    }
++
++    private func find(_ identifier: String) -> NSObject? {
++        elements().first { ($0 as? UIAccessibilityIdentification)?.accessibilityIdentifier == identifier }
++    }
++
++    private func requireElement(_ identifier: String) throws -> NSObject {
++        try XCTUnwrap(find(identifier), "Missing native accessibility element \(identifier)")
++    }
++
++    private func visible(_ identifier: String) -> Bool {
++        guard let element = find(identifier), element.isAccessibilityElement,
++              let viewport = find("probe:viewport") else { return false }
++        let frame = element.accessibilityFrame
++        return !frame.isEmpty && viewport.accessibilityFrame.intersects(frame)
++    }
++
++    private func activate(_ identifier: String) async throws {
++        XCTAssertTrue(try requireElement(identifier).accessibilityActivate(), identifier)
++        try await settle()
++    }
++
++    private func number(_ key: String) throws -> Double {
++        let label = try XCTUnwrap(requireElement("probe:metrics").accessibilityLabel)
++        let values = Dictionary(uniqueKeysWithValues: label.split(separator: ";").compactMap { item -> (String, String)? in
++            let pair = item.split(separator: "=", maxSplits: 1).map(String.init)
++            return pair.count == 2 ? (pair[0], pair[1]) : nil
++        })
++        return try XCTUnwrap(values[key].flatMap(Double.init), "Missing numeric metric \(key): \(label)")
++    }
++
++    private func eventually(_ condition: () -> Bool) async -> Bool {
++        let deadline = Date().addingTimeInterval(8)
++        while Date() < deadline {
++            if condition() { return true }
++            try? await Task.sleep(nanoseconds: 40_000_000)
++        }
++        return false
++    }
++
++    private func expectEventually(_ condition: () -> Bool, file: StaticString = #filePath, line: UInt = #line) async {
++        let succeeded = await eventually(condition)
++        XCTAssertTrue(succeeded, file: file, line: line)
++    }
++
++    private func settle() async throws {
++        var last = ""
++        var since = Date()
++        let settled = await eventually {
++            let current = self.find("probe:metrics")?.accessibilityLabel ?? ""
++            if current != last { last = current; since = Date(); return false }
++            return !current.isEmpty && Date().timeIntervalSince(since) > 0.6
++        }
++        XCTAssertTrue(settled)
++    }
++
++    private func attachTree(_ name: String) {
++        let dump = elements().map {
++            "id=\(($0 as? UIAccessibilityIdentification)?.accessibilityIdentifier ?? "");element=\($0.isAccessibilityElement);frame=\($0.accessibilityFrame);label=\($0.accessibilityLabel ?? "")"
++        }.joined(separator: "\n")
++        let attachment = XCTAttachment(string: dump)
++        attachment.name = name
++        attachment.lifetime = .keepAlways
++        add(attachment)
++    }
++}
+diff --git a/iosApp/QuanTootUITests/TemporaryProfileMotionProbeTests.swift b/iosApp/QuanTootUITests/TemporaryProfileMotionProbeTests.swift
+new file mode 100644
+index 0000000..3d9c0b2
+--- /dev/null
++++ b/iosApp/QuanTootUITests/TemporaryProfileMotionProbeTests.swift
+@@ -0,0 +1,213 @@
++import XCTest
++
++// TEMPORARY: source-only native probe. Remove with the argument-selected probe before integration.
++@MainActor
++final class TemporaryProfileMotionProbeTests: XCTestCase {
++    func testHeaderOriginFlingContinuesIntoBodyAndReverses() throws {
++        let app = launch()
++        let viewport = element("probe:viewport", app)
++        let categories = element("profile:categories", app)
++        let categoryBeforeY = categories.frame.minY
++        let origin = categoryBeforeY - 20
++        XCTAssertGreaterThan(origin, viewport.frame.minY)
++        XCTAssertLessThan(origin, categories.frame.minY)
++        drag(app, fromY: origin, toY: viewport.frame.minY + 15, velocity: .fast)
++        waitForIdle(app)
++        let forward = metrics(app)
++        let input = XCTAttachment(string: "originY=\(origin); targetY=\(viewport.frame.minY + 15); categoryBeforeY=\(categoryBeforeY); forward=\(forward)")
++        input.name = "Header fling input and resulting body position"
++        input.lifetime = .keepAlways
++        add(input)
++        XCTAssertEqual(number("collapse", forward), number("header", forward), accuracy: 2)
++        XCTAssertTrue(number("bodyIndex", forward) > 0 || number("bodyOffset", forward) > 80,
++                      "A fling that starts over the header must continue into the lazy body.")
++        drag(app, fromY: viewport.frame.minY + 50, toY: viewport.frame.maxY - 30, velocity: .fast)
++        waitForIdle(app)
++        let reverse = metrics(app)
++        XCTAssertTrue(number("bodyIndex", reverse) < number("bodyIndex", forward) ||
++                      number("bodyOffset", reverse) < number("bodyOffset", forward) ||
++                      number("collapse", reverse) < number("collapse", forward))
++        capture("Header-origin fling and reverse", app)
++    }
++
++    func testEmptyBodyScrollAndAllCategorySwitchesKeepTheRowStable() throws {
++        let app = launch()
++        let viewport = element("probe:viewport", app)
++        drag(app, fromY: viewport.frame.maxY - 40, toY: viewport.frame.maxY - 120, velocity: .slow)
++        waitForIdle(app)
++        let anchor = element("profile:category:Posts", app).frame.midY
++        for category in ["Media", "Featured", "Activity", "About", "Posts", "Media"] {
++            let tab = revealCategory(category, app)
++            tab.tap()
++            waitForIdle(app)
++            XCTAssertEqual(tab.frame.midY, anchor, accuracy: 3, category)
++            XCTAssertEqual(number("bodyIndex", metrics(app)), 0)
++            XCTAssertEqual(number("bodyOffset", metrics(app)), 0)
++        }
++        let before = number("collapse", metrics(app))
++        drag(app, fromY: viewport.frame.maxY - 25, toY: viewport.frame.maxY - 145, velocity: .slow)
++        waitForIdle(app)
++        XCTAssertGreaterThan(number("collapse", metrics(app)), before + 40)
++        XCTAssertEqual(number("bodyOffset", metrics(app)), 0)
++        capture("Empty body header travel", app)
++    }
++
++    func testLoadingAndActivityFilterSwitchesKeepTheHeaderStable() throws {
++        let app = launch()
++        let viewport = element("probe:viewport", app)
++        drag(app, fromY: viewport.frame.maxY - 40, toY: viewport.frame.maxY - 200, velocity: .slow)
++        waitForIdle(app)
++        revealCategory("Activity", app).tap()
++        let before = number("tabs", metrics(app))
++        element("probe:filter-replies", app).tap()
++        waitForIdle(app)
++        XCTAssertEqual(number("tabs", metrics(app)), before, accuracy: 2)
++        element("probe:toggle-loading", app).tap()
++        waitForIdle(app)
++        XCTAssertEqual(number("tabs", metrics(app)), before, accuracy: 2)
++        element("probe:toggle-loading", app).tap()
++        waitForIdle(app)
++        XCTAssertEqual(number("tabs", metrics(app)), before, accuracy: 2)
++        capture("Loading and Activity replacement", app)
++    }
++
++    func testRefreshWaitsForBothHeaderAndBodyToReachTheBeginning() throws {
++        let app = launch()
++        let viewport = element("probe:viewport", app)
++        for _ in 0..<3 {
++            drag(app, fromY: viewport.frame.maxY - 30, toY: viewport.frame.minY + 30, velocity: .fast)
++        }
++        waitForIdle(app)
++        let initial = metrics(app)
++        XCTAssertGreaterThan(number("bodyIndex", initial), 1)
++        drag(app, fromY: viewport.frame.minY + 80, toY: viewport.frame.minY + 160, velocity: .slow)
++        waitForIdle(app)
++        XCTAssertEqual(number("refresh", metrics(app)), 0)
++        for _ in 0..<35 {
++            let current = metrics(app)
++            if number("bodyIndex", current) == 0 && number("bodyOffset", current) == 0 && number("collapse", current) == 0 { break }
++            drag(app, fromY: viewport.frame.minY + 50, toY: viewport.frame.maxY - 40, velocity: .slow)
++            waitForIdle(app)
++        }
++        let atTop = metrics(app)
++        XCTAssertEqual(number("collapse", atTop), 0)
++        XCTAssertEqual(number("bodyIndex", atTop), 0)
++        XCTAssertEqual(number("bodyOffset", atTop), 0)
++        let refreshBefore = number("refresh", atTop)
++        drag(app, fromY: viewport.frame.minY + 60, toY: viewport.frame.maxY - 35, velocity: .slow)
++        XCTAssertTrue(waitUntil { self.number("refresh", self.metrics(app)) > refreshBefore })
++        XCTAssertEqual(metrics(app)["refreshAt"], "0,0,0")
++        capture("Refresh callback at the true beginning", app)
++    }
++
++    func testClippedActionsAndBringIntoView() throws {
++        let app = launch()
++        let hiddenBodyAction = element("probe:body-action:0", app)
++        XCTAssertFalse(hiddenBodyAction.exists && hiddenBodyAction.isHittable)
++        element("probe:header-top-action", app).tap()
++        XCTAssertEqual(number("headerHits", metrics(app)), 1)
++        XCTAssertEqual(number("bodyHits", metrics(app)), 0)
++        element("probe:reveal-body", app).tap()
++        XCTAssertTrue(waitUntil { hiddenBodyAction.exists && hiddenBodyAction.isHittable })
++        waitForIdle(app)
++        let tabs = element("profile:categories", app)
++        let viewport = element("probe:viewport", app)
++        XCTAssertGreaterThanOrEqual(hiddenBodyAction.frame.minY, tabs.frame.maxY - 2)
++        XCTAssertLessThanOrEqual(hiddenBodyAction.frame.maxY, viewport.frame.maxY + 2)
++        hiddenBodyAction.tap()
++        XCTAssertEqual(number("bodyHits", metrics(app)), 1)
++        element("probe:reveal-header-top", app).tap()
++        XCTAssertTrue(waitUntil { self.element("probe:header-top-action", app).isHittable })
++        capture("Clipped actions after bring-into-view", app)
++    }
++
++    func testTallHeaderAndLargeTextRemainUncapped() throws {
++        let app = launch(["--probe-tall-header", "--probe-large-text"])
++        let end = element("probe:header-end-action", app)
++        XCTAssertFalse(end.exists && end.isHittable)
++        element("probe:reveal-header-end", app).tap()
++        XCTAssertTrue(waitUntil { end.exists && end.isHittable })
++        waitForIdle(app)
++        XCTAssertGreaterThan(number("collapse", metrics(app)), 500)
++        end.tap()
++        XCTAssertEqual(number("headerHits", metrics(app)), 1)
++        capture("Large text and naturally tall header", app)
++    }
++
++    private func launch(_ arguments: [String] = []) -> XCUIApplication {
++        continueAfterFailure = false
++        let app = XCUIApplication()
++        app.launchArguments = ["--temporary-profile-motion-probe"] + arguments
++        app.launch()
++        XCTAssertTrue(element("probe:metrics", app).waitForExistence(timeout: 15))
++        waitForIdle(app)
++        return app
++    }
++
++    private func element(_ identifier: String, _ app: XCUIApplication) -> XCUIElement {
++        app.descendants(matching: .any).matching(identifier: identifier).firstMatch
++    }
++
++    private func revealCategory(_ name: String, _ app: XCUIApplication) -> XCUIElement {
++        let tab = element("profile:category:\(name)", app)
++        let row = element("profile:categories", app)
++        for _ in 0..<4 {
++            if tab.exists && tab.isHittable { return tab }
++            let right = name != "Posts" && name != "Media"
++            let y = row.frame.midY
++            let from = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: app.frame.width * (right ? 0.85 : 0.15), dy: y))
++            let to = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: app.frame.width * (right ? 0.15 : 0.85), dy: y))
++            from.press(forDuration: 0.05, thenDragTo: to, withVelocity: .slow, thenHoldForDuration: 0.2)
++        }
++        XCTAssertTrue(tab.exists && tab.isHittable, name)
++        return tab
++    }
++
++    private func drag(_ app: XCUIApplication, fromY: CGFloat, toY: CGFloat, velocity: XCUIGestureVelocity) {
++        let base = app.coordinate(withNormalizedOffset: .zero)
++        base.withOffset(CGVector(dx: app.frame.width * 0.88, dy: fromY))
++            .press(forDuration: 0.03, thenDragTo: base.withOffset(CGVector(dx: app.frame.width * 0.88, dy: toY)),
++                   withVelocity: velocity, thenHoldForDuration: 0)
++    }
++
++    private func metrics(_ app: XCUIApplication) -> [String: String] {
++        Dictionary(uniqueKeysWithValues: element("probe:metrics", app).label.split(separator: ";").compactMap {
++            let pair = $0.split(separator: "=", maxSplits: 1).map(String.init)
++            return pair.count == 2 ? (pair[0], pair[1]) : nil
++        })
++    }
++
++    private func number(_ key: String, _ values: [String: String]) -> Double {
++        guard let value = values[key], let result = Double(value) else {
++            XCTFail("Missing numeric probe metric \(key): \(values)")
++            return .nan
++        }
++        return result
++    }
++
++    private func waitForIdle(_ app: XCUIApplication) {
++        var previous = ""
++        var stableSince = Date()
++        XCTAssertTrue(waitUntil {
++            let value = self.element("probe:metrics", app).label
++            if value != previous { previous = value; stableSince = Date(); return false }
++            return Date().timeIntervalSince(stableSince) > 0.6
++        })
++    }
++
++    private func waitUntil(_ condition: @escaping () -> Bool) -> Bool {
++        let expectation = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in condition() }, object: nil)
++        return XCTWaiter.wait(for: [expectation], timeout: 8) == .completed
++    }
++
++    private func capture(_ name: String, _ app: XCUIApplication) {
++        let image = XCTAttachment(screenshot: app.screenshot())
++        image.name = name
++        image.lifetime = .keepAlways
++        add(image)
++        let values = XCTAttachment(string: element("probe:metrics", app).label)
++        values.name = name + " metrics"
++        values.lifetime = .keepAlways
++        add(values)
++    }
++}
+diff --git a/shared/src/commonMain/kotlin/com/quanquan/quantoot/ui/TemporaryProfileMotionProbe.kt b/shared/src/commonMain/kotlin/com/quanquan/quantoot/ui/TemporaryProfileMotionProbe.kt
+new file mode 100644
+index 0000000..2d8bd55
+--- /dev/null
++++ b/shared/src/commonMain/kotlin/com/quanquan/quantoot/ui/TemporaryProfileMotionProbe.kt
+@@ -0,0 +1,154 @@
++package com.quanquan.quantoot.ui
++
++import androidx.compose.foundation.background
++import androidx.compose.foundation.gestures.animateScrollBy
++import androidx.compose.foundation.horizontalScroll
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.relocation.BringIntoViewRequester
++import androidx.compose.foundation.relocation.bringIntoViewRequester
++import androidx.compose.material3.*
++import androidx.compose.material3.pulltorefresh.PullToRefreshBox
++import androidx.compose.runtime.*
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.geometry.Rect
++import androidx.compose.ui.layout.onGloballyPositioned
++import androidx.compose.ui.platform.LocalDensity
++import androidx.compose.ui.platform.testTag
++import androidx.compose.ui.unit.Density
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
++import kotlin.math.roundToInt
++import kotlinx.coroutines.delay
++import kotlinx.coroutines.launch
++
++// TEMPORARY native acceptance probe. Remove this file and its launch wiring before integration.
++@OptIn(ExperimentalMaterial3Api::class)
++@Composable
++internal fun TemporaryProfileMotionProbe(initialTallHeader: Boolean = false, initialLargeText: Boolean = false) {
++    val state = rememberProfileScrollState()
++    val scope = rememberCoroutineScope()
++    var tall by remember { mutableStateOf(initialTallHeader) }
++    var large by remember { mutableStateOf(initialLargeText) }
++    var loading by remember { mutableStateOf(false) }
++    var refreshing by remember { mutableStateOf(false) }
++    var refreshCount by remember { mutableIntStateOf(0) }
++    var refreshAt by remember { mutableStateOf("none") }
++    var headerHits by remember { mutableIntStateOf(0) }
++    var bodyHits by remember { mutableIntStateOf(0) }
++    var bodyBounds by remember { mutableStateOf<Rect?>(null) }
++    val headerTop = remember { BringIntoViewRequester() }
++    val headerEnd = remember { BringIntoViewRequester() }
++    val bodyAction = remember { BringIntoViewRequester() }
++    val density = LocalDensity.current
++    CompositionLocalProvider(LocalDensity provides Density(density.density, if (large) 1.8f else density.fontScale)) {
++        Column(Modifier.fillMaxSize().testTag("probe:screen")) {
++            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
++                TextButton({ tall = !tall }, Modifier.testTag("probe:toggle-tall")) { Text(if (tall) "Normal header" else "Tall header") }
++                TextButton({ large = !large }, Modifier.testTag("probe:toggle-large")) { Text(if (large) "Normal text" else "Large text") }
++                TextButton({ loading = !loading }, Modifier.testTag("probe:toggle-loading")) { Text(if (loading) "Ready body" else "Loading body") }
++            }
++            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
++                TextButton({ scope.launch { headerTop.bringIntoView() } }, Modifier.testTag("probe:reveal-header-top")) { Text("Top") }
++                TextButton({ scope.launch { headerEnd.bringIntoView() } }, Modifier.testTag("probe:reveal-header-end")) { Text("End") }
++                TextButton({ scope.launch { bodyAction.bringIntoView() } }, Modifier.testTag("probe:reveal-body")) { Text("Body") }
++                TextButton({
++                    scope.launch {
++                        val bottom = bodyBounds?.bottom ?: return@launch
++                        state.animateScrollBy(bottom - state.geometry.viewportHeight - with(density) { 20.dp.toPx() })
++                    }
++                }, Modifier.testTag("probe:clip-body")) { Text("Clip") }
++            }
++            val geometry = state.geometry
++            Text(
++                "collapse=${geometry.collapsed.roundToInt()};header=${geometry.headerHeight};tabs=${geometry.categoryTop.roundToInt()};" +
++                    "bodyIndex=${state.bodyState.firstVisibleItemIndex};bodyOffset=${state.bodyState.firstVisibleItemScrollOffset};" +
++                    "refresh=$refreshCount;refreshAt=$refreshAt;headerHits=$headerHits;bodyHits=$bodyHits;" +
++                    "bodyBottom=${bodyBounds?.bottom?.roundToInt() ?: -1};viewport=${geometry.viewportHeight}",
++                Modifier.fillMaxWidth().testTag("probe:metrics"), fontSize = 11.sp,
++            )
++            PullToRefreshBox(
++                isRefreshing = refreshing,
++                onRefresh = {
++                    refreshCount++
++                    refreshAt = "${state.geometry.collapsed.roundToInt()},${state.bodyState.firstVisibleItemIndex},${state.bodyState.firstVisibleItemScrollOffset}"
++                    scope.launch { refreshing = true; delay(250); refreshing = false }
++                },
++                modifier = Modifier.weight(1f).fillMaxWidth(),
++            ) {
++                ProfileScrollLayout(
++                    state = state,
++                    modifier = Modifier.fillMaxSize().testTag("probe:viewport"),
++                    header = {
++                        Column(Modifier.fillMaxWidth().background(Color(0xFFE7F2FA)).padding(16.dp)) {
++                            Text("TEMPORARY PROFILE MOTION PROBE", style = MaterialTheme.typography.titleMedium)
++                            Button(
++                                { headerHits++ },
++                                Modifier.testTag("probe:header-top-action").bringIntoViewRequester(headerTop),
++                            ) { Text("Header top action") }
++                            Spacer(Modifier.height(if (tall) 880.dp else 110.dp))
++                            Text("Naturally measured profile fields. The header may grow beyond one viewport.")
++                            Button(
++                                { headerHits++ },
++                                Modifier.testTag("probe:header-end-action").bringIntoViewRequester(headerEnd),
++                            ) { Text("Header end action") }
++                        }
++                    },
++                ) { selection ->
++                    if (loading) {
++                        item("loading") { Text("Loading body", Modifier.padding(24.dp).testTag("probe:loading")) }
++                    } else when (selection.category) {
++                        ProfileCategory.Media -> item("empty") {
++                            Text("Empty body", Modifier.padding(24.dp).testTag("probe:empty"))
++                        }
++                        ProfileCategory.Featured, ProfileCategory.About -> item("short") {
++                            Column(Modifier.padding(16.dp)) {
++                                Text("Short ${selection.category.name} body")
++                                Button({ bodyHits++ }, Modifier.testTag("probe:short-action")) { Text("Short body action") }
++                            }
++                        }
++                        ProfileCategory.Posts, ProfileCategory.Activity -> {
++                            if (selection.category == ProfileCategory.Activity) item("filters") {
++                                Row(Modifier.horizontalScroll(rememberScrollState())) {
++                                    FilterChip(
++                                        selection.showReplies,
++                                        { scope.launch { state.select(selection.copy(showReplies = !selection.showReplies)) } },
++                                        label = { Text("Replies") }, modifier = Modifier.testTag("probe:filter-replies"),
++                                    )
++                                    FilterChip(
++                                        selection.showBoosts,
++                                        { scope.launch { state.select(selection.copy(showBoosts = !selection.showBoosts)) } },
++                                        label = { Text("Boosts") }, modifier = Modifier.testTag("probe:filter-boosts"),
++                                    )
++                                }
++                            }
++                            repeat(18) { index ->
++                                item("row:$index") {
++                                    Column(
++                                        Modifier.fillMaxWidth().background(if (index % 2 == 0) Color(0xFFF2F5EB) else Color.White)
++                                            .padding(16.dp).testTag("probe:row:$index"),
++                                    ) {
++                                        Text("${selection.category.name} body row $index", style = MaterialTheme.typography.titleMedium)
++                                        Spacer(Modifier.height(if (index == 0) 420.dp else 240.dp))
++                                        Button(
++                                            { bodyHits++ },
++                                            Modifier.testTag("probe:body-action:$index")
++                                                .then(if (index == 0) Modifier.bringIntoViewRequester(bodyAction).onGloballyPositioned {
++                                                    val parent = state.coordinates
++                                                    if (parent != null && parent.isAttached) {
++                                                        val position = parent.localPositionOf(it)
++                                                        bodyBounds = Rect(position.x, position.y, position.x + it.size.width, position.y + it.size.height)
++                                                    }
++                                                } else Modifier),
++                                        ) { Text("Body action $index") }
++                                    }
++                                }
++                            }
++                        }
++                    }
++                }
++            }
++        }
++    }
++}
+diff --git a/shared/src/iosMain/kotlin/com/quanquan/quantoot/TemporaryProfileMotionProbeController.kt b/shared/src/iosMain/kotlin/com/quanquan/quantoot/TemporaryProfileMotionProbeController.kt
+new file mode 100644
+index 0000000..ba3cef7
+--- /dev/null
++++ b/shared/src/iosMain/kotlin/com/quanquan/quantoot/TemporaryProfileMotionProbeController.kt
+@@ -0,0 +1,18 @@
++package com.quanquan.quantoot
++
++import androidx.compose.foundation.layout.fillMaxSize
++import androidx.compose.foundation.layout.safeDrawingPadding
++import androidx.compose.material3.MaterialTheme
++import androidx.compose.material3.Surface
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.window.ComposeUIViewController
++import com.quanquan.quantoot.ui.TemporaryProfileMotionProbe
++
++// TEMPORARY: public only so the hosted XCTest can exercise UIKit accessibility directly.
++fun temporaryProfileMotionProbeViewController(tallHeader: Boolean, largeText: Boolean) = ComposeUIViewController {
++    MaterialTheme {
++        Surface(Modifier.fillMaxSize().safeDrawingPadding()) {
++            TemporaryProfileMotionProbe(tallHeader, largeText)
++        }
++    }
++}
