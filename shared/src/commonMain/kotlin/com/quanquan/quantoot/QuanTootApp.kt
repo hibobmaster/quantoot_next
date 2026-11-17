@@ -191,7 +191,7 @@ private fun AppShell(
                                         if (screen.edit == null) "mastodon_new_post"
                                         else "mastodon_edit_post"
                                     )
-                                Screen.Settings -> tr("settings_title")
+                                is Screen.Settings -> tr(screen.section?.titleKey ?: "settings_title")
                                 Screen.Accounts -> tr("mastodon_accounts")
                                 Screen.Instance -> tr("mastodon_choose_instance")
                                 Screen.EditProfile -> tr("mastodon_edit_profile")
@@ -209,8 +209,8 @@ private fun AppShell(
                         IconButton(onClick = { ui.navigate(Screen.Accounts) }) {
                             Icon(Icons.Default.Person, tr("mastodon_accounts"))
                         }
-                    if (routes.lastOrNull() !is Screen.Compose)
-                        IconButton(onClick = { ui.navigate(Screen.Settings) }) {
+                    if (routes.lastOrNull() !is Screen.Compose && routes.lastOrNull() !is Screen.Settings)
+                        IconButton(onClick = { ui.navigate(Screen.Settings()) }) {
                             Icon(Icons.Default.Settings, tr("settings_title"))
                         }
                 },
@@ -271,7 +271,7 @@ private fun AppShell(
                         is Screen.Profile -> ProfileScreen(ui, route.id)
                         is Screen.People -> PeopleScreen(ui, route.id, route.following)
                         is Screen.Compose -> ComposerScreen(ui, route)
-                        Screen.Settings -> SettingsScreen(ui, state)
+                        is Screen.Settings -> SettingsScreen(ui, state, route.section)
                         Screen.Accounts -> AccountsScreen(ui, state)
                         Screen.Instance -> InstanceScreen(store, state, platform)
                         Screen.EditProfile -> EditProfileScreen(ui)

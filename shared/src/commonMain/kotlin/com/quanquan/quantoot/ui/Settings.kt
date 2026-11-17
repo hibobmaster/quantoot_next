@@ -14,22 +14,33 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import coil3.SingletonImageLoader
 import coil3.compose.LocalPlatformContext
+import com.quanquan.quantoot.LoginPrompt
 import com.quanquan.quantoot.auth.SessionState
 import com.quanquan.quantoot.model.*
 import kotlinx.coroutines.*
 
+enum class SettingsSection(val titleKey: String, val requiresAccount: Boolean) {
+    Privacy("mastodon_settings_privacy", true),
+    PostingDefaults("mastodon_settings_posting_defaults", true),
+    Filters("mastodon_settings_filters", true),
+    Notifications("mastodon_settings_notifications", true),
+    Server("mastodon_settings_about_server", false),
+    PrivacyPolicy("settings_privacy_policy", false),
+    Licenses("settings_open_source_licenses", false),
+}
+
 @Composable
-fun SettingsScreen(ui: UiContext, state: SessionState) {
-    var section by remember { mutableStateOf<String?>(null) }
+fun SettingsScreen(ui: UiContext, state: SessionState, section: SettingsSection?) {
+    if (section?.requiresAccount == true && ui.me == null) {
+        LoginPrompt(ui)
+        return
+    }
     val scrollState = rememberScrollState()
     val loader = SingletonImageLoader.get(LocalPlatformContext.current)
-    LaunchedEffect(section) { scrollState.scrollTo(0) }
     Column(
         Modifier.fillMaxSize().verticalScroll(scrollState).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        if (section != null)
-            TextButton(onClick = { section = null }) { Text("‹ ${tr("settings_title")}") }
         when (section) {
             null -> {
                 Choice(tr("settings_language"), state.locale ?: "system", languageOptions()) {
@@ -47,24 +58,24 @@ fun SettingsScreen(ui: UiContext, state: SessionState) {
                     },
                 )
                 if (ui.me != null) {
-                    SettingsRow(tr("mastodon_settings_privacy"), Icons.Default.Lock) {
-                        section = "privacy"
+                    SettingsRow(tr(SettingsSection.Privacy.titleKey), Icons.Default.Lock) {
+                        ui.navigate(Screen.Settings(SettingsSection.Privacy))
                     }
-                    SettingsRow(tr("mastodon_settings_posting_defaults"), Icons.Default.Settings) {
-                        section = "defaults"
+                    SettingsRow(tr(SettingsSection.PostingDefaults.titleKey), Icons.Default.Settings) {
+                        ui.navigate(Screen.Settings(SettingsSection.PostingDefaults))
                     }
-                    SettingsRow(tr("mastodon_settings_filters"), Icons.AutoMirrored.Filled.List) {
-                        section = "filters"
+                    SettingsRow(tr(SettingsSection.Filters.titleKey), Icons.AutoMirrored.Filled.List) {
+                        ui.navigate(Screen.Settings(SettingsSection.Filters))
                     }
-                    SettingsRow(tr("mastodon_settings_notifications"), Icons.Default.Notifications) {
-                        section = "policy"
+                    SettingsRow(tr(SettingsSection.Notifications.titleKey), Icons.Default.Notifications) {
+                        ui.navigate(Screen.Settings(SettingsSection.Notifications))
                     }
                 }
-                SettingsRow(tr("mastodon_settings_about_server"), Icons.Default.Info) {
-                    section = "server"
+                SettingsRow(tr(SettingsSection.Server.titleKey), Icons.Default.Info) {
+                    ui.navigate(Screen.Settings(SettingsSection.Server))
                 }
-                SettingsRow(tr("settings_privacy_policy"), Icons.Default.Lock) {
-                    section = "privacyPolicy"
+                SettingsRow(tr(SettingsSection.PrivacyPolicy.titleKey), Icons.Default.Lock) {
+                    ui.navigate(Screen.Settings(SettingsSection.PrivacyPolicy))
                 }
                 Column(
                     Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 12.dp),
@@ -77,8 +88,8 @@ fun SettingsScreen(ui: UiContext, state: SessionState) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                SettingsRow(tr("settings_open_source_licenses"), Icons.AutoMirrored.Filled.List) {
-                    section = "licenses"
+                SettingsRow(tr(SettingsSection.Licenses.titleKey), Icons.AutoMirrored.Filled.List) {
+                    ui.navigate(Screen.Settings(SettingsSection.Licenses))
                 }
                 SettingsRow(
                     "${tr("settings_developer_support")}: BobMaster",
@@ -91,17 +102,13 @@ fun SettingsScreen(ui: UiContext, state: SessionState) {
                     ui.open("https://quanquan.space/")
                 }
             }
-            "privacy",
-            "defaults" -> AccountDefaults(ui, section == "privacy")
-            "filters" -> FiltersSettings(ui)
-            "policy" -> NotificationSettings(ui)
-            "server" -> ServerSettings(ui)
-            "privacyPolicy" -> PrivacyPolicy(ui)
-            "licenses" -> {
-                Text(
-                    tr("settings_open_source_licenses"),
-                    style = MaterialTheme.typography.titleLarge,
-                )
+            SettingsSection.Privacy,
+            SettingsSection.PostingDefaults -> AccountDefaults(ui, section == SettingsSection.Privacy)
+            SettingsSection.Filters -> FiltersSettings(ui)
+            SettingsSection.Notifications -> NotificationSettings(ui)
+            SettingsSection.Server -> ServerSettings(ui)
+            SettingsSection.PrivacyPolicy -> PrivacyPolicy(ui)
+            SettingsSection.Licenses -> {
                 listOf(
                         "Kotlin · Apache 2.0" to
                             "https://github.com/JetBrains/kotlin/blob/master/license/LICENSE.txt",
@@ -450,7 +457,6 @@ private fun ServerSettings(ui: UiContext) {
 
 @Composable
 private fun PrivacyPolicy(ui: UiContext) {
-    Text("QuanToot Privacy Policy", style = MaterialTheme.typography.headlineSmall)
     Text("Last updated: July 14, 2026", style = MaterialTheme.typography.bodySmall)
     val sections =
         listOf(

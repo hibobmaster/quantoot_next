@@ -50,7 +50,7 @@ sealed interface Screen {
         val quote: Status? = null,
     ) : Screen
 
-    data object Settings : Screen
+    data class Settings(val section: SettingsSection? = null) : Screen
 
     data object Accounts : Screen
 
@@ -135,7 +135,16 @@ internal fun navigateTo(routes: List<Screen>, screen: Screen): List<Screen> {
             return routes.take(existing) + screen.copy(focusReplyId = screen.focusReplyId ?: previous.focusReplyId)
         }
     }
-    return if (routes.lastOrNull() == screen) routes else routes + screen
+    val top = routes.lastOrNull()
+    if (top == screen) return routes
+    if (screen is Screen.Settings && screen.section != null) {
+        return when {
+            top is Screen.Settings && top.section != null -> routes.dropLast(1) + screen
+            top is Screen.Settings -> routes + screen
+            else -> routes + Screen.Settings() + screen
+        }
+    }
+    return routes + screen
 }
 
 internal fun routesAfterPublish(routes: List<Screen>, compose: Screen.Compose, status: Status): List<Screen> {
