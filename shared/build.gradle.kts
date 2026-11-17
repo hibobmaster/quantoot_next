@@ -59,3 +59,8 @@ compose.resources {
     packageOfResClass = "com.quanquan.quantoot.resources"
     publicResClass = true
 }
+
+tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    // Match Ktor's dispatcher switching on iOS, which is opt-in on JVM.
+    systemProperty("io.ktor.client.statement.useEngineDispatcher", "true")
+}

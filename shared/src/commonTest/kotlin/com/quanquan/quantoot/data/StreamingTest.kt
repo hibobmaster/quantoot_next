@@ -3,7 +3,17 @@ package com.quanquan.quantoot.data
 import com.quanquan.quantoot.model.*
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.client.request.HttpResponseData
+import io.ktor.http.*
+import io.ktor.util.date.GMTDate
+import io.ktor.websocket.*
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.*
@@ -53,5 +63,43 @@ class StreamingTest {
         } finally {
             api.close()
         }
+    }
+
+    @Test
+    fun websocketFramesReachCollectorsAcrossTheEngineDispatcher() = runTest {
+        val client = HttpClient(MockEngine { request ->
+            if (request.url.encodedPath != "/api/v1/streaming") {
+                respond("""{"domain":"social.example","urls":{"streaming_api":"wss://social.example"}}""")
+            } else {
+                val context = respond("").callContext
+                val session = TestSocket(context)
+                session.incoming.send(Frame.Text(envelope("update").toString()))
+                HttpResponseData(
+                    HttpStatusCode.SwitchingProtocols, GMTDate(), Headers.Empty,
+                    HttpProtocolVersion.HTTP_1_1, session, context,
+                )
+            }
+        }) { install(WebSockets) }
+        val api = MastodonApi("social.example", "test-token", client)
+        try {
+            val event = withContext(Dispatchers.Default) {
+                withTimeout(2_000) { api.events(StreamSource.User).first() }
+            }
+            assertEquals("post", assertIs<StreamEvent.Created>(event).status.id)
+            assertEquals(StreamSource.User, event.source)
+        } finally {
+            api.close()
+        }
+    }
+
+    private class TestSocket(override val coroutineContext: CoroutineContext) : WebSocketSession {
+        override var masking = false
+        override var maxFrameSize = Long.MAX_VALUE
+        override val incoming = Channel<Frame>(Channel.BUFFERED)
+        override val outgoing = Channel<Frame>(Channel.UNLIMITED)
+        override val extensions = emptyList<WebSocketExtension<*>>()
+        override suspend fun flush() = Unit
+        @Deprecated("Use cancel() instead")
+        override fun terminate() { coroutineContext.cancel() }
     }
 }

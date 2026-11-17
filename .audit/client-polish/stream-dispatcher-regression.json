@@ -1,0 +1,15 @@
+{
+  "test": "StreamingTest.websocketFramesReachCollectorsAcrossTheEngineDispatcher",
+  "ktor": "3.6.1",
+  "hostProperty": "io.ktor.client.statement.useEngineDispatcher=true",
+  "before": {
+    "tests": 1,
+    "failures": 1,
+    "exception": "TimeoutCancellationException",
+    "diagnostic": "Temporarily rethrowing the caught transport exception reproduced IllegalStateException: Flow invariant is violated, collected on Dispatchers.Default and emitted on Dispatchers.IO at MastodonApi.kt:685. The diagnostic rethrow was removed."
+  },
+  "upstream": [
+    "https://github.com/ktorio/ktor/blob/3.6.1/ktor-client/ktor-client-core/common/src/io/ktor/client/statement/HttpStatement.kt#L154",
+    "https://github.com/ktorio/ktor/blob/3.6.1/ktor-client/ktor-client-core/nonJvm/src/io/ktor/client/statement/DispatcherSwitching.nonJvm.kt#L7"
+  ]
+}
