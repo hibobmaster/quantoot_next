@@ -1,16 +1,25 @@
 package com.quanquan.quantoot.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
@@ -23,11 +32,7 @@ fun HomeScreen(ui: UiContext) {
     var selection by remember { mutableIntStateOf(if (ui.me == null) 1 else 0) }
     val labels = listOf(tr("mastodon_home"), tr("mastodon_local"), tr("mastodon_federated"))
     Column {
-        ScrollableTabRow(selection) {
-            labels.forEachIndexed { i, title ->
-                Tab(selected = selection == i, onClick = { selection = i }, text = { Text(title) })
-            }
-        }
+        HomeTimelineSelector(labels, selection) { selection = it }
         key(selection) {
             if (selection == 0 && ui.me == null) com.quanquan.quantoot.LoginPrompt(ui)
             else
@@ -39,6 +44,46 @@ fun HomeScreen(ui: UiContext) {
                         else -> Timeline.Public(false)
                     },
                 )
+        }
+    }
+}
+
+@Composable
+private fun HomeTimelineSelector(labels: List<String>, selected: Int, onSelect: (Int) -> Unit) {
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    val style = MaterialTheme.typography.titleSmall
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val labelWidth = with(density) { (maxWidth / labels.size - 24.dp).roundToPx().coerceAtLeast(1) }
+        val cannotWrap = labels.any {
+            measurer.measure(AnnotatedString(it), style, constraints = Constraints(maxWidth = labelWidth))
+                .didOverflowWidth
+        }
+        if (cannotWrap) {
+            ScrollableTabRow(selected, edgePadding = 0.dp) {
+                labels.forEachIndexed { index, label ->
+                    Tab(selected == index, { onSelect(index) }, text = { Text(label) })
+                }
+            }
+        } else {
+            Row(Modifier.fillMaxWidth().selectableGroup().height(IntrinsicSize.Min)) {
+                labels.forEachIndexed { index, label ->
+                    val active = selected == index
+                    Column(
+                        Modifier.weight(1f).fillMaxHeight()
+                            .selectable(active, role = Role.Tab, onClick = { onSelect(index) }),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Box(Modifier.weight(1f).heightIn(min = 48.dp).padding(horizontal = 12.dp, vertical = 12.dp),
+                            contentAlignment = Alignment.Center) {
+                            Text(label, style = style, textAlign = TextAlign.Center,
+                                color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Box(Modifier.fillMaxWidth().height(3.dp)
+                            .background(if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant))
+                    }
+                }
+            }
         }
     }
 }
@@ -429,58 +474,20 @@ fun NotificationsScreen(ui: UiContext, isActive: Boolean = true) {
                 ) {
                     items(groups, key = { it.first().id }) { group ->
                         val notification = group.first()
-                        Column(Modifier.padding(12.dp)) {
-                            group.forEach { item ->
-                                AccountRow(item.account) {
-                                    ui.navigate(Screen.Profile(item.account.id))
+                        NotificationItem(ui, group, handling = notification.id in handling) { approve ->
+                            handling.add(notification.id)
+                            scope.launch {
+                                try {
+                                    ui.api.followRequest(notification.account.id, approve)
+                                    pager.remove { it.id == notification.id }
+                                } catch (e: CancellationException) {
+                                    throw e
+                                } catch (e: Exception) {
+                                    ui.error = e.message
+                                } finally {
+                                    handling.remove(notification.id)
                                 }
                             }
-                            val label =
-                                when (notification.type) {
-                                    "mention" -> "mastodon_replied"
-                                    "favourite" -> "mastodon_favorited"
-                                    "reblog" -> "mastodon_boosted"
-                                    "follow" -> "mastodon_followed_you"
-                                    "follow_request" -> "mastodon_follow_request"
-                                    "poll" -> "mastodon_poll_ended"
-                                    "update" -> "mastodon_edited_post"
-                                    else -> null
-                                }
-                            Text(label?.let { tr(it) } ?: notification.type)
-                            if (notification.type == "follow_request")
-                                Row {
-                                    listOf(true, false).forEach { approve ->
-                                        TextButton(
-                                            enabled = notification.id !in handling,
-                                            onClick = {
-                                                handling.add(notification.id)
-                                                scope.launch {
-                                                    try {
-                                                        ui.api.followRequest(
-                                                            notification.account.id,
-                                                            approve,
-                                                        )
-                                                        pager.remove { it.id == notification.id }
-                                                    } catch (e: CancellationException) {
-                                                        throw e
-                                                    } catch (e: Exception) {
-                                                        ui.error = e.message
-                                                    } finally {
-                                                        handling.remove(notification.id)
-                                                    }
-                                                }
-                                            },
-                                        ) {
-                                            Text(
-                                                tr(
-                                                    if (approve) "mastodon_follow_request_approve"
-                                                    else "mastodon_follow_request_reject"
-                                                )
-                                            )
-                                        }
-                                    }
-                                }
-                            notification.status?.let { StatusCard(ui, it) }
                         }
                     }
                     item {

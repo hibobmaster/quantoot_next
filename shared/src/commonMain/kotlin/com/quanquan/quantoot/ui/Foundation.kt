@@ -20,18 +20,15 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.quanquan.quantoot.auth.AccountStore
 import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
 import com.quanquan.quantoot.platform.PlatformServices
-import com.quanquan.quantoot.resources.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import org.jetbrains.compose.resources.Font
 
 val LocalStrings = staticCompositionLocalOf { Strings("en", "en") }
 
@@ -185,27 +182,9 @@ fun QuanTheme(content: @Composable () -> Unit) {
                 surfaceContainerLowest = Color(0xFFFFFCF6),
                 outlineVariant = Color(0xFFC8C5BB),
             )
-    val family = FontFamily(Font(Res.font.wenkai))
-    val base = Typography()
-    val typography =
-        Typography(
-            displayLarge = base.displayLarge.copy(fontFamily = family),
-            headlineLarge = base.headlineLarge.copy(fontFamily = family),
-            headlineMedium = base.headlineMedium.copy(fontFamily = family),
-            headlineSmall = base.headlineSmall.copy(fontFamily = family),
-            titleLarge = base.titleLarge.copy(fontFamily = family),
-            titleMedium = base.titleMedium.copy(fontFamily = family),
-            titleSmall = base.titleSmall.copy(fontFamily = family),
-            bodyLarge = base.bodyLarge.copy(fontFamily = family),
-            bodyMedium = base.bodyMedium.copy(fontFamily = family),
-            bodySmall = base.bodySmall.copy(fontFamily = family),
-            labelLarge = base.labelLarge.copy(fontFamily = family),
-            labelMedium = base.labelMedium.copy(fontFamily = family),
-            labelSmall = base.labelSmall.copy(fontFamily = family),
-        )
     MaterialTheme(
         colorScheme = palette,
-        typography = typography,
+        typography = Typography(),
         shapes = Shapes(
             extraSmall = RoundedCornerShape(6.dp),
             small = RoundedCornerShape(10.dp),

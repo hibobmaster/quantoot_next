@@ -9,6 +9,51 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 internal object PostIcons {
+    val Poll = ImageVector.Builder("Poll", 24.dp, 24.dp, 24f, 24f).apply {
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 1.8f,
+            strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(5f, 20f)
+            lineTo(5f, 11f)
+            moveTo(12f, 20f)
+            lineTo(12f, 4f)
+            moveTo(19f, 20f)
+            lineTo(19f, 8f)
+            moveTo(3f, 20f)
+            lineTo(21f, 20f)
+        }
+    }.build()
+    val Public = ImageVector.Builder("Public", 24.dp, 24.dp, 24f, 24f).apply {
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 1.8f,
+            strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(21f, 12f)
+            curveTo(21f, 17f, 17f, 21f, 12f, 21f)
+            curveTo(7f, 21f, 3f, 17f, 3f, 12f)
+            curveTo(3f, 7f, 7f, 3f, 12f, 3f)
+            curveTo(17f, 3f, 21f, 7f, 21f, 12f)
+            close()
+            moveTo(3f, 12f)
+            lineTo(21f, 12f)
+            moveTo(12f, 3f)
+            curveTo(7f, 8f, 7f, 16f, 12f, 21f)
+            curveTo(17f, 16f, 17f, 8f, 12f, 3f)
+        }
+    }.build()
+    val Unlisted = ImageVector.Builder("Unlisted", 24.dp, 24.dp, 24f, 24f).apply {
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 1.8f,
+            strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(17f, 10f)
+            lineTo(17f, 7f)
+            curveTo(17f, 4.8f, 15.2f, 3f, 13f, 3f)
+            curveTo(10.8f, 3f, 9f, 4.8f, 9f, 7f)
+            moveTo(5f, 10f)
+            lineTo(19f, 10f)
+            lineTo(19f, 21f)
+            lineTo(5f, 21f)
+            close()
+            moveTo(12f, 14f)
+            lineTo(12f, 17f)
+        }
+    }.build()
     val Replies = ImageVector.Builder("Replies", 24.dp, 24.dp, 24f, 24f).apply {
         path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 1.8f,
             strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {

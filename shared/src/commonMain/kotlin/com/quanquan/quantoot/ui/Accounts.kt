@@ -4,11 +4,17 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -159,6 +165,22 @@ fun ProfileScreen(ui: UiContext, id: String) {
     var showReplies by remember(id) { mutableStateOf(false) }
     var showBoosts by remember(id) { mutableStateOf(true) }
     var qr by remember(id) { mutableStateOf(false) }
+    var relationshipBusy by remember(id) { mutableStateOf(false) }
+    var moderationMenu by remember(id) { mutableStateOf(false) }
+    fun changeRelationship(action: String) {
+        ui.requireLogin {
+            if (!relationshipBusy) {
+                relationshipBusy = true
+                ui.run {
+                    try {
+                        relationship = ui.api.relationshipAction(id, action)
+                    } finally {
+                        relationshipBusy = false
+                    }
+                }
+            }
+        }
+    }
     LaunchedEffect(id, attempt, ui.revision) {
         try {
             account = ui.api.account(id)
@@ -194,126 +216,107 @@ fun ProfileScreen(ui: UiContext, id: String) {
                     contentScale = ContentScale.Crop,
                 )
             AccountRow(person) { ui.open(person.url) }
-            HtmlContent(ui, person.note, emojis = person.emojis)
-            Row {
-                TextButton(onClick = { qr = true }, enabled = safeWebUrl(person.url) != null) {
-                    Text("QR")
-                }
-                TextButton(
-                    onClick = { safeWebUrl(person.url)?.let(ui.platform::share) },
-                    enabled = safeWebUrl(person.url) != null,
-                ) {
-                    Text(tr("mastodon_button_share"))
-                }
-            }
-            person.fields.forEach { field ->
-                Row {
-                    Text(
-                        field.name + if (field.verifiedAt != null) " ✓" else "",
-                        Modifier.widthIn(max = 140.dp).padding(end = 12.dp),
-                    )
-                    Box(Modifier.weight(1f)) {
-                        HtmlContent(ui, field.value, emojis = person.emojis)
-                    }
-                }
-            }
-            Text(
-                "${tr("mastodon_joined")}: ${person.createdAt.take(10)} · ${person.statusesCount} ${tr("mastodon_posts")}",
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Row {
-                TextButton(onClick = { ui.navigate(Screen.People(id, false)) }) {
-                    Text("${person.followersCount} ${tr("mastodon_followers_count_label")}")
-                }
-                TextButton(onClick = { ui.navigate(Screen.People(id, true)) }) {
-                    Text("${person.followingCount} ${tr("mastodon_following_count")}")
-                }
-            }
             if (ui.me?.id == id) {
-                Row {
-                    TextButton(onClick = { ui.navigate(Screen.EditProfile) }) {
-                        Text(tr("mastodon_edit_profile"))
+                Button(onClick = { ui.navigate(Screen.EditProfile) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text(tr("mastodon_edit_profile"))
+                }
+                FlowRow(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    maxItemsInEachRow = if (LocalDensity.current.fontScale > 1.3f) 1 else 2,
+                ) {
+                    val favourites = tr("mastodon_button_favorite")
+                    OutlinedButton(onClick = { ui.navigate(Screen.Feed(Timeline.Favourites, favourites)) },
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                        Icon(Icons.Default.FavoriteBorder, null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(favourites)
                     }
-                    TextButton(
-                        onClick = {
-                            ui.navigate(
-                                Screen.Feed(Timeline.Favourites, trKey("mastodon_button_favorite"))
-                            )
-                        }
-                    ) {
-                        Text(tr("mastodon_button_favorite"))
-                    }
-                    TextButton(
-                        onClick = { ui.navigate(Screen.Feed(Timeline.Bookmarks, "Bookmarks")) }
-                    ) {
-                        Text("Bookmarks")
+                    val bookmarks = tr("mastodon_bookmarks")
+                    OutlinedButton(onClick = { ui.navigate(Screen.Feed(Timeline.Bookmarks, bookmarks)) },
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                        Icon(PostIcons.Bookmark, null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(bookmarks)
                     }
                 }
             } else {
                 val rel = relationship
-                Row(Modifier.horizontalScroll(rememberScrollState())) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
+                        enabled = !relationshipBusy,
                         onClick = {
-                            ui.requireLogin {
-                                ui.run {
-                                    relationship =
-                                        ui.api.relationshipAction(
-                                            id,
-                                            if (rel?.following == true || rel?.requested == true)
-                                                "unfollow"
-                                            else "follow",
-                                        )
-                                }
-                            }
-                        }
+                            changeRelationship(if (rel?.following == true || rel?.requested == true) "unfollow" else "follow")
+                        },
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                     ) {
-                        Text(
-                            tr(
-                                if (rel?.requested == true) "mastodon_follow_requested"
-                                else if (rel?.following == true) "mastodon_following"
-                                else "mastodon_follow"
-                            )
-                        )
+                        if (relationshipBusy) {
+                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                            Spacer(Modifier.width(8.dp))
+                        }
+                        Text(tr(if (rel?.requested == true) "mastodon_follow_requested"
+                            else if (rel?.following == true) "mastodon_following" else "mastodon_follow"))
                     }
                     if (ui.me != null) {
-                        TextButton(
-                            onClick = {
-                                ui.run {
-                                    relationship =
-                                        ui.api.relationshipAction(
-                                            id,
-                                            if (rel?.muting == true) "unmute" else "mute",
-                                        )
-                                }
+                        Box {
+                            IconButton(onClick = { moderationMenu = true }, enabled = !relationshipBusy) {
+                                Icon(Icons.Default.MoreVert, tr("mastodon_more_actions"))
                             }
-                        ) {
-                            Text(
-                                tr(if (rel?.muting == true) "mastodon_unmute" else "mastodon_mute")
-                            )
-                        }
-                        TextButton(
-                            onClick = {
-                                ui.run {
-                                    relationship =
-                                        ui.api.relationshipAction(
-                                            id,
-                                            if (rel?.blocking == true) "unblock" else "block",
-                                        )
-                                }
+                            DropdownMenu(expanded = moderationMenu, onDismissRequest = { moderationMenu = false }) {
+                                DropdownMenuItem(text = { Text(tr(if (rel?.muting == true) "mastodon_unmute" else "mastodon_mute")) },
+                                    onClick = {
+                                        moderationMenu = false
+                                        changeRelationship(if (rel?.muting == true) "unmute" else "mute")
+                                    })
+                                DropdownMenuItem(text = { Text(tr(if (rel?.blocking == true) "mastodon_unblock" else "mastodon_block")) },
+                                    onClick = {
+                                        moderationMenu = false
+                                        changeRelationship(if (rel?.blocking == true) "unblock" else "block")
+                                    })
+                                DropdownMenuItem(text = { Text(tr("mastodon_report")) }, onClick = {
+                                    moderationMenu = false
+                                    report = true
+                                })
                             }
-                        ) {
-                            Text(
-                                tr(
-                                    if (rel?.blocking == true) "mastodon_unblock"
-                                    else "mastodon_block"
-                                )
-                            )
                         }
-                        TextButton(onClick = { report = true }) { Text(tr("mastodon_report")) }
                     }
                 }
-                if (rel?.followedBy == true) Text(tr("mastodon_follows_you"))
+                if (rel?.followedBy == true) Text(tr("mastodon_follows_you"), style = MaterialTheme.typography.labelMedium)
             }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                OutlinedButton(onClick = { qr = true }, enabled = safeWebUrl(person.url) != null,
+                    modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text("QR")
+                }
+                OutlinedButton(onClick = { safeWebUrl(person.url)?.let(ui.platform::share) },
+                    enabled = safeWebUrl(person.url) != null, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Icon(Icons.Default.Share, null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(tr("mastodon_button_share"))
+                }
+            }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                TextButton(onClick = { ui.navigate(Screen.People(id, false)) }, contentPadding = PaddingValues(0.dp)) {
+                    Text("${person.followersCount} ${tr("mastodon_followers_count_label")}", style = MaterialTheme.typography.labelLarge)
+                }
+                TextButton(onClick = { ui.navigate(Screen.People(id, true)) }, contentPadding = PaddingValues(0.dp)) {
+                    Text("${person.followingCount} ${tr("mastodon_following_count")}", style = MaterialTheme.typography.labelLarge)
+                }
+                Text("${person.statusesCount} ${tr("mastodon_posts")}",
+                    Modifier.heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically),
+                    style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            HtmlContent(ui, person.note, emojis = person.emojis)
+            person.fields.forEach { field ->
+                Row {
+                    Text(field.name + if (field.verifiedAt != null) " ✓" else "",
+                        Modifier.widthIn(max = 140.dp).padding(end = 12.dp), style = MaterialTheme.typography.labelLarge)
+                    Box(Modifier.weight(1f)) { HtmlContent(ui, field.value, emojis = person.emojis) }
+                }
+            }
+            Text("${tr("mastodon_joined")}: ${person.createdAt.take(10)}", style = MaterialTheme.typography.bodySmall)
         }
         val labels =
             listOf(
@@ -407,9 +410,6 @@ fun ProfileScreen(ui: UiContext, id: String) {
             },
         )
 }
-
-private fun trKey(key: String) = key.removePrefix("mastodon_").replace('_', ' ')
-
 @Composable
 fun PeopleScreen(ui: UiContext, id: String, following: Boolean) {
     var people by remember { mutableStateOf<List<Account>>(emptyList()) }

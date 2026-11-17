@@ -4,8 +4,11 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextOverflow
@@ -20,6 +24,26 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
+
+enum class StatusPresentation { Full, Quoted }
+
+internal enum class PostVisibility(val labelKey: String) {
+    Public("mastodon_public"),
+    Unlisted("mastodon_unlisted"),
+    Followers("mastodon_followers_only"),
+    Direct("mastodon_direct"),
+    Unknown("mastodon_visibility_unavailable");
+
+    companion object {
+        fun from(value: String) = when (value) {
+            "public" -> Public
+            "unlisted" -> Unlisted
+            "private" -> Followers
+            "direct" -> Direct
+            else -> Unknown
+        }
+    }
+}
 
 @Composable
 fun AccountRow(account: Account, onClick: () -> Unit) {
@@ -56,10 +80,11 @@ fun StatusCard(
     ui: UiContext,
     entry: Status,
     highlighted: Boolean = false,
-    nested: Boolean = false,
+    presentation: StatusPresentation = StatusPresentation.Full,
 ) {
     val projected = ui.statuses.project(entry) ?: return
     val status = projected.original
+    val quoted = presentation == StatusPresentation.Quoted
     var revealed by
         remember(status.id, status.spoilerText) { mutableStateOf(status.spoilerText.isBlank()) }
     var menu by remember { mutableStateOf(false) }
@@ -69,16 +94,19 @@ fun StatusCard(
     var busy by remember { mutableStateOf(false) }
     val repliesDescription = tr("mastodon_view_replies", "count" to status.repliesCount.toString())
     Card(
-        Modifier.fillMaxWidth().padding(horizontal = if (nested) 0.dp else 8.dp)
+        Modifier.fillMaxWidth().padding(horizontal = if (quoted) 0.dp else 8.dp)
+            .testTag("status-card-${status.id}")
             .clickable { ui.navigate(Screen.Thread(status.id)) },
         colors =
             CardDefaults.cardColors(
                 containerColor =
-                    if (highlighted) MaterialTheme.colorScheme.primaryContainer
+                    if (quoted) MaterialTheme.colorScheme.surfaceContainerLow
+                    else if (highlighted) MaterialTheme.colorScheme.primaryContainer
                     else MaterialTheme.colorScheme.surfaceContainerLowest
             ),
+        border = if (quoted) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null,
     ) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(Modifier.padding(if (quoted) 12.dp else 14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (status.pinned)
                 Text(tr("mastodon_featured"), style = MaterialTheme.typography.labelMedium)
             if (projected.reblog != null)
@@ -88,7 +116,8 @@ fun StatusCard(
                 )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.weight(1f)) {
-                    AccountRow(status.account) { ui.navigate(Screen.Profile(status.account.id)) }
+                    if (quoted) QuotedIdentity(status.account) { ui.navigate(Screen.Profile(status.account.id)) }
+                    else AccountRow(status.account) { ui.navigate(Screen.Profile(status.account.id)) }
                 }
                 Box {
                     IconButton(
@@ -122,20 +151,10 @@ fun StatusCard(
                 MediaAttachments(ui, status.mediaAttachments, status.sensitive)
                 status.poll?.let { PollView(ui, it) }
                 status.card?.let { LinkPreview(ui, it) }
-                if (!nested) QuotedPost(ui, status)
+                if (!quoted) QuotedPost(ui, status)
             }
-            TextButton(
-                modifier = Modifier.semantics { contentDescription = status.createdAt },
-                onClick = { ui.navigate(Screen.Thread(status.id)) },
-                contentPadding = PaddingValues(0.dp),
-            ) {
-                Text(
-                    RelativeTimestamp(status.createdAt) +
-                        if (status.editedAt != null) " · ${tr("mastodon_edited")}" else "",
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-            if (!nested) {
+            StatusMetadata(ui, status)
+            if (!quoted) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     TextButton(
                         modifier =
@@ -306,6 +325,60 @@ fun StatusCard(
                 TextButton(onClick = { report = false }) { Text(tr("mastodon_cancel")) }
             },
         )
+}
+
+@Composable
+private fun QuotedIdentity(account: Account, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = 48.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        AsyncImage(
+            safeWebUrl(account.avatarStatic.ifBlank { account.avatar }), null,
+            Modifier.size(28.dp).clip(CircleShape), contentScale = ContentScale.Crop,
+        )
+        Column(Modifier.weight(1f)) {
+            EmojiText(account.name, account.emojis, style = MaterialTheme.typography.labelLarge)
+            Text("@${account.acct}", style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+@Composable
+private fun StatusMetadata(ui: UiContext, status: Status) {
+    val visibility = PostVisibility.from(status.visibility)
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
+        TextButton(
+            modifier = Modifier.semantics { contentDescription = status.createdAt },
+            onClick = { ui.navigate(Screen.Thread(status.id)) },
+            contentPadding = PaddingValues(0.dp),
+        ) {
+            Text(RelativeTimestamp(status.createdAt) +
+                if (status.editedAt != null) " · ${tr("mastodon_edited")}" else "",
+                style = MaterialTheme.typography.bodySmall)
+        }
+        Row(
+            Modifier.semantics(mergeDescendants = true) {},
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Icon(when (visibility) {
+                PostVisibility.Public -> PostIcons.Public
+                PostVisibility.Unlisted -> PostIcons.Unlisted
+                PostVisibility.Followers -> Icons.Default.Lock
+                PostVisibility.Direct -> Icons.Default.Email
+                PostVisibility.Unknown -> Icons.Default.Info
+            }, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(tr(visibility.labelKey), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
 }
 
 @Composable

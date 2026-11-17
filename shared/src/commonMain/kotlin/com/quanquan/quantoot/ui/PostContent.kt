@@ -1,6 +1,7 @@
 package com.quanquan.quantoot.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -80,10 +81,11 @@ internal fun QuotedPost(ui: UiContext, status: Status) {
     }
     val target = (embedded ?: loaded)?.let { ui.statuses.project(it) }
     if (target != null) {
-        StatusCard(ui, target, nested = true)
+        StatusCard(ui, target, presentation = StatusPresentation.Quoted)
     } else if (loading) {
-        Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shape = MaterialTheme.shapes.medium) {
-            Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shape = MaterialTheme.shapes.medium,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+            Row(Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                 Text(tr("mastodon_quoted_post"), style = MaterialTheme.typography.bodySmall)
             }
@@ -93,8 +95,9 @@ internal fun QuotedPost(ui: UiContext, status: Status) {
 
 @Composable
 private fun QuoteUnavailable() {
-    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shape = MaterialTheme.shapes.medium) {
-        Text(tr("mastodon_unavailable_quote"), Modifier.fillMaxWidth().padding(16.dp),
+    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+        Text(tr("mastodon_unavailable_quote"), Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(16.dp),
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
