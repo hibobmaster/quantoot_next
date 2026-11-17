@@ -2,6 +2,33 @@ import XCTest
 
 final class ClientNavigationStabilityTests: XCTestCase {
     @MainActor
+    func testEmptyMediaStillAllowsTheProfileHeaderToScroll() throws {
+        continueAfterFailure = false
+        let app = launch()
+        XCTAssertTrue(app.buttons["Profile"].firstMatch.waitForExistence(timeout: 15))
+        app.buttons["Profile"].firstMatch.tap()
+        app.revealProfileActions()
+        let media = app.buttons["Media"].firstMatch
+        XCTAssertTrue(media.exists && media.isHittable)
+        media.tap()
+        XCTAssertTrue(app.staticTexts["No content yet"].waitForExistence(timeout: 15),
+                      "The existing test account must exercise the actual empty-media case.")
+        settle(media)
+        let before = media.frame.midY
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.7))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.58)),
+                   withVelocity: .slow, thenHoldForDuration: 0.3)
+        settle(media)
+        let attachment = XCTAttachment(string: "emptyMediaBeforeY=\(before); afterDragY=\(media.frame.midY)")
+        attachment.name = "Empty Media scroll position"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        capture("Empty Media after scrolling header", app)
+        XCTAssertLessThan(media.frame.midY, before - 40,
+                          "An empty category must have enough vertical reading extent to move the shared header.")
+    }
+
+    @MainActor
     func testProfileCategoriesKeepTheVisibleTabRowInPlace() throws {
         continueAfterFailure = false
         let app = launch()
