@@ -102,10 +102,6 @@ internal fun RelativeTimestamp(value: String): String {
 }
 
 @Composable
-internal fun ImageViewer(ui: UiContext, media: MediaAttachment, url: String, dismiss: () -> Unit) =
-    MediaGallery(ui, listOf(media.copy(url = url)), 0, dismiss)
-
-@Composable
 internal fun ProfileQr(ui: UiContext, account: Account, dismiss: () -> Unit) {
     val url = safeWebUrl(account.url) ?: return
     val painter = rememberQrCodePainter(url)
