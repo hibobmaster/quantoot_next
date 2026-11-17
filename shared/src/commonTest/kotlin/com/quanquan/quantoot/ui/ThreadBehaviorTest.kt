@@ -106,11 +106,15 @@ class ThreadBehaviorTest {
         assertEquals(listOf("ancestor", "root", "reply", "nested"), thread.rows.map { it.id })
         assertEquals(8, thread.root?.repliesCount)
         assertEquals("Context unavailable", thread.error)
-        next = ThreadResult(null, null)
+        next = ThreadResult(null, StatusContext())
         thread.refresh()
         runCurrent()
         assertTrue(thread.rootUnavailable)
         assertNull(thread.root)
+        assertEquals(listOf("ancestor", "reply", "nested"), thread.rows.map { it.id })
+        next = ThreadResult(null, null)
+        thread.refresh()
+        runCurrent()
         assertEquals(listOf("ancestor", "reply", "nested"), thread.rows.map { it.id })
     }
 

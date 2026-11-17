@@ -117,6 +117,12 @@ internal class StatusProjection {
             if (acceptField) fields = fields + (action to FieldStamp(stamp, false))
             else merged = patch(merged, previous.value, action)
         }
+        if (origin == Origin.Event)
+            merged = merged.copy(
+                favourited = previous.value.favourited,
+                reblogged = previous.value.reblogged,
+                bookmarked = previous.value.bookmarked,
+            )
         records[value.id] = previous.copy(
             value = merged,
             contentSequence = if (accept) stamp else previous.contentSequence,

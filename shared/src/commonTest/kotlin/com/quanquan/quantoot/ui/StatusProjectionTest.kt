@@ -93,6 +93,23 @@ class StatusProjectionTest {
     }
 
     @Test
+    fun streamDefaultsCannotClearViewerFlagsLearnedFromRest() = runTest {
+        val statuses = StatusProjection()
+        statuses.read({ original.copy(favourited = true, bookmarked = true, reblogged = true) }) { listOf(it) }
+        statuses.apply(StreamEvent.Edited(StreamSource.Local, edited.copy(favouritesCount = 8, reblogsCount = 4)))
+        val actual = statuses.project(original)!!
+        assertTrue(actual.favourited)
+        assertTrue(actual.bookmarked)
+        assertTrue(actual.reblogged)
+        assertEquals(8, actual.favouritesCount)
+        assertEquals(4, actual.reblogsCount)
+        statuses.read({ edited }) { listOf(it) }
+        assertFalse(statuses.project(original)!!.favourited)
+        assertFalse(statuses.project(original)!!.bookmarked)
+        assertFalse(statuses.project(original)!!.reblogged)
+    }
+
+    @Test
     fun deletionBeatsReadActionBoostAndQuoteButOnlyDeletesItsOwnWrapper() = runTest {
         val statuses = StatusProjection()
         val boost = Status(id = "boost", reblog = original)

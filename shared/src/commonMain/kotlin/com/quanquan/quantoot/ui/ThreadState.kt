@@ -76,11 +76,13 @@ internal class ThreadState(
                 currentCoroutineContext().ensureActive()
                 if (version != generation) return@launch
                 focal = result.root ?: focal
-                missingRoot = result.root == null
+                missingRoot = result.root == null || project(result.root) == null
                 result.context?.let { context ->
                     val seen = mutableSetOf(rootId)
-                    ancestorMembers = context.ancestors.filter { seen.add(it.id) }
-                    val confirmed = context.descendants.filter { seen.add(it.id) }
+                    val keptAncestors = if (missingRoot) ancestorMembers else emptyList()
+                    val keptDescendants = if (missingRoot) descendantMembers else emptyList()
+                    ancestorMembers = (context.ancestors + keptAncestors).filter { seen.add(it.id) }
+                    val confirmed = (context.descendants + keptDescendants).filter { seen.add(it.id) }
                     arrivals = arrivals.mapNotNull(project).filterNot { it.id in seen }
                     descendantMembers = confirmed + arrivals
                     descendantMembers.forEach { parents[it.id] = it.inReplyToId }
