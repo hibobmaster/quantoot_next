@@ -84,6 +84,19 @@ class FeedBehaviorTest {
     }
 
     @Test
+    fun existingArrivalDuringRefreshDoesNotMoveItsRow() = runTest {
+        val response = CompletableDeferred<Page<Status>>()
+        val pager = FeedPager(backgroundScope, { s: Status -> s.id }) { response.await() }
+        pager.restore(FeedSnapshot(listOf(Status(id = "2"), Status(id = "1"))))
+        pager.load()
+        runCurrent()
+        pager.receive(Status(id = "1", content = "fresh"), defer = false)
+        response.complete(Page(listOf(Status(id = "2"), Status(id = "1"))))
+        runCurrent()
+        assertEquals(listOf("2", "1"), pager.rows.map { it.id })
+    }
+
+    @Test
     fun deferredRefreshKeepsOpaqueTailAfterThreePages() = runTest {
         val requested = mutableListOf<String?>()
         var fresh = false
