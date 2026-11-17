@@ -57,3 +57,7 @@ Confidence is high in the reproduced failures, current ownership split, and reco
 ## Subsequent native evidence
 
 After this synthesis, root kept the empty Media category active and dragged upward without changing its source. The tab row remained Y458 before and after the drag, failing the expected movement beyond Y418. This separately confirms that the empty body cannot support the requested header movement in the current layout. It does not quantify restoration versus clamping in the original category transition. See native-baseline-empty.json and screenshots/baseline-empty-media-scroll.txt.
+
+## Planning clarification
+
+The synthesis phrase about nested vertical scrollers does not establish a human prohibition on a coordinated collapsing header. The preserved user experience is one continuous gesture and no independently scrolling capped profile header. Two nested vertical lists or separate competing reading regions remain excluded. A naturally measured coordinated header with one lazy body is eligible for the current architecture comparison, as stated in design-task.md. The current no-jump requirement may supersede prior bounded agent choices.
