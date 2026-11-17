@@ -18,6 +18,25 @@ import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
 import kotlinx.coroutines.*
 
+private class DraftDefault<T>(initial: T) {
+    var value by mutableStateOf(initial)
+        private set
+    var baseline = initial
+        private set
+    private var touched = false
+
+    fun choose(value: T) {
+        touched = true
+        this.value = value
+    }
+
+    fun apply(value: T) {
+        if (touched) return
+        this.value = value
+        baseline = value
+    }
+}
+
 class ComposerDraft(private val route: Screen.Compose, me: Account?) {
     private val edit = route.edit
     private val replyMentions =
@@ -45,13 +64,19 @@ class ComposerDraft(private val route: Screen.Compose, me: Account?) {
         get() = textInput.text
         set(value) { textInput = TextFieldValue(value, TextRange(value.length)) }
     var spoiler by mutableStateOf(edit?.spoilerText ?: route.reply?.spoilerText.orEmpty())
-    var sensitive by mutableStateOf(edit?.sensitive ?: false)
-    var visibility by
-        mutableStateOf(
+    private val sensitiveDefault = DraftDefault(edit?.sensitive ?: false)
+    private val visibilityDefault =
+        DraftDefault(
             edit?.visibility ?: route.reply?.visibility ?: me?.source?.privacy ?: "public"
         )
-    var language by mutableStateOf(edit?.language ?: me?.source?.language.orEmpty())
-    var quotePolicy by mutableStateOf("public")
+    private val languageDefault = DraftDefault(
+        if (edit != null) edit.language.orEmpty() else me?.source?.language.orEmpty()
+    )
+    private val quotePolicyDefault = DraftDefault(if (edit != null) "" else "public")
+    val sensitive get() = sensitiveDefault.value
+    val visibility get() = visibilityDefault.value
+    val language get() = languageDefault.value
+    val quotePolicy get() = quotePolicyDefault.value
     var attachments by mutableStateOf(edit?.mediaAttachments.orEmpty())
     var pollEnabled by mutableStateOf(edit?.poll != null)
     var options by mutableStateOf(edit?.poll?.options?.map { it.title } ?: listOf("", ""))
@@ -60,19 +85,41 @@ class ComposerDraft(private val route: Screen.Compose, me: Account?) {
     var hideTotals by mutableStateOf(false)
     private var lastPayload: StatusDraft? = null
     private var operationId = randomOperationId()
+    private val cleanPayload = effectivePayload()
+    private val cleanAttachments = attachmentEdits()
 
-    fun chooseVisibility(value: String) { visibility = value }
-    fun chooseLanguage(value: String) { language = value }
-    fun chooseQuotePolicy(value: String) { quotePolicy = value }
-    fun chooseSensitive(value: Boolean) { sensitive = value }
+    fun chooseVisibility(value: String) { visibilityDefault.choose(value) }
+    fun chooseLanguage(value: String) { languageDefault.choose(value) }
+    fun chooseQuotePolicy(value: String) { quotePolicyDefault.choose(value) }
+    fun chooseSensitive(value: Boolean) { sensitiveDefault.choose(value) }
 
     fun applyDefaults(settings: AccountSettings) {
         if (edit != null) return
-        language = settings.language
-        quotePolicy = settings.quotePolicy
-        sensitive = settings.sensitive
-        if (route.reply == null) visibility = settings.privacy
+        languageDefault.apply(settings.language)
+        quotePolicyDefault.apply(settings.quotePolicy)
+        sensitiveDefault.apply(settings.sensitive)
+        if (route.reply == null) visibilityDefault.apply(settings.privacy)
     }
+
+    fun payload(): StatusDraft {
+        check(edit?.poll == null) { "Editing an existing poll is not supported yet" }
+        return effectivePayload()
+    }
+
+    private fun effectivePayload(): StatusDraft =
+        StatusDraft(
+            text,
+            visibility,
+            language.ifBlank { null },
+            spoiler,
+            sensitive,
+            route.reply?.id ?: edit?.inReplyToId,
+            attachments.map { it.id },
+            if (pollEnabled) PollDraft(options.map { it.trim() }, duration, multiple, hideTotals)
+            else null,
+            quotePolicy.ifBlank { null },
+            route.quote?.id ?: edit?.quote?.quotedStatusId,
+        )
 
     fun keyFor(payload: StatusDraft): String {
         if (lastPayload != payload) {
@@ -82,14 +129,33 @@ class ComposerDraft(private val route: Screen.Compose, me: Account?) {
         return operationId
     }
 
-    val initialText = text
+    private fun attachmentEdits() = attachments.map { it.id to it.description.orEmpty() }
+
     val dirty
         get() =
-            text != initialText || attachments.isNotEmpty() || spoiler.isNotBlank() || pollEnabled
+            effectivePayload() != cleanPayload.copy(
+                visibility = visibilityDefault.baseline,
+                language = languageDefault.baseline.ifBlank { null },
+                quotePolicy = quotePolicyDefault.baseline.ifBlank { null },
+                sensitive = sensitiveDefault.baseline,
+            ) || attachmentEdits() != cleanAttachments
 }
 
 @Composable
 fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
+    if (route.edit?.poll != null) {
+        Column(
+            Modifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(tr("mastodon_edit_poll_in_browser"))
+            Button(onClick = { ui.open(route.edit.url) }, enabled = safeWebUrl(route.edit.url.orEmpty()) != null) {
+                Text(tr("mastodon_open_in_browser"))
+            }
+            TextButton(onClick = ui.back) { Text(tr("mastodon_close")) }
+        }
+        return
+    }
     val key = "${route.edit?.id ?: "new"}:${route.reply?.id.orEmpty()}:${route.quote?.id.orEmpty()}"
     val draft = remember(key) { ui.drafts.getOrPut(key) { ComposerDraft(route, ui.me) } }
     var busy by remember { mutableStateOf(false) }
@@ -121,20 +187,14 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
             suggestions = emptyList()
         }
     }
-    DisposableEffect(ui) {
+    DisposableEffect(ui, draft) {
         ui.beforeBack = { if (draft.dirty) discard = true else ui.back() }
         onDispose { ui.beforeBack = null }
     }
-    LaunchedEffect(ui.api) {
+    LaunchedEffect(ui.api, draft) {
         try {
             limit = ui.api.serverInfo().maxCharacters
-            if (route.edit == null && draft.text == draft.initialText) {
-                val settings = ui.api.accountSettings()
-                draft.language = settings.language
-                draft.quotePolicy = settings.quotePolicy
-                draft.sensitive = settings.sensitive
-                if (route.reply == null) draft.visibility = settings.privacy
-            }
+            if (route.edit == null) draft.applyDefaults(ui.api.accountSettings())
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -148,26 +208,7 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
         error = null
         scope.launch {
             try {
-                val payload =
-                    StatusDraft(
-                        draft.text,
-                        draft.visibility,
-                        draft.language.ifBlank { null },
-                        draft.spoiler,
-                        draft.sensitive,
-                        route.reply?.id ?: route.edit?.inReplyToId,
-                        draft.attachments.map { it.id },
-                        if (draft.pollEnabled)
-                            PollDraft(
-                                draft.options.map { it.trim() },
-                                draft.duration,
-                                draft.multiple,
-                                draft.hideTotals,
-                            )
-                        else null,
-                        draft.quotePolicy,
-                        route.quote?.id ?: route.edit?.quote?.quotedStatusId,
-                    )
+                val payload = draft.payload()
                 val result = ui.api.publish(payload, route.edit?.id, draft.keyFor(payload))
                 ui.drafts.remove(key)
                 ui.published(route, result)
@@ -323,7 +364,7 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
                 Text(tr("mastodon_emoji"))
             }
         }
-        Toggle(tr("mastodon_sensitive_content"), draft.sensitive) { draft.sensitive = it }
+        Toggle(tr("mastodon_sensitive_content"), draft.sensitive, draft::chooseSensitive)
         if (draft.attachments.isEmpty())
             Toggle(tr("mastodon_poll"), draft.pollEnabled) { draft.pollEnabled = it }
         if (draft.pollEnabled) {
@@ -378,7 +419,7 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
             }
         }
         Choice(tr("mastodon_visibility"), draft.visibility, visibilityOptions()) {
-            draft.visibility = it
+            draft.chooseVisibility(it)
         }
         val systemLanguage = ui.platform.languageTag.substringBefore('-').lowercase()
         val languages = listOf("" to tr("mastodon_language_default")) +
@@ -389,9 +430,12 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
             if (draft.language.isNotBlank() && languages.none { it.first == draft.language })
                 languages + (draft.language to draft.language)
             else languages,
-        ) { draft.language = it }
-        Choice(tr("mastodon_compose_quote_policy"), draft.quotePolicy, quoteOptions()) {
-            draft.quotePolicy = it
+        ) { draft.chooseLanguage(it) }
+        val quotePolicies = if (route.edit != null)
+            listOf("" to tr("mastodon_keep_current_setting")) + quoteOptions()
+        else quoteOptions()
+        Choice(tr("mastodon_compose_quote_policy"), draft.quotePolicy, quotePolicies) {
+            draft.chooseQuotePolicy(it)
         }
         Row(Modifier.fillMaxWidth()) {
             Button(

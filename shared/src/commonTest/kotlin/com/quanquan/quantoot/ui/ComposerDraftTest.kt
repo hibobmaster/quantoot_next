@@ -108,7 +108,8 @@ class ComposerDraftTest {
         assertEquals("unlisted", edit.visibility)
         assertEquals("de", edit.language)
         assertFalse(edit.sensitive)
-        assertEquals("public", edit.quotePolicy)
+        assertEquals("", edit.quotePolicy)
+        assertNull(edit.payload().quotePolicy)
         assertFalse(edit.dirty)
     }
 
@@ -136,5 +137,77 @@ class ComposerDraftTest {
         assertTrue(poll.dirty)
         poll.duration = 86400
         assertFalse(poll.dirty)
+    }
+
+    @Test
+    fun publishingAndDirtyTrackingUseTheSameEffectivePayload() {
+        val draft = ComposerDraft(Screen.Compose(reply = Status(id = "parent", visibility = "direct")), null)
+        draft.applyDefaults(settings)
+        draft.text = "Answer"
+        draft.spoiler = "Warning"
+        draft.attachments = listOf(MediaAttachment(id = "media"))
+        assertEquals(StatusDraft(
+            text = "Answer", visibility = "direct", language = "zh", spoilerText = "Warning",
+            sensitive = true, inReplyToId = "parent", mediaIds = listOf("media"),
+            quotePolicy = "followers",
+        ), draft.payload())
+        assertTrue(draft.dirty)
+    }
+
+    @Test
+    fun operationKeysRemainStableForRetriesAndCursorChanges() {
+        val draft = ComposerDraft(Screen.Compose(), null)
+        draft.text = "First"
+        val first = draft.keyFor(draft.payload())
+        assertEquals(first, draft.keyFor(draft.payload()))
+        draft.textInput = draft.textInput.copy(selection = TextRange.Zero)
+        assertEquals(first, draft.keyFor(draft.payload()))
+        draft.chooseVisibility("direct")
+        val changed = draft.keyFor(draft.payload())
+        assertNotEquals(first, changed)
+        assertEquals(changed, draft.keyFor(draft.payload()))
+    }
+
+    @Test
+    fun unknownEditPolicyIsPreservedUntilTheUserChoosesAndNullLanguageStaysUnset() {
+        val draft = ComposerDraft(Screen.Compose(edit = Status(content = "<p>Original</p>")),
+            Account(source = AccountSource(language = "en")))
+        assertNull(draft.payload().language)
+        assertNull(draft.payload().quotePolicy)
+        draft.text = "Edited text"
+        assertNull(draft.payload().quotePolicy)
+        draft.chooseQuotePolicy("followers")
+        assertEquals("followers", draft.payload().quotePolicy)
+        draft.chooseQuotePolicy("")
+        assertNull(draft.payload().quotePolicy)
+        draft.text = "Original"
+        assertFalse(draft.dirty)
+    }
+
+    @Test
+    fun existingPollEditsCannotProduceAnUnsafeUpdatePayload() {
+        val draft = ComposerDraft(Screen.Compose(edit = Status(
+            poll = Poll(options = listOf(PollOption("A"), PollOption("B"))),
+        )), null)
+        assertFalse(draft.dirty)
+        draft.text = "Only editing the text"
+        assertFailsWith<IllegalStateException> { draft.payload() }
+        draft.pollEnabled = false
+        assertFailsWith<IllegalStateException> { draft.payload() }
+    }
+
+    @Test
+    fun newPollConfigurationIsPartOfTheEffectivePayload() {
+        val draft = ComposerDraft(Screen.Compose(), null)
+        draft.pollEnabled = true
+        draft.options = listOf(" A ", "B")
+        draft.duration = 3600
+        draft.multiple = true
+        draft.hideTotals = true
+        assertEquals(PollDraft(listOf("A", "B"), 3600, true, true), draft.payload().poll)
+        assertTrue(draft.dirty)
+        draft.pollEnabled = false
+        assertNull(draft.payload().poll)
+        assertFalse(draft.dirty)
     }
 }
