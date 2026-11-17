@@ -1,0 +1,541 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		80B60207D8CA05C62B1437D7 /* GuestBrowsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9F667F2F94F3C7696FDB68 /* GuestBrowsingTests.swift */; };
+		BEAE718FF4B4FFB27512F670 /* StorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A54E38DA536CDA310EC1BEF /* StorageTests.swift */; };
+		C433BA568A4306134764E975 /* QuanTootApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C68C2A03C70EF61E58802A51 /* QuanTootApp.swift */; };
+		DF824FB47265F720CA361192 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 84DF6567EEA62462242BA71C /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		345F53307FA769819E3AF45C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DE1967746AEFF9884468DEE0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1232DF6B6A022AD74BD8A286;
+			remoteInfo = QuanToot;
+		};
+		5E917D459B483B32ACFD9004 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DE1967746AEFF9884468DEE0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1232DF6B6A022AD74BD8A286;
+			remoteInfo = QuanToot;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0A9F667F2F94F3C7696FDB68 /* GuestBrowsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestBrowsingTests.swift; sourceTree = "<group>"; };
+		4A54E38DA536CDA310EC1BEF /* StorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageTests.swift; sourceTree = "<group>"; };
+		84A1CCACE84233094C05EC9E /* QuanToot.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = QuanToot.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		84DF6567EEA62462242BA71C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B8DD0428EAF02E2FC4DD6ED5 /* QuanToot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = QuanToot.entitlements; sourceTree = "<group>"; };
+		C68C2A03C70EF61E58802A51 /* QuanTootApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuanTootApp.swift; sourceTree = "<group>"; };
+		D2CD5E37D7AB0D7C644C99B4 /* QuanTootTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = QuanTootTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F62EC1904D13C36C6A9057D6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F85D906ECDC5BDD0ABAB8325 /* QuanTootUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = QuanTootUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		2830329221AAA10745BEDD1D /* QuanToot */ = {
+			isa = PBXGroup;
+			children = (
+				84DF6567EEA62462242BA71C /* Assets.xcassets */,
+				F62EC1904D13C36C6A9057D6 /* Info.plist */,
+				B8DD0428EAF02E2FC4DD6ED5 /* QuanToot.entitlements */,
+				C68C2A03C70EF61E58802A51 /* QuanTootApp.swift */,
+			);
+			path = QuanToot;
+			sourceTree = "<group>";
+		};
+		32378187325583AB8786CB7B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				84A1CCACE84233094C05EC9E /* QuanToot.app */,
+				D2CD5E37D7AB0D7C644C99B4 /* QuanTootTests.xctest */,
+				F85D906ECDC5BDD0ABAB8325 /* QuanTootUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8F31F2F2758F79212672720C = {
+			isa = PBXGroup;
+			children = (
+				2830329221AAA10745BEDD1D /* QuanToot */,
+				B01CF5CF368EC62938015A18 /* QuanTootTests */,
+				973B8B27D4EBD14F9B2F3D76 /* QuanTootUITests */,
+				32378187325583AB8786CB7B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		973B8B27D4EBD14F9B2F3D76 /* QuanTootUITests */ = {
+			isa = PBXGroup;
+			children = (
+				0A9F667F2F94F3C7696FDB68 /* GuestBrowsingTests.swift */,
+			);
+			path = QuanTootUITests;
+			sourceTree = "<group>";
+		};
+		B01CF5CF368EC62938015A18 /* QuanTootTests */ = {
+			isa = PBXGroup;
+			children = (
+				4A54E38DA536CDA310EC1BEF /* StorageTests.swift */,
+			);
+			path = QuanTootTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1232DF6B6A022AD74BD8A286 /* QuanToot */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6F17D16F3D47CEAAADCB3930 /* Build configuration list for PBXNativeTarget "QuanToot" */;
+			buildPhases = (
+				ACD5ABF6B97BD0D443F0F781 /* Build shared Kotlin framework */,
+				10E58FE9ACBA761BBA837CD7 /* Sources */,
+				C0DE67FE894A71CBEF076724 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = QuanToot;
+			packageProductDependencies = (
+			);
+			productName = QuanToot;
+			productReference = 84A1CCACE84233094C05EC9E /* QuanToot.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E0777175CC3F6C19D708B7C4 /* QuanTootTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 77268A7B1613812501B30D51 /* Build configuration list for PBXNativeTarget "QuanTootTests" */;
+			buildPhases = (
+				882E0CCCAA3E36C423C6E65D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BCBEB4B88E80CE2C52BB2101 /* PBXTargetDependency */,
+			);
+			name = QuanTootTests;
+			packageProductDependencies = (
+			);
+			productName = QuanTootTests;
+			productReference = D2CD5E37D7AB0D7C644C99B4 /* QuanTootTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		E54D881DFA5535A0BAE13619 /* QuanTootUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AC517D740CC2CEE1E39C2EEB /* Build configuration list for PBXNativeTarget "QuanTootUITests" */;
+			buildPhases = (
+				9F8820179372ACFDD28E9C0E /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				427B512FA8BC63D682B3D791 /* PBXTargetDependency */,
+			);
+			name = QuanTootUITests;
+			packageProductDependencies = (
+			);
+			productName = QuanTootUITests;
+			productReference = F85D906ECDC5BDD0ABAB8325 /* QuanTootUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		DE1967746AEFF9884468DEE0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					E54D881DFA5535A0BAE13619 = {
+						TestTargetID = 1232DF6B6A022AD74BD8A286;
+					};
+				};
+			};
+			buildConfigurationList = C6967BE6A746D728CAEB9D94 /* Build configuration list for PBXProject "QuanToot" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 8F31F2F2758F79212672720C;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 32378187325583AB8786CB7B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1232DF6B6A022AD74BD8A286 /* QuanToot */,
+				E0777175CC3F6C19D708B7C4 /* QuanTootTests */,
+				E54D881DFA5535A0BAE13619 /* QuanTootUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C0DE67FE894A71CBEF076724 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DF824FB47265F720CA361192 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		ACD5ABF6B97BD0D443F0F781 /* Build shared Kotlin framework */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build shared Kotlin framework";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" = \"YES\" ]; then\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		10E58FE9ACBA761BBA837CD7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C433BA568A4306134764E975 /* QuanTootApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		882E0CCCAA3E36C423C6E65D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BEAE718FF4B4FFB27512F670 /* StorageTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9F8820179372ACFDD28E9C0E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				80B60207D8CA05C62B1437D7 /* GuestBrowsingTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		427B512FA8BC63D682B3D791 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1232DF6B6A022AD74BD8A286 /* QuanToot */;
+			targetProxy = 345F53307FA769819E3AF45C /* PBXContainerItemProxy */;
+		};
+		BCBEB4B88E80CE2C52BB2101 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1232DF6B6A022AD74BD8A286 /* QuanToot */;
+			targetProxy = 5E917D459B483B32ACFD9004 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		4C0E12271AF5F4A7E07778A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = QuanToot/QuanToot.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = QuanToot/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		6B960CBD64E204D4795BA239 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = com.quanquan.quantoot.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = QuanToot;
+			};
+			name = Release;
+		};
+		8F2311329F2B4356655730C6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 6;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 0.6.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = "$(inherited) -framework QuanTootShared -lsqlite3";
+				PRODUCT_BUNDLE_IDENTIFIER = com.quanquan.quantoot;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		AAC16049907D7F92DFB35435 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = com.quanquan.quantoot.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = QuanToot;
+			};
+			name = Debug;
+		};
+		CC907CABF8C871D1389301CB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.quanquan.quantoot.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/QuanToot.app/QuanToot";
+			};
+			name = Debug;
+		};
+		CF324B5EB065C4D553760520 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.quanquan.quantoot.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/QuanToot.app/QuanToot";
+			};
+			name = Release;
+		};
+		F416F66B62EE0BEE3FF829F3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 6;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 0.6.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = "$(inherited) -framework QuanTootShared -lsqlite3";
+				PRODUCT_BUNDLE_IDENTIFIER = com.quanquan.quantoot;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		F932DA8DB422F8414D8DF0BC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = QuanToot/QuanToot.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = QuanToot/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6F17D16F3D47CEAAADCB3930 /* Build configuration list for PBXNativeTarget "QuanToot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4C0E12271AF5F4A7E07778A8 /* Debug */,
+				F932DA8DB422F8414D8DF0BC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		77268A7B1613812501B30D51 /* Build configuration list for PBXNativeTarget "QuanTootTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CC907CABF8C871D1389301CB /* Debug */,
+				CF324B5EB065C4D553760520 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AC517D740CC2CEE1E39C2EEB /* Build configuration list for PBXNativeTarget "QuanTootUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AAC16049907D7F92DFB35435 /* Debug */,
+				6B960CBD64E204D4795BA239 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C6967BE6A746D728CAEB9D94 /* Build configuration list for PBXProject "QuanToot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F416F66B62EE0BEE3FF829F3 /* Debug */,
+				8F2311329F2B4356655730C6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = DE1967746AEFF9884468DEE0 /* Project object */;
+}

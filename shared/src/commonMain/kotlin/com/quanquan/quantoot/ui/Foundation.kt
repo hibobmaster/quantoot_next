@@ -1,0 +1,254 @@
+package com.quanquan.quantoot.ui
+
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
+import com.quanquan.quantoot.auth.AccountStore
+import com.quanquan.quantoot.data.*
+import com.quanquan.quantoot.model.*
+import com.quanquan.quantoot.platform.PlatformServices
+import com.quanquan.quantoot.resources.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import org.jetbrains.compose.resources.Font
+
+val LocalStrings = staticCompositionLocalOf { Strings("en", "en") }
+
+@Composable
+fun tr(key: String, vararg args: Pair<String, String>) = LocalStrings.current.text(key, *args)
+
+sealed interface Screen {
+    data class Feed(val source: Timeline, val title: String) : Screen
+
+    data class Thread(val id: String) : Screen
+
+    data class Profile(val id: String) : Screen
+
+    data class People(val id: String, val following: Boolean) : Screen
+
+    data class Compose(
+        val reply: Status? = null,
+        val edit: Status? = null,
+        val quote: Status? = null,
+    ) : Screen
+
+    data object Settings : Screen
+
+    data object Accounts : Screen
+
+    data object Instance : Screen
+
+    data object EditProfile : Screen
+}
+
+class UiContext(
+    val api: MastodonApi,
+    val platform: PlatformServices,
+    val store: AccountStore,
+    initialMe: Account?,
+    val scope: CoroutineScope,
+    val navigate: (Screen) -> Unit,
+    val back: () -> Unit,
+) {
+    var me by mutableStateOf(initialMe)
+    var beforeBack: (() -> Unit)? = null
+
+    fun requestBack() {
+        beforeBack?.invoke() ?: back()
+    }
+
+    var error by mutableStateOf<String?>(null)
+    var message by mutableStateOf<String?>(null)
+    var revision by mutableIntStateOf(0)
+    val changed = mutableStateMapOf<String, Status>()
+    val deleted = mutableStateListOf<String>()
+    val drafts = mutableMapOf<String, ComposerDraft>()
+    val events = MutableSharedFlow<StreamEvent>(extraBufferCapacity = 32)
+    private var failedOperation: (suspend () -> Unit)? = null
+
+    fun run(block: suspend () -> Unit) = scope.launch {
+        try {
+            block()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            failedOperation = block
+            error = e.message ?: "Request failed"
+        }
+    }
+
+    fun retry() {
+        error = null
+        failedOperation?.let {
+            failedOperation = null
+            run(it)
+        }
+    }
+
+    fun requireLogin(block: () -> Unit) {
+        if (me == null) navigate(Screen.Instance) else block()
+    }
+
+    fun open(raw: String?) {
+        raw?.let(::safeWebUrl)?.let(platform::openUrl)
+    }
+
+    fun update(status: Status) {
+        changed[status.id] = status
+        if (status.reblog != null) changed[status.original.id] = status.original
+        revision++
+    }
+}
+
+@Composable
+fun QuanTheme(content: @Composable () -> Unit) {
+    val dark = isSystemInDarkTheme()
+    val palette =
+        if (dark)
+            darkColorScheme(
+                primary = Color(0xFF8FCDBF),
+                onPrimary = Color(0xFF0A3932),
+                primaryContainer = Color(0xFF24564F),
+                onPrimaryContainer = Color(0xFFB8E9DE),
+                secondary = Color(0xFFA7C9C0),
+                secondaryContainer = Color(0xFF304D47),
+                surface = Color(0xFF111714),
+                onSurface = Color(0xFFE8E8DF),
+                onSurfaceVariant = Color(0xFFC5CAC4),
+                surfaceContainer = Color(0xFF1D2420),
+                surfaceContainerLow = Color(0xFF181E1B),
+                surfaceContainerLowest = Color(0xFF0C110F),
+                outlineVariant = Color(0xFF444C46),
+            )
+        else
+            lightColorScheme(
+                primary = Color(0xFF286A60),
+                onPrimary = Color.White,
+                primaryContainer = Color(0xFFD7E9E3),
+                onPrimaryContainer = Color(0xFF123C36),
+                secondary = Color(0xFF476F68),
+                secondaryContainer = Color(0xFFDDE9E5),
+                surface = Color(0xFFF6F2E9),
+                onSurface = Color(0xFF202522),
+                onSurfaceVariant = Color(0xFF59615C),
+                surfaceContainer = Color(0xFFEAE5DB),
+                surfaceContainerLow = Color(0xFFF1EDE4),
+                surfaceContainerLowest = Color(0xFFFFFCF6),
+                outlineVariant = Color(0xFFC8C5BB),
+            )
+    val family = FontFamily(Font(Res.font.wenkai))
+    val base = Typography()
+    val typography =
+        Typography(
+            displayLarge = base.displayLarge.copy(fontFamily = family),
+            headlineLarge = base.headlineLarge.copy(fontFamily = family),
+            headlineMedium = base.headlineMedium.copy(fontFamily = family),
+            headlineSmall = base.headlineSmall.copy(fontFamily = family),
+            titleLarge = base.titleLarge.copy(fontFamily = family),
+            titleMedium = base.titleMedium.copy(fontFamily = family),
+            titleSmall = base.titleSmall.copy(fontFamily = family),
+            bodyLarge = base.bodyLarge.copy(fontFamily = family),
+            bodyMedium = base.bodyMedium.copy(fontFamily = family),
+            bodySmall = base.bodySmall.copy(fontFamily = family),
+            labelLarge = base.labelLarge.copy(fontFamily = family),
+            labelMedium = base.labelMedium.copy(fontFamily = family),
+            labelSmall = base.labelSmall.copy(fontFamily = family),
+        )
+    MaterialTheme(colorScheme = palette, typography = typography, content = content)
+}
+
+@Composable
+fun ErrorNotice(error: String?, retry: (() -> Unit)? = null) {
+    if (error != null)
+        Surface(
+            color = MaterialTheme.colorScheme.errorContainer,
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
+        ) {
+            Column(Modifier.padding(12.dp)) {
+                Text(error)
+                if (retry != null) TextButton(onClick = retry) { Text(tr("mastodon_retry")) }
+            }
+        }
+}
+
+@Composable
+fun Loading() {
+    Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+fun Empty(label: String = tr("mastodon_empty_timeline")) {
+    Text(label, Modifier.padding(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+@Composable
+fun Toggle(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clickable { onChange(!checked) }.padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, Modifier.weight(1f))
+        Switch(checked, onChange)
+    }
+}
+
+@Composable
+fun Choice(
+    label: String,
+    value: String,
+    options: List<Pair<String, String>>,
+    onChange: (String) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+            Text("$label: ${options.firstOrNull { it.first == value }?.second ?: value}")
+        }
+        DropdownMenu(expanded, { expanded = false }) {
+            options.forEach { (key, text) ->
+                DropdownMenuItem(
+                    text = { Text(text) },
+                    onClick = {
+                        expanded = false
+                        onChange(key)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun visibilityOptions() =
+    listOf(
+        "public" to tr("mastodon_public"),
+        "unlisted" to tr("mastodon_unlisted"),
+        "private" to tr("mastodon_followers_only"),
+        "direct" to tr("mastodon_direct"),
+    )
+
+@Composable
+fun quoteOptions() =
+    listOf(
+        "public" to tr("mastodon_quote_policy_public"),
+        "followers" to tr("mastodon_quote_policy_followers"),
+        "nobody" to tr("mastodon_quote_policy_nobody"),
+    )
+
+@Composable
+fun languageOptions() =
+    listOf(
+        "system" to tr("settings_language_system"),
+        "en" to "English",
+        "zh" to "简体中文",
+        "zh-TW" to "繁體中文",
+    )

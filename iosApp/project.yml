@@ -1,0 +1,88 @@
+name: QuanToot
+options:
+  bundleIdPrefix: com.quanquan
+  deploymentTarget:
+    iOS: "15.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    MARKETING_VERSION: "0.6.0"
+    CURRENT_PROJECT_VERSION: 6
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    PRODUCT_BUNDLE_IDENTIFIER: com.quanquan.quantoot
+    FRAMEWORK_SEARCH_PATHS: "$(inherited) $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
+    OTHER_LDFLAGS: "$(inherited) -framework QuanTootShared -lsqlite3"
+targets:
+  QuanToot:
+    type: application
+    platform: iOS
+    settings:
+      base:
+        CODE_SIGN_ENTITLEMENTS: QuanToot/QuanToot.entitlements
+    sources: [QuanToot]
+    info:
+      path: QuanToot/Info.plist
+      properties:
+        CFBundleDisplayName: QuanToot
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        LSRequiresIPhoneOS: true
+        UILaunchScreen: {}
+        CADisableMinimumFrameDurationOnPhone: true
+        NSPhotoLibraryAddUsageDescription: Save images you choose to your photo library.
+        NSPhotoLibraryUsageDescription: Choose photos and videos to attach to your posts.
+        CFBundleURLTypes:
+          - CFBundleURLName: com.quanquan.quantoot.oauth
+            CFBundleURLSchemes: [quantoot]
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    preBuildScripts:
+      - name: Build shared Kotlin framework
+        script: |
+          if [ "$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED" = "YES" ]; then
+            exit 0
+          fi
+          cd "$SRCROOT/.."
+          ./gradlew :shared:embedAndSignAppleFrameworkForXcode
+        basedOnDependencyAnalysis: false
+  QuanTootTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [QuanTootTests]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.quanquan.quantoot.tests
+        GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: ""
+    dependencies:
+      - target: QuanToot
+  QuanTootUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [QuanTootUITests]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.quanquan.quantoot.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: ""
+        OTHER_LDFLAGS: ""
+        TEST_TARGET_NAME: QuanToot
+    dependencies:
+      - target: QuanToot
+schemes:
+  QuanToot:
+    build:
+      targets:
+        QuanToot: all
+    run:
+      config: Debug
+    test:
+      targets: [QuanTootTests, QuanTootUITests]
