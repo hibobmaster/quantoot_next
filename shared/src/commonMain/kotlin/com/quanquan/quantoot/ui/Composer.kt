@@ -18,7 +18,7 @@ import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
 import kotlinx.coroutines.*
 
-class ComposerDraft(route: Screen.Compose, me: Account?) {
+class ComposerDraft(private val route: Screen.Compose, me: Account?) {
     private val edit = route.edit
     private val replyMentions =
         route.reply
@@ -60,6 +60,19 @@ class ComposerDraft(route: Screen.Compose, me: Account?) {
     var hideTotals by mutableStateOf(false)
     private var lastPayload: StatusDraft? = null
     private var operationId = randomOperationId()
+
+    fun chooseVisibility(value: String) { visibility = value }
+    fun chooseLanguage(value: String) { language = value }
+    fun chooseQuotePolicy(value: String) { quotePolicy = value }
+    fun chooseSensitive(value: Boolean) { sensitive = value }
+
+    fun applyDefaults(settings: AccountSettings) {
+        if (edit != null) return
+        language = settings.language
+        quotePolicy = settings.quotePolicy
+        sensitive = settings.sensitive
+        if (route.reply == null) visibility = settings.privacy
+    }
 
     fun keyFor(payload: StatusDraft): String {
         if (lastPayload != payload) {
