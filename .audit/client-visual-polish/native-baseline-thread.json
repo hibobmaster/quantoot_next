@@ -1,0 +1,59 @@
+{
+  "schema": "xcodebuildmcp.output.test-result",
+  "schemaVersion": "3",
+  "didError": true,
+  "error": "Tests failed",
+  "data": {
+    "summary": {
+      "status": "FAILED",
+      "durationMs": 20100,
+      "counts": {
+        "passed": 0,
+        "failed": 1,
+        "skipped": 0
+      },
+      "target": "simulator"
+    },
+    "artifacts": {
+      "buildLogPath": "~/Library/Developer/XcodeBuildMCP/workspaces/QuanToot_Next-60ddf7a34c29/logs/test_sim_2026-11-17T15-24-47-722Z_pid24740_5b34ae65.log",
+      "xcresultPath": "~/Library/Developer/XcodeBuildMCP/workspaces/QuanToot_Next-60ddf7a34c29/result-bundles/test_sim_2026-11-17T15-24-47-723Z_pid24740_87809735.xcresult",
+      "testProductsPath": "~/Library/Developer/XcodeBuildMCP/workspaces/QuanToot_Next-60ddf7a34c29/test-products/test_sim_2026-11-17T15-24-47-723Z_pid24740_64c2d150.xctestproducts"
+    },
+    "tests": {
+      "selected": [
+        "QuanTootUITests/ClientVisualPolishTests/testThreadFocusSettlesToNeutralSurface"
+      ],
+      "discovered": {
+        "total": 1,
+        "items": [
+          "QuanTootUITests/ClientVisualPolishTests/testThreadFocusSettlesToNeutralSurface"
+        ]
+      }
+    },
+    "diagnostics": {
+      "warnings": [],
+      "errors": [],
+      "testFailures": [
+        {
+          "suite": "ClientVisualPolishTests",
+          "test": "testThreadFocusSettlesToNeutralSurface",
+          "message": "XCTAssertLessThanOrEqual failed: (\"50\") is greater than (\"12\") - The post must settle to the neutral reading surface instead of remaining green.",
+          "location": "/Users/bobmaster/Projects/QuanToot_Next/iosApp/QuanTootUITests/ClientVisualPolishTests.swift:33"
+        },
+        {
+          "suite": "ClientVisualPolishTests",
+          "test": "testThreadFocusSettlesToNeutralSurface()",
+          "message": "XCTAssertLessThanOrEqual failed: (\"50\") is greater than (\"12\") - The post must settle to the neutral reading surface instead of remaining green."
+        }
+      ]
+    },
+    "testCases": [
+      {
+        "suite": "ClientVisualPolishTests",
+        "test": "testThreadFocusSettlesToNeutralSurface",
+        "status": "failed",
+        "durationMs": 10876
+      }
+    ]
+  }
+}
