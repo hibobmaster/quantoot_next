@@ -112,8 +112,6 @@ fun SettingsScreen(ui: UiContext, state: SessionState) {
                             "https://github.com/coil-kt/coil/blob/main/LICENSE.txt",
                         "QRose · MIT" to
                             "https://github.com/alexzhirkevich/qrose/blob/master/LICENSE",
-                        "LXGW WenKai Lite · SIL OFL 1.1" to
-                            "https://github.com/lxgw/LxgwWenKai-Lite/blob/main/OFL.txt",
                     )
                     .forEach { (label, url) ->
                         TextButton(onClick = { ui.open(url) }) { Text(label) }

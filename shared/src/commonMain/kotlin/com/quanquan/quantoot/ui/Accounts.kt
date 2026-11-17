@@ -317,7 +317,7 @@ fun ProfileScreen(ui: UiContext, id: String) {
                         tr("mastodon_activity"),
                         tr("settings_about"),
                     )
-                ScrollableTabRow(selected) {
+                ScrollableTabRow(selected, edgePadding = 0.dp) {
                     labels.forEachIndexed { i, label ->
                         Tab(selected == i, { selected = i }, text = { Text(label) })
                     }

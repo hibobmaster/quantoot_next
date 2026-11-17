@@ -1,5 +1,7 @@
 package com.quanquan.quantoot.ui
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -85,6 +87,10 @@ fun StatusCard(
     val projected = ui.statuses.project(entry) ?: return
     val status = projected.original
     val quoted = presentation == StatusPresentation.Quoted
+    val highlightAlpha by animateFloatAsState(
+        targetValue = if (highlighted) 1f else 0f,
+        animationSpec = tween(450),
+    )
     var revealed by
         remember(status.id, status.spoilerText) { mutableStateOf(status.spoilerText.isBlank()) }
     var menu by remember { mutableStateOf(false) }
@@ -101,10 +107,13 @@ fun StatusCard(
             CardDefaults.cardColors(
                 containerColor =
                     if (quoted) MaterialTheme.colorScheme.surfaceContainerLow
-                    else if (highlighted) MaterialTheme.colorScheme.primaryContainer
                     else MaterialTheme.colorScheme.surfaceContainerLowest
             ),
-        border = if (quoted) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null,
+        border = when {
+            quoted -> BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            highlightAlpha > 0f -> BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.24f * highlightAlpha))
+            else -> null
+        },
     ) {
         Column(Modifier.padding(if (quoted) 12.dp else 14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (status.pinned)

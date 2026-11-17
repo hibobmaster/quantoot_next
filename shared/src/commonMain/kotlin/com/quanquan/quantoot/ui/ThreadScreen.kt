@@ -24,6 +24,7 @@ fun ThreadScreen(ui: UiContext, id: String, focusReplyId: String? = null) {
             loadThread(ui, id)
         }
     }
+    var highlightFocus by remember(thread, focusReplyId) { mutableStateOf(false) }
     val foreground by ui.platform.foreground.collectAsState()
     DisposableEffect(thread) { onDispose { thread.setActive(false) } }
     LaunchedEffect(thread) { ui.events.collect { thread.apply(it) } }
@@ -46,6 +47,9 @@ fun ThreadScreen(ui: UiContext, id: String, focusReplyId: String? = null) {
                 .takeIf { it >= 0 }?.let { thread.ancestors.size + 2 + it }
         }.filterNotNull().first()
         listState.scrollToItem(index)
+        highlightFocus = true
+        delay(650)
+        highlightFocus = false
     }
     val root = thread.root
     val ancestors = thread.ancestors
@@ -66,7 +70,7 @@ fun ThreadScreen(ui: UiContext, id: String, focusReplyId: String? = null) {
                 items(ancestors, key = { "ancestor:${it.id}" }) { StatusCard(ui, it) }
                 item(key = "focal:$id") {
                     when {
-                        root != null -> StatusCard(ui, root, highlighted = true)
+                        root != null -> StatusCard(ui, root, highlighted = highlightFocus && focusReplyId == null)
                         thread.rootUnavailable -> Empty("This post is no longer available.")
                         thread.busy -> Loading()
                     }
@@ -91,7 +95,7 @@ fun ThreadScreen(ui: UiContext, id: String, focusReplyId: String? = null) {
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                         }
-                        StatusCard(ui, status, highlighted = status.id == focusReplyId)
+                        StatusCard(ui, status, highlighted = highlightFocus && status.id == focusReplyId)
                     }
                 }
                 if (thread.loaded && descendants.isEmpty() && thread.error == null)
