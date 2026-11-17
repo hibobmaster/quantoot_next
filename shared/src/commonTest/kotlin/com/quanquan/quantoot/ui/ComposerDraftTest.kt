@@ -114,6 +114,23 @@ class ComposerDraftTest {
     }
 
     @Test
+    fun existingPostVisibilityCannotChange() {
+        listOf("public", "unlisted", "private", "direct", "unknown").forEach { visibility ->
+            val draft = ComposerDraft(Screen.Compose(edit = Status(
+                content = "<p>Original</p>", visibility = visibility,
+            )), null)
+            val original = draft.payload()
+            runCatching { draft.chooseVisibility(if (visibility == "public") "private" else "public") }
+            assertEquals(visibility, draft.visibility)
+            assertEquals(original, draft.payload())
+            assertFalse(draft.dirty)
+            draft.text = "Edited text"
+            assertEquals(visibility, draft.payload().visibility)
+            assertTrue(draft.dirty)
+        }
+    }
+
+    @Test
     fun unchangedEditsWithMediaOrPollsAreCleanAndAttachmentAltChangesAreDirty() {
         val media = MediaAttachment(id = "image", description = "Original alt")
         val draft = ComposerDraft(Screen.Compose(edit = Status(

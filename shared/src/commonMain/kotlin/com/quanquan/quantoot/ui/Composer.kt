@@ -88,7 +88,9 @@ class ComposerDraft(private val route: Screen.Compose, me: Account?) {
     private val cleanPayload = effectivePayload()
     private val cleanAttachments = attachmentEdits()
 
-    fun chooseVisibility(value: String) { visibilityDefault.choose(value) }
+    fun chooseVisibility(value: String) {
+        if (edit == null) visibilityDefault.choose(value)
+    }
     fun chooseLanguage(value: String) { languageDefault.choose(value) }
     fun chooseQuotePolicy(value: String) { quotePolicyDefault.choose(value) }
     fun chooseSensitive(value: Boolean) { sensitiveDefault.choose(value) }
@@ -418,8 +420,37 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
                 draft.duration = it.toInt()
             }
         }
-        Choice(tr("mastodon_visibility"), draft.visibility, visibilityOptions()) {
-            draft.chooseVisibility(it)
+        if (route.edit == null) {
+            Choice(tr("mastodon_visibility"), draft.visibility, visibilityOptions()) {
+                draft.chooseVisibility(it)
+            }
+        } else {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                shape = MaterialTheme.shapes.medium,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            ) {
+                Column(
+                    Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        tr("mastodon_visibility"),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        tr(PostVisibility.from(draft.visibility).labelKey),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Text(
+                        tr("mastodon_visibility_fixed"),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
         val systemLanguage = ui.platform.languageTag.substringBefore('-').lowercase()
         val languages = listOf("" to tr("mastodon_language_default")) +
