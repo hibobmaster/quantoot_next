@@ -25,12 +25,15 @@ final class ClientVisualPolishTests: XCTestCase {
         let screenshot = app.screenshot()
         capture("Settled thread surface", screenshot)
         let rgb = try pixel(CGPoint(x: card.frame.minX + 4, y: visible.midY), in: screenshot)
+        let edge = try pixel(CGPoint(x: card.frame.minX + 0.5, y: visible.midY), in: screenshot)
         let spread = Int(rgb.max()!) - Int(rgb.min()!)
-        let sample = XCTAttachment(string: "card=\(identifier); rgb=\(rgb); channelSpread=\(spread)")
+        let edgeDifference = zip(rgb, edge).map { abs(Int($0.0) - Int($0.1)) }.max()!
+        let sample = XCTAttachment(string: "card=\(identifier); rgb=\(rgb); edge=\(edge); channelSpread=\(spread); edgeDifference=\(edgeDifference)")
         sample.name = "Thread surface pixel"
         sample.lifetime = .keepAlways
         add(sample)
         XCTAssertLessThanOrEqual(spread, 12, "The post must settle to the neutral reading surface instead of remaining green.")
+        XCTAssertLessThanOrEqual(edgeDifference, 3, "The initial focus outline must fade away instead of remaining around the post.")
     }
 
     @MainActor
