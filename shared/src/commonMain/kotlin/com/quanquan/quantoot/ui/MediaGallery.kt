@@ -25,6 +25,8 @@ import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -35,7 +37,41 @@ import com.quanquan.quantoot.model.MediaAttachment
 import com.quanquan.quantoot.platform.NativeVideoPlayer
 import kotlin.math.max
 import kotlin.math.min
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+
+internal data class GallerySaveTarget(val url: String, val name: String)
+
+internal sealed interface GallerySaveResult {
+    data object Idle : GallerySaveResult
+    data class Saving(val target: GallerySaveTarget) : GallerySaveResult
+    data class Saved(val target: GallerySaveTarget) : GallerySaveResult
+    data class Failed(val target: GallerySaveTarget) : GallerySaveResult
+}
+
+internal class GallerySaveState {
+    var result by mutableStateOf<GallerySaveResult>(GallerySaveResult.Idle)
+        private set
+    val saving get() = result is GallerySaveResult.Saving
+
+    suspend fun save(target: GallerySaveTarget, write: suspend (GallerySaveTarget) -> Unit) {
+        if (saving) return
+        result = GallerySaveResult.Saving(target)
+        try {
+            write(target)
+            result = GallerySaveResult.Saved(target)
+        } catch (e: CancellationException) {
+            result = GallerySaveResult.Idle
+            throw e
+        } catch (_: Exception) {
+            result = GallerySaveResult.Failed(target)
+        }
+    }
+
+    fun dismissFeedback() {
+        if (!saving) result = GallerySaveResult.Idle
+    }
+}
 
 internal fun boundedGalleryOffset(
     position: Offset,
@@ -114,7 +150,12 @@ fun MediaGallery(
     val scope = rememberCoroutineScope()
     val strings = LocalStrings.current
     var showAlt by remember(pager.currentPage) { mutableStateOf(false) }
-    var saving by remember { mutableStateOf(false) }
+    val saveState = remember(items) { GallerySaveState() }
+    fun save(target: GallerySaveTarget) {
+        scope.launch {
+            saveState.save(target) { ui.platform.saveMedia(it.url, it.name) }
+        }
+    }
     LaunchedEffect(pager.currentPage) { images.forEach { it.reset() } }
     val whiteControls = IconButtonDefaults.iconButtonColors(
         contentColor = Color.White, disabledContentColor = Color.White.copy(alpha = 0.3f)
@@ -142,21 +183,13 @@ fun MediaGallery(
                 TextButton(
                     onClick = {
                         if (url != null) {
-                            saving = true
-                            ui.run {
-                                try {
-                                    ui.platform.saveMedia(url, "quantoot-${media.id}")
-                                    ui.message = strings.text("mastodon_image_saved")
-                                } finally {
-                                    saving = false
-                                }
-                            }
+                            save(GallerySaveTarget(url, "quantoot-${media.id}"))
                         }
                     },
-                    enabled = media.type == "image" && url != null && !saving,
+                    enabled = media.type == "image" && url != null && !saveState.saving,
                     colors = whiteText,
                 ) {
-                    if (saving) CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
+                    if (saveState.saving) CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
                     else Text(tr("mastodon_save_to_gallery"))
                 }
             }
@@ -167,6 +200,24 @@ fun MediaGallery(
                 key = { it },
             ) { index ->
                 GalleryPage(ui, items[index], images[index], index == pager.currentPage)
+            }
+            val feedback = saveState.result
+            if (feedback is GallerySaveResult.Saved || feedback is GallerySaveResult.Failed) {
+                Snackbar(
+                    modifier = Modifier.padding(8.dp).semantics { liveRegion = LiveRegionMode.Polite },
+                    action = {
+                        if (feedback is GallerySaveResult.Failed) TextButton(onClick = { save(feedback.target) }) {
+                            Text(tr("mastodon_retry"), color = MaterialTheme.colorScheme.inversePrimary)
+                        }
+                    },
+                    dismissAction = {
+                        IconButton(onClick = saveState::dismissFeedback) {
+                            Icon(Icons.Default.Close, tr("mastodon_close"))
+                        }
+                    },
+                ) {
+                    Text(tr(if (feedback is GallerySaveResult.Saved) "mastodon_image_saved" else "mastodon_image_save_failed"))
+                }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                 IconButton(

@@ -9,6 +9,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
+import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,8 +21,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import platform.AuthenticationServices.*
+import platform.CoreFoundation.CFRelease
+import platform.CoreFoundation.CFRetain
 import platform.Foundation.*
-import platform.Photos.PHAssetChangeRequest
+import platform.ImageIO.CGImageSourceCreateWithData
+import platform.ImageIO.CGImageSourceGetType
+import platform.Photos.PHAssetCreationRequest
+import platform.Photos.PHAssetResourceCreationOptions
+import platform.Photos.PHAssetResourceTypePhoto
+import platform.Photos.PHAccessLevelAddOnly
+import platform.Photos.PHAuthorizationStatusAuthorized
+import platform.Photos.PHAuthorizationStatusNotDetermined
 import platform.Photos.PHPhotoLibrary
 import platform.PhotosUI.*
 import platform.UIKit.*
@@ -208,18 +218,58 @@ class IosPlatformServices : PlatformServices {
 
     override suspend fun saveImageBytes(bytes: ByteArray, name: String) {
         require(bytes.isNotEmpty() && bytes.size <= MAX_MEDIA_BYTES) { "Image exceeds 30 MiB" }
-        val image =
-            UIImage.imageWithData(bytes.toData()) ?: error("This file is not a supported image")
+        val data = bytes.toData()
+        check(UIImage.imageWithData(data) != null) { "This file is not a supported image" }
+        val dataRef = CFBridgingRetain(data)!!
+        val type = try {
+            val source = CGImageSourceCreateWithData(dataRef.reinterpret(), null)
+                ?: error("This file is not a supported image")
+            try {
+                val identifier = CGImageSourceGetType(source)
+                    ?: error("Could not identify the image format")
+                UTType.typeWithIdentifier(CFBridgingRelease(CFRetain(identifier)) as String)
+                    ?: error("This file is not a supported image")
+            } finally {
+                CFRelease(source)
+            }
+        } finally {
+            CFRelease(dataRef)
+        }
+        val extension = type.preferredFilenameExtension
+            ?: error("Could not identify the image filename extension")
+        val baseName = name.substringBeforeLast('.').replace(Regex("[^A-Za-z0-9_-]"), "_")
+            .trim('_', '-').take(120).ifBlank { "quantoot-image" }
+        val options = PHAssetResourceCreationOptions().apply {
+            originalFilename = "$baseName.$extension"
+        }
+        requestPhotoAddAccess()
         suspendCancellableCoroutine<Unit> { continuation ->
             PHPhotoLibrary.sharedPhotoLibrary().performChanges({
-                PHAssetChangeRequest.creationRequestForAssetFromImage(image)
-            }) { success, _ ->
+                PHAssetCreationRequest.creationRequestForAsset()
+                    .addResourceWithType(PHAssetResourceTypePhoto, data = data, options = options)
+            }) { success, error ->
                 if (continuation.isActive) {
                     if (success) continuation.resume(Unit)
                     else
                         continuation.resumeWithException(
-                            IllegalStateException("Allow Photos access to save this image")
+                            IllegalStateException(error?.localizedDescription ?: "Could not save image to Photos")
                         )
+                }
+            }
+        }
+    }
+
+    private suspend fun requestPhotoAddAccess() {
+        val status = PHPhotoLibrary.authorizationStatusForAccessLevel(PHAccessLevelAddOnly)
+        if (status == PHAuthorizationStatusAuthorized) return
+        check(status == PHAuthorizationStatusNotDetermined) { "Allow Photos access to save this image" }
+        suspendCancellableCoroutine<Unit> { continuation ->
+            PHPhotoLibrary.requestAuthorizationForAccessLevel(PHAccessLevelAddOnly) { result ->
+                if (continuation.isActive) {
+                    if (result == PHAuthorizationStatusAuthorized) continuation.resume(Unit)
+                    else continuation.resumeWithException(
+                        IllegalStateException("Allow Photos access to save this image")
+                    )
                 }
             }
         }
