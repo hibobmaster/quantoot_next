@@ -80,10 +80,21 @@ class UiContext(
     var message by mutableStateOf<String?>(null)
     var revision by mutableIntStateOf(0)
     internal val statuses = StatusProjection()
+    internal val statusFeedCache = FeedCacheSession(platform.preferences, Status.serializer(), scope)
+    internal val notificationFeedCache = FeedCacheSession(platform.preferences, Notification.serializer(), scope)
     val drafts = mutableMapOf<String, ComposerDraft>()
     private val eventBus = MutableSharedFlow<StreamEvent>(extraBufferCapacity = 32)
     val events = eventBus.asSharedFlow()
     private var failedOperation: (suspend () -> Unit)? = null
+
+    init {
+        scope.coroutineContext[Job]?.invokeOnCompletion { close() }
+    }
+
+    internal fun close() {
+        statusFeedCache.close()
+        notificationFeedCache.close()
+    }
 
     fun run(block: suspend () -> Unit) = scope.launch {
         try {

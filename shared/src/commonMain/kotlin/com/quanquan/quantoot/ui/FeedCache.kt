@@ -5,6 +5,7 @@ import com.quanquan.quantoot.model.*
 import com.quanquan.quantoot.platform.KeyValueStore
 import com.quanquan.quantoot.platform.sha256
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -35,6 +36,8 @@ internal class FeedCache<T>(
     private val key: String,
     serializer: KSerializer<T>,
 ) {
+    internal data class Value<T>(val snapshot: FeedSnapshot<T>, val sourceSize: Int)
+
     private val format = Json { ignoreUnknownKeys = true }
     private val codec = FeedSnapshot.serializer(serializer)
 
@@ -59,40 +62,165 @@ internal class FeedCache<T>(
             null
         }
 
-    suspend fun write(snapshot: FeedSnapshot<T>) {
+    fun prepare(snapshot: FeedSnapshot<T>, previous: Value<T>? = null): Value<T>? {
+        if (snapshot.nextCursor != null &&
+            (snapshot.nextCursor.length > 2048 || snapshot.nextCursor.any { it.code < 32 || it.code == 127 }))
+            return null
+        fun normalized(items: List<T>): Value<T> {
+            val index = snapshot.index.coerceIn(0, (items.size - 1).coerceAtLeast(0))
+            return Value(
+                FeedSnapshot(
+                    items,
+                    if (snapshot.leadingOffset != null) 0 else index,
+                    if (snapshot.leadingOffset != null || index != snapshot.index || items.isEmpty()) 0
+                    else snapshot.offset.coerceAtLeast(0),
+                    snapshot.nextCursor,
+                    snapshot.continuationKnown && items.size == snapshot.items.size,
+                    snapshot.leadingOffset?.coerceAtLeast(0),
+                ),
+                snapshot.items.size,
+            )
+        }
+        if (previous != null && previous.sourceSize == snapshot.items.size &&
+            previous.snapshot.nextCursor == snapshot.nextCursor &&
+            (previous.snapshot.items.isNotEmpty() || snapshot.items.isEmpty()) &&
+            previous.snapshot.items == snapshot.items.take(previous.snapshot.items.size))
+            return normalized(previous.snapshot.items)
         var bounded = snapshot.items.take(100)
-        var encoded: String
         while (true) {
-            val index = snapshot.index.coerceIn(0, (bounded.size - 1).coerceAtLeast(0))
-            encoded =
-                format.encodeToString(
-                    codec,
-                    FeedSnapshot(
-                        bounded,
-                        if (snapshot.leadingOffset != null) 0 else index,
-                        if (snapshot.leadingOffset != null || index != snapshot.index || bounded.isEmpty()) 0
-                        else snapshot.offset.coerceAtLeast(0),
-                        snapshot.nextCursor,
-                        snapshot.continuationKnown && bounded.size == snapshot.items.size,
-                        snapshot.leadingOffset?.coerceAtLeast(0),
-                    ),
-                )
-            if (encoded.encodeToByteArray().size <= 512 * 1024) break
-            if (bounded.isEmpty()) return
+            val largestMetadata = snapshot.copy(
+                items = bounded,
+                index = Int.MAX_VALUE,
+                offset = Int.MAX_VALUE,
+                leadingOffset = Int.MAX_VALUE,
+                continuationKnown = true,
+            )
+            val encoded = format.encodeToString(codec, largestMetadata)
+            if (encoded.encodeToByteArray().size <= 512 * 1024) return normalized(bounded)
+            if (bounded.isEmpty()) return null
             bounded = bounded.dropLast(1)
         }
+    }
+
+    suspend fun write(snapshot: FeedSnapshot<T>) {
+        prepare(snapshot)?.let { write(it) }
+    }
+
+    suspend fun write(value: Value<T>): Boolean =
         try {
-            preferences.write(key, encoded)
+            preferences.write(key, format.encodeToString(codec, value.snapshot))
+            true
         } catch (e: CancellationException) {
             throw e
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+            false
+        }
+}
+
+internal class FeedCacheSession<T>(
+    private val preferences: KeyValueStore,
+    private val serializer: KSerializer<T>,
+    private val scope: CoroutineScope,
+) {
+    private inner class Entry(val key: String) {
+        val cache = FeedCache(preferences, key, serializer)
+        var latest: FeedCache.Value<T>? = null
+        var revision = 0L
+        var persistedRevision = 0L
+        var attachment: Long? = null
+        var writer: Job? = null
+        val changes = Channel<Unit>(Channel.CONFLATED)
+    }
+
+    private val entries = mutableMapOf<String, Entry>()
+    private var epoch = 0L
+    private var closed = false
+
+    inner class Attachment internal constructor(key: String, private val epoch: Long) {
+        private val entry = entries.getValue(key)
+        private var closed = false
+        val isCurrent: Boolean
+            get() = !closed && !this@FeedCacheSession.closed &&
+                entries[entry.key] === entry && entry.attachment == epoch
+
+        suspend fun read(): FeedSnapshot<T>? {
+            if (!isCurrent) return null
+            entry.latest?.let { return it.snapshot }
+            val saved = entry.cache.read()
+            currentCoroutineContext().ensureActive()
+            if (!isCurrent) return null
+            if (entry.latest == null && saved != null) entry.latest = entry.cache.prepare(saved)
+            return entry.latest?.snapshot
+        }
+
+        fun checkpoint(snapshot: FeedSnapshot<T>) {
+            if (!isCurrent) return
+            if (entry.latest?.snapshot != snapshot) {
+                val value = entry.cache.prepare(snapshot, entry.latest) ?: return
+                if (entry.latest != value) {
+                    entry.latest = value
+                    entry.revision++
+                }
+            }
+            if (entry.revision != entry.persistedRevision) {
+                entry.changes.trySend(Unit)
+                if (entry.writer == null) entry.writer = scope.launch { persist(entry) }
+            }
+        }
+
+        fun close(snapshot: FeedSnapshot<T>? = null) {
+            if (closed) return
+            if (isCurrent) {
+                snapshot?.let(::checkpoint)
+                entry.attachment = null
+                release(entry)
+            }
+            closed = true
+        }
+    }
+
+    fun attach(key: String): Attachment {
+        check(!closed)
+        val entry = entries.getOrPut(key) { Entry(key) }
+        entry.attachment = ++epoch
+        return Attachment(key, epoch)
+    }
+
+    private suspend fun persist(entry: Entry) {
+        try {
+            while (true) {
+                while (withTimeoutOrNull(400) { entry.changes.receive() } != null) {}
+                val revision = entry.revision
+                val latest = entry.latest ?: return
+                if (entry.cache.write(latest)) entry.persistedRevision = revision
+                if (revision == entry.revision) return
+            }
+        } finally {
+            entry.writer = null
+            release(entry)
+        }
+    }
+
+    private fun release(entry: Entry) {
+        if (entry.attachment == null && entry.writer == null && entry.revision == entry.persistedRevision &&
+            entries[entry.key] === entry)
+            entries.remove(entry.key)
+    }
+
+    fun close() {
+        if (closed) return
+        closed = true
+        val writers = entries.values.mapNotNull { it.writer }
+        entries.clear()
+        writers.forEach { it.cancel() }
     }
 }
 
 internal class FeedPager<T>(
-    private val scope: CoroutineScope,
+    val scope: CoroutineScope,
     private val id: (T) -> String,
     private val project: (T) -> T? = { it },
+    private val onClose: (FeedPager<T>) -> Unit = {},
     private val fetch: suspend (String?) -> Page<T>,
 ) {
     var rows by mutableStateOf<List<T>>(emptyList())
@@ -118,11 +246,13 @@ internal class FeedPager<T>(
     private var request: Job? = null
     private var creations: List<T> = emptyList()
     private val removed = mutableSetOf<String>()
+    private var closed = false
 
     private fun projected(items: List<T>): List<T> =
         items.mapNotNull(project).filterNot { id(it) in removed }.distinctBy(id)
 
     fun restore(snapshot: FeedSnapshot<T>? = null) {
+        if (closed) return
         request?.cancel()
         generation++
         if (ready) {
@@ -143,7 +273,7 @@ internal class FeedPager<T>(
         FeedSnapshot(projected(rows), index, offset, cursor, continuationKnown)
 
     fun load(more: Boolean = false, defer: Boolean = false) {
-        if (!ready || (more && (busy || exhausted || !continuationKnown))) return
+        if (closed || !ready || (more && (busy || exhausted || !continuationKnown))) return
         if (!more) request?.cancel()
         val version = ++generation
         val maxId = if (more) cursor else null
@@ -195,6 +325,7 @@ internal class FeedPager<T>(
     }
 
     fun created(item: T, defer: Boolean) {
+        if (closed) return
         val value = project(item)?.takeUnless { id(it) in removed } ?: return
         val itemId = id(value)
         if (rows.any { id(it) == itemId }) {
@@ -208,20 +339,55 @@ internal class FeedPager<T>(
     }
 
     fun reveal() {
+        if (closed) return
         rows = projected(pending + rows)
         pending = emptyList()
     }
 
     fun prune() {
+        if (closed) return
         rows = projected(rows)
         pending = projected(pending)
         creations = projected(creations)
     }
 
     fun remove(predicate: (T) -> Boolean) {
+        if (closed) return
         removed += (rows + pending + creations).filter(predicate).map(id)
         prune()
     }
+
+    fun cancelLoad() {
+        request?.cancel()
+        request = null
+        generation++
+        busy = false
+        paging = false
+    }
+
+    fun close() {
+        if (closed) return
+        closed = true
+        cancelLoad()
+        onClose(this)
+    }
+}
+
+internal fun <T> FeedPager<T>.snapshot(
+    position: FeedPosition,
+    emptyPosition: FeedPosition,
+    id: (T) -> String,
+): FeedSnapshot<T> {
+    val snapshot = snapshot()
+    val normalized = when (position) {
+        is FeedPosition.Leading -> position
+        is FeedPosition.Status -> {
+            val index = position.index.coerceIn(0, rows.lastIndex.coerceAtLeast(0))
+            FeedSnapshot(rows, index, if (index == position.index) position.offset else 0)
+                .restoredPosition(snapshot.items, id, emptyPosition is FeedPosition.Leading)
+        }
+    }
+    return snapshot.atPosition(normalized)
 }
 
 internal fun FeedPager<Status>.apply(

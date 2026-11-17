@@ -24,7 +24,6 @@ import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.serialization.KSerializer
 
 internal enum class HomeTimeline(val source: Timeline) {
     Home(Timeline.Home),
@@ -92,28 +91,41 @@ private fun HomeTimelineSelector(labels: List<String>, selected: Int, onSelect: 
 private const val FEED_LEADING_KEY = "feed:leading"
 private const val FEED_FOOTER_KEY = "feed:footer"
 
-private class FeedViewport(private val list: LazyListState, private val hasLeading: Boolean = false) {
-    private fun position() = feedPosition(list.firstVisibleItemIndex, list.firstVisibleItemScrollOffset, hasLeading)
+internal interface FeedViewport {
+    val emptyPosition: FeedPosition
+    fun position(): FeedPosition
+    fun readingOlder(): Boolean
+    fun nearEnd(rowCount: Int): Boolean
+    suspend fun restore(position: FeedPosition)
+    suspend fun revealFirstStatus()
+}
 
-    fun readingOlder() = position().readingOlder()
+private class ListFeedViewport(private val list: LazyListState, private val hasLeading: Boolean = false) : FeedViewport {
+    override val emptyPosition = feedPosition(0, 0, hasLeading)
+    private val rowCount: Int
+        get() = (list.layoutInfo.totalItemsCount - if (hasLeading) 2 else 1).coerceAtLeast(0)
 
-    fun nearEnd(rowCount: Int) = feedNeedsMore(list.layoutInfo.visibleItemsInfo.map { it.index }, rowCount, hasLeading)
+    private fun visiblePosition() = feedPosition(list.firstVisibleItemIndex, list.firstVisibleItemScrollOffset, hasLeading)
 
-    fun <T> snapshot(pager: FeedPager<T>, id: (T) -> String): FeedSnapshot<T> {
-        val snapshot = pager.snapshot()
-        val position = when (val visible = position()) {
-            is FeedPosition.Leading -> visible
-            is FeedPosition.Status -> {
-                val index = visible.index.coerceIn(0, pager.rows.lastIndex.coerceAtLeast(0))
-                FeedSnapshot(pager.rows, index, if (index == visible.index) visible.offset else 0)
-                    .restoredPosition(snapshot.items, id, hasLeading)
-            }
+    override fun position(): FeedPosition {
+        val visible = visiblePosition()
+        return when {
+            visible is FeedPosition.Leading -> visible
+            rowCount == 0 -> emptyPosition
+            visible is FeedPosition.Status && visible.index >= rowCount -> FeedPosition.Status(rowCount - 1, 0)
+            else -> visible
         }
-        return snapshot.atPosition(position)
     }
 
-    suspend fun <T> restore(saved: FeedSnapshot<T>?, rows: List<T>, id: (T) -> String) {
-        val position = saved?.restoredPosition(rows, id, hasLeading) ?: feedPosition(0, 0, hasLeading)
+    override fun readingOlder(): Boolean {
+        val visible = visiblePosition()
+        return rowCount > 0 && visible is FeedPosition.Status &&
+            (visible.index >= rowCount || visible.readingOlder())
+    }
+
+    override fun nearEnd(rowCount: Int) = feedNeedsMore(list.layoutInfo.visibleItemsInfo.map { it.index }, rowCount, hasLeading)
+
+    override suspend fun restore(position: FeedPosition) {
         val offset = if (position is FeedPosition.Leading) {
             list.scrollToItem(0)
             val height = snapshotFlow {
@@ -124,14 +136,14 @@ private class FeedViewport(private val list: LazyListState, private val hasLeadi
         list.scrollToItem(position.listIndex(hasLeading), offset)
     }
 
-    suspend fun revealFirstStatus() = list.scrollToItem(FeedPosition.Status(0, 0).listIndex(hasLeading))
+    override suspend fun revealFirstStatus() = list.scrollToItem(FeedPosition.Status(0, 0).listIndex(hasLeading))
 }
 
 @Composable
 private fun <T> rememberFeedPager(
     ui: UiContext,
     identity: String,
-    serializer: KSerializer<T>,
+    cache: FeedCacheSession<T>,
     viewport: FeedViewport,
     isActive: Boolean,
     id: (T) -> String,
@@ -139,50 +151,108 @@ private fun <T> rememberFeedPager(
     displayedCount: (List<T>) -> Int = { it.size },
     fetch: suspend (String?) -> Page<T>,
 ): FeedPager<T> {
-    val scope = rememberCoroutineScope()
     val accountKey = ui.store.state.value.activeKey
-    val key =
+    val cacheKey =
         remember(ui.api, accountKey, identity) {
             feedCacheKey(ui.api.instance, accountKey, identity)
         }
-    val cache = remember(key) { FeedCache(ui.platform.preferences, key, serializer) }
-    val pager = remember(key) { FeedPager(scope, id, project, fetch) }
-    var restored by remember(pager) { mutableStateOf(false) }
-    val foreground by ui.platform.foreground.collectAsState()
-    val active by rememberUpdatedState(isActive && foreground)
-    LaunchedEffect(pager) {
-        val saved = cache.read()
-        pager.restore(saved)
-        viewport.restore(saved, pager.rows, id)
-        restored = true
-        if (active) pager.load(defer = viewport.readingOlder())
-    }
-    LaunchedEffect(pager) {
-        snapshotFlow {
-            if (restored && pager.ready) viewport.snapshot(pager, id) else null
-        }.collectLatest { snapshot ->
-            if (snapshot != null) {
-                delay(400)
-                cache.write(snapshot)
+    return key(cache, cacheKey, viewport) {
+        val scope = rememberCoroutineScope()
+        var restored by remember { mutableStateOf(false) }
+        var attachment by remember { mutableStateOf<FeedCacheSession<T>.Attachment?>(null) }
+        val pager = remember {
+            FeedPager(scope, id, project, onClose = { pager ->
+                try {
+                    attachment?.close(
+                        if (restored && pager.ready) pager.snapshot(viewport.position(), viewport.emptyPosition, id)
+                        else null,
+                    )
+                } finally {
+                    scope.cancel()
+                }
+            }, fetch = fetch)
+        }
+        DisposableEffect(pager) {
+            val current = cache.attach(cacheKey)
+            attachment = current
+            scope.launch {
+                val saved = current.read()
+                ensureActive()
+                if (!current.isCurrent) return@launch
+                pager.restore(saved)
+                viewport.restore(
+                    saved?.restoredPosition(pager.rows, id, viewport.emptyPosition is FeedPosition.Leading)
+                        ?: viewport.emptyPosition,
+                )
+                ensureActive()
+                if (!current.isCurrent) return@launch
+                restored = true
+                snapshotFlow {
+                    if (pager.ready) pager.snapshot(viewport.position(), viewport.emptyPosition, id) else null
+                }.collect { snapshot -> snapshot?.let(current::checkpoint) }
+            }
+            onDispose { pager.close() }
+        }
+        val foreground by ui.platform.foreground.collectAsState()
+        DisposableEffect(pager, isActive, foreground) {
+            val job = if (isActive && foreground) scope.launch {
+                snapshotFlow { restored }.first { it }
+                pager.load(defer = viewport.readingOlder())
+                launch {
+                    while (currentCoroutineContext().isActive) {
+                        delay(20_000)
+                        if (!pager.busy) pager.load(defer = viewport.readingOlder())
+                    }
+                }
+                snapshotFlow {
+                    !pager.busy && pager.ready && pager.error == null && !pager.exhausted &&
+                        viewport.nearEnd(displayedCount(pager.rows))
+                }.collect { shouldLoad -> if (shouldLoad) pager.load(more = true) }
+            } else null
+            onDispose {
+                job?.cancel()
+                pager.cancelLoad()
             }
         }
+        pager
     }
-    var wasActive by remember(pager) { mutableStateOf(isActive && foreground) }
-    LaunchedEffect(pager, foreground, isActive) {
-        if (active && !wasActive && restored) pager.load(defer = viewport.readingOlder())
-        wasActive = active
-        if (active) while (currentCoroutineContext().isActive) {
-            delay(20_000)
-            if (restored && !pager.busy) pager.load(defer = viewport.readingOlder())
-        }
+}
+
+@Composable
+internal fun rememberStatusPager(
+    ui: UiContext,
+    source: Timeline,
+    viewport: FeedViewport,
+    isActive: Boolean = true,
+): FeedPager<Status> {
+    val pager = rememberFeedPager(
+        ui, source.toString(), ui.statusFeedCache, viewport, isActive, { it.id }, ui.statuses::project,
+    ) { cursor ->
+        ui.statuses.read({ ui.api.timeline(source, maxId = cursor) }) { it.items }
     }
-    LaunchedEffect(pager, isActive, foreground) {
-        snapshotFlow {
-            restored && active && !pager.busy && pager.ready && pager.error == null && !pager.exhausted &&
-                viewport.nearEnd(displayedCount(pager.rows))
-        }.collect { shouldLoad ->
-            if (shouldLoad) pager.load(more = true)
-        }
+    val foreground by ui.platform.foreground.collectAsState()
+    val streamSource = source.streamSource()
+    DisposableEffect(pager, streamSource, foreground, isActive) {
+        val job = if (isActive && foreground) pager.scope.launch {
+            if (ui.me != null && streamSource != null && streamSource != StreamSource.User)
+                launch { ui.api.events(streamSource).collect { ui.ingest(it) } }
+            ui.events.collect { event ->
+                pager.apply(event, streamSource, defer = viewport.readingOlder(), active = true)
+            }
+        } else null
+        onDispose { job?.cancel() }
+    }
+    DisposableEffect(pager, pager.rows.firstOrNull()?.id, isActive, foreground) {
+        val job = if (isActive && foreground && source == Timeline.Home && ui.me != null) pager.scope.launch {
+            pager.rows.firstOrNull()?.let { status ->
+                try {
+                    ui.api.markRead("home", status.id)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {}
+            }
+        } else null
+        onDispose { job?.cancel() }
     }
     return pager
 }
@@ -198,36 +268,9 @@ fun FeedScreen(
     val identity = source.toString()
     key(ui.api, ui.store.state.value.activeKey, identity) {
         val listState = rememberLazyListState()
-        val viewport = remember(listState, leadingContent != null) { FeedViewport(listState, leadingContent != null) }
+        val viewport = remember(listState, leadingContent != null) { ListFeedViewport(listState, leadingContent != null) }
         val scope = rememberCoroutineScope()
-        val pager =
-            rememberFeedPager(
-                ui, identity, Status.serializer(), viewport, isActive, { it.id }, ui.statuses::project,
-            ) { cursor ->
-                ui.statuses.read({ ui.api.timeline(source, maxId = cursor) }) { it.items }
-            }
-        val foreground by ui.platform.foreground.collectAsState()
-        val streamSource = source.streamSource()
-        fun readingOlder() = viewport.readingOlder() || !isActive
-        LaunchedEffect(ui, streamSource, foreground, isActive) {
-            if (ui.me != null && foreground && isActive && streamSource != null && streamSource != StreamSource.User)
-                ui.api.events(streamSource).collect { ui.ingest(it) }
-        }
-        LaunchedEffect(pager, isActive, foreground) {
-            ui.events.collect { event ->
-                pager.apply(event, streamSource, defer = readingOlder(), active = isActive && foreground)
-            }
-        }
-        LaunchedEffect(pager.rows.firstOrNull()?.id, isActive) {
-            if (isActive && source == Timeline.Home && ui.me != null)
-                pager.rows.firstOrNull()?.let { status ->
-                    try {
-                        ui.api.markRead("home", status.id)
-                    } catch (e: CancellationException) {
-                        throw e
-                    } catch (_: Exception) {}
-                }
-        }
+        val pager = rememberStatusPager(ui, source, viewport, isActive)
         Column {
             Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
                 if (pager.pending.isNotEmpty())
@@ -435,13 +478,13 @@ fun DiscoveryScreen(ui: UiContext) {
 fun NotificationsScreen(ui: UiContext, isActive: Boolean = true) {
     key(ui.api, ui.store.state.value.activeKey) {
         val listState = rememberLazyListState()
-        val viewport = remember(listState) { FeedViewport(listState) }
+        val viewport = remember(listState) { ListFeedViewport(listState) }
         val scope = rememberCoroutineScope()
         val pager =
             rememberFeedPager(
                 ui,
                 "notifications",
-                Notification.serializer(),
+                ui.notificationFeedCache,
                 viewport,
                 isActive,
                 { it.id },
@@ -457,21 +500,20 @@ fun NotificationsScreen(ui: UiContext, isActive: Boolean = true) {
         val groups = groupFeedNotifications(pager.rows)
         val handling = remember { mutableStateListOf<String>() }
         val foreground by ui.platform.foreground.collectAsState()
-        LaunchedEffect(pager, isActive, foreground) {
-            ui.events.collect { event ->
-                if (event is StreamEvent.Notify && event.source == StreamSource.User)
-                    pager.created(
-                        event.notification,
-                        defer =
-                            viewport.readingOlder() || !isActive,
-                    )
-                if (event is StreamEvent.Deleted || event is StreamEvent.Edited) pager.prune()
-                if (event is StreamEvent.Reconnected && event.source == StreamSource.User && isActive && foreground)
-                    pager.load(defer = viewport.readingOlder() || !isActive)
-            }
+        DisposableEffect(pager, isActive, foreground) {
+            val job = if (isActive && foreground) pager.scope.launch {
+                ui.events.collect { event ->
+                    if (event is StreamEvent.Notify && event.source == StreamSource.User)
+                        pager.created(event.notification, defer = viewport.readingOlder())
+                    if (event is StreamEvent.Deleted || event is StreamEvent.Edited) pager.prune()
+                    if (event is StreamEvent.Reconnected && event.source == StreamSource.User)
+                        pager.load(defer = viewport.readingOlder())
+                }
+            } else null
+            onDispose { job?.cancel() }
         }
-        LaunchedEffect(pager.rows.firstOrNull()?.id, isActive) {
-            if (isActive)
+        DisposableEffect(pager, pager.rows.firstOrNull()?.id, isActive, foreground) {
+            val job = if (isActive && foreground) pager.scope.launch {
                 pager.rows.firstOrNull()?.let {
                     try {
                         ui.api.markRead("notifications", it.id)
@@ -479,6 +521,8 @@ fun NotificationsScreen(ui: UiContext, isActive: Boolean = true) {
                         throw e
                     } catch (_: Exception) {}
                 }
+            } else null
+            onDispose { job?.cancel() }
         }
         Column {
             Row {
