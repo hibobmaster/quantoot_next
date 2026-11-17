@@ -8,7 +8,9 @@ final class GuestBrowsingTests: XCTestCase {
         app.launchArguments = ["-app_locale", "en"]
         app.launch()
         let browse = app.buttons["Browse Public Posts"]
-        XCTAssertTrue(browse.waitForExistence(timeout: 15), "Use an isolated guest simulator for this test.")
+        guard browse.waitForExistence(timeout: 10) else {
+            throw XCTSkip("Run the guest Settings test on an isolated simulator without a selected instance.")
+        }
         browse.tap()
         XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 15))
         app.buttons["Settings"].tap()

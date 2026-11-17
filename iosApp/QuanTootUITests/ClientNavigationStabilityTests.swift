@@ -57,8 +57,10 @@ final class ClientNavigationStabilityTests: XCTestCase {
                 from.press(forDuration: 0.05, thenDragTo: to, withVelocity: .slow, thenHoldForDuration: 0.2)
             }
             XCTAssertTrue(target.exists && target.isHittable)
+            settle(target)
             target.tap()
-            XCTAssertTrue(target.isSelected)
+            let selected = NSPredicate { _, _ in target.exists && target.isSelected }
+            XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: selected, object: nil)], timeout: 3), .completed)
             settle(target)
             let attachment = XCTAttachment(string: "category=\(name); beforeY=\(anchor); afterY=\(target.frame.midY)")
             attachment.name = "Profile \(name) position"

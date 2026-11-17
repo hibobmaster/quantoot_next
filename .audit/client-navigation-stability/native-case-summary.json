@@ -1,0 +1,117 @@
+{
+  "distinctPassingAppCases": 18,
+  "cases": [
+    "ClientExperienceTests/testComposerOffersLanguageAndEmojiWithoutPublishing",
+    "ClientExperienceTests/testServerRulesAndContactAreReachable",
+    "ClientInteractionTests/testHomeSourceSurvivesRootTabSwitches",
+    "ClientInteractionTests/testProfileActionsAndReadingRemainAccessible",
+    "ClientInteractionTests/testProfileHeaderScrollsAwayToRevealPosts",
+    "ClientInteractionTests/testProfilePrimaryAndSharingActionsUseOneRow",
+    "ClientInteractionTests/testProfileRestoresHeaderAndPostPositions",
+    "ClientInteractionTests/testReturningFromFederatedPostKeepsSelectedTab",
+    "ClientNavigationStabilityTests/testActivityFiltersAndRepeatedCategoryChangesKeepTheHeaderStable",
+    "ClientNavigationStabilityTests/testEmptyMediaStillAllowsTheProfileHeaderToScroll",
+    "ClientNavigationStabilityTests/testLocalizedSettingsChildReturnsThroughAccounts",
+    "ClientNavigationStabilityTests/testProfileCategoriesKeepTheVisibleTabRowInPlace",
+    "ClientNavigationStabilityTests/testSettingsChildrenUseOneTitleAndOneBackAction",
+    "ClientRefinementTests/testProfileAndNotificationPresentation",
+    "ClientVisualPolishTests/testLicensesListOnlyBundledDependencies",
+    "ClientVisualPolishTests/testProfilePostsStartsAtLeadingEdge",
+    "ClientVisualPolishTests/testThreadFocusSettlesToNeutralSurface",
+    "GuestBrowsingTests/testGuestSettingsChildrenHaveOneTitleAndReturnToIndex"
+  ],
+  "receipts": [
+    {
+      "file": "native-settings.json",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "native-settings-edges-initial.json",
+      "counts": {
+        "passed": 2,
+        "failed": 1,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "native-settings-locale.json",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "native-settings-guest.json",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "native-live-initial.json",
+      "counts": {
+        "passed": 3,
+        "failed": 2,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "native-live-calibrated.json",
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "native-regression-initial.json",
+      "counts": {
+        "passed": 7,
+        "failed": 1,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "native-action-row.json",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "native-light.json",
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "native-large-initial.json",
+      "counts": {
+        "passed": 1,
+        "failed": 1,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "native-large-calibrated.json",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      }
+    }
+  ],
+  "prototypeExcluded": true,
+  "failedExecutionsRetained": true,
+  "eligibilityCheck": "native-guest-eligibility.json: expected skip, excluded from passing cases",
+  "notes": "App cases span staged Settings and integrated Profile checks. Repeated modes do not add distinct cases; native prototype is separate."
+}
