@@ -88,7 +88,6 @@ private fun HomeTimelineSelector(labels: List<String>, selected: Int, onSelect: 
     }
 }
 
-private const val FEED_LEADING_KEY = "feed:leading"
 private const val FEED_FOOTER_KEY = "feed:footer"
 
 internal interface FeedViewport {
@@ -100,43 +99,37 @@ internal interface FeedViewport {
     suspend fun revealFirstStatus()
 }
 
-private class ListFeedViewport(private val list: LazyListState, private val hasLeading: Boolean = false) : FeedViewport {
-    override val emptyPosition = feedPosition(0, 0, hasLeading)
+private class ListFeedViewport(private val list: LazyListState) : FeedViewport {
+    override val emptyPosition = FeedPosition.Status(0, 0)
     private val rowCount: Int
-        get() = (list.layoutInfo.totalItemsCount - if (hasLeading) 2 else 1).coerceAtLeast(0)
+        get() = (list.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)
 
-    private fun visiblePosition() = feedPosition(list.firstVisibleItemIndex, list.firstVisibleItemScrollOffset, hasLeading)
+    private fun visiblePosition() = FeedPosition.Status(list.firstVisibleItemIndex, list.firstVisibleItemScrollOffset)
 
     override fun position(): FeedPosition {
         val visible = visiblePosition()
         return when {
-            visible is FeedPosition.Leading -> visible
             rowCount == 0 -> emptyPosition
-            visible is FeedPosition.Status && visible.index >= rowCount -> FeedPosition.Status(rowCount - 1, 0)
+            visible.index >= rowCount -> FeedPosition.Status(rowCount - 1, 0)
             else -> visible
         }
     }
 
     override fun readingOlder(): Boolean {
         val visible = visiblePosition()
-        return rowCount > 0 && visible is FeedPosition.Status &&
-            (visible.index >= rowCount || visible.readingOlder())
+        return rowCount > 0 && (visible.index >= rowCount || visible.readingOlder())
     }
 
-    override fun nearEnd(rowCount: Int) = feedNeedsMore(list.layoutInfo.visibleItemsInfo.map { it.index }, rowCount, hasLeading)
+    override fun nearEnd(rowCount: Int) = feedNeedsMore(list.layoutInfo.visibleItemsInfo.map { it.index }, rowCount, hasLeading = false)
 
     override suspend fun restore(position: FeedPosition) {
-        val offset = if (position is FeedPosition.Leading) {
-            list.scrollToItem(0)
-            val height = snapshotFlow {
-                list.layoutInfo.visibleItemsInfo.firstOrNull { it.key == FEED_LEADING_KEY }?.size
-            }.filterNotNull().first()
-            position.measuredOffset(height)
-        } else position.offset
-        list.scrollToItem(position.listIndex(hasLeading), offset)
+        when (position) {
+            is FeedPosition.Leading -> list.scrollToItem(0)
+            is FeedPosition.Status -> list.scrollToItem(position.index, position.offset)
+        }
     }
 
-    override suspend fun revealFirstStatus() = list.scrollToItem(FeedPosition.Status(0, 0).listIndex(hasLeading))
+    override suspend fun revealFirstStatus() = list.scrollToItem(0)
 }
 
 @Composable
@@ -263,12 +256,11 @@ fun FeedScreen(
     ui: UiContext,
     source: Timeline,
     isActive: Boolean = true,
-    leadingContent: (@Composable () -> Unit)? = null,
 ) {
     val identity = source.toString()
     key(ui.api, ui.store.state.value.activeKey, identity) {
         val listState = rememberLazyListState()
-        val viewport = remember(listState, leadingContent != null) { ListFeedViewport(listState, leadingContent != null) }
+        val viewport = remember(listState) { ListFeedViewport(listState) }
         val scope = rememberCoroutineScope()
         val pager = rememberStatusPager(ui, source, viewport, isActive)
         Column {
@@ -297,7 +289,6 @@ fun FeedScreen(
                     contentPadding = PaddingValues(bottom = 88.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    if (leadingContent != null) item(key = FEED_LEADING_KEY) { leadingContent() }
                     items(
                         pager.rows,
                         key = { "status:${it.id}" },
