@@ -112,6 +112,7 @@ private fun AppShell(
     platform: PlatformServices,
 ) {
     var tab by remember { mutableIntStateOf(0) }
+    var homeTimeline by remember { mutableStateOf(HomeTimeline.initial(state.activeSession != null)) }
     val routes = remember { mutableStateListOf<Screen>() }
     val scope = rememberCoroutineScope()
     val ui =
@@ -276,7 +277,7 @@ private fun AppShell(
                         Screen.EditProfile -> EditProfileScreen(ui)
                         null ->
                             when (tab) {
-                                0 -> HomeScreen(ui)
+                                0 -> HomeScreen(ui, homeTimeline) { homeTimeline = it }
                                 1 -> DiscoveryScreen(ui)
                                 2 -> if (ui.me != null) NotificationsScreen(ui) else LoginPrompt(ui)
                                 else -> ui.me?.let { ProfileScreen(ui, it.id) } ?: LoginPrompt(ui)

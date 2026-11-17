@@ -16,6 +16,7 @@ internal data class FeedSnapshot<T>(
     val offset: Int = 0,
     val nextCursor: String? = null,
     val continuationKnown: Boolean = false,
+    val leadingOffset: Int? = null,
 )
 
 internal fun feedCacheKey(instance: String, accountKey: String?, timeline: String): String {
@@ -47,6 +48,7 @@ internal class FeedCache<T>(
                     it.items.size <= 100 &&
                         it.index >= 0 &&
                         it.offset >= 0 &&
+                        (it.leadingOffset == null || it.leadingOffset >= 0) &&
                         (it.nextCursor == null ||
                             (it.nextCursor.length <= 2048 &&
                                 it.nextCursor.none { c -> c.code < 32 || c.code == 127 }))
@@ -61,15 +63,18 @@ internal class FeedCache<T>(
         var bounded = snapshot.items.take(100)
         var encoded: String
         while (true) {
+            val index = snapshot.index.coerceIn(0, (bounded.size - 1).coerceAtLeast(0))
             encoded =
                 format.encodeToString(
                     codec,
                     FeedSnapshot(
                         bounded,
-                        snapshot.index.coerceIn(0, (bounded.size - 1).coerceAtLeast(0)),
-                        snapshot.offset.coerceAtLeast(0),
+                        if (snapshot.leadingOffset != null) 0 else index,
+                        if (snapshot.leadingOffset != null || index != snapshot.index || bounded.isEmpty()) 0
+                        else snapshot.offset.coerceAtLeast(0),
                         snapshot.nextCursor,
                         snapshot.continuationKnown && bounded.size == snapshot.items.size,
+                        snapshot.leadingOffset?.coerceAtLeast(0),
                     ),
                 )
             if (encoded.encodeToByteArray().size <= 512 * 1024) break

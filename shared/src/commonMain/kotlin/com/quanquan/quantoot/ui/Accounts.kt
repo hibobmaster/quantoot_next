@@ -13,8 +13,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -199,174 +205,166 @@ fun ProfileScreen(ui: UiContext, id: String) {
             if (error == null) Loading()
             return@Column
         }
-        Column(
-            Modifier.heightIn(max = 380.dp)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            val header = safeWebUrl(person.header)?.takeUnless {
-                it.substringBefore('?').substringBefore('#').substringAfterLast('/') == "missing.png"
-            }
-            if (header != null)
-                AsyncImage(
-                    header,
-                    tr("mastodon_profile_header"),
-                    Modifier.fillMaxWidth().height(120.dp).clip(MaterialTheme.shapes.large),
-                    contentScale = ContentScale.Crop,
-                )
-            AccountRow(person) { ui.open(person.url) }
-            if (ui.me?.id == id) {
-                Button(onClick = { ui.navigate(Screen.EditProfile) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                    Text(tr("mastodon_edit_profile"))
-                }
-                FlowRow(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+        val leadingContent: @Composable () -> Unit = {
+            Column {
+                Column(
+                    Modifier.padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    maxItemsInEachRow = if (LocalDensity.current.fontScale > 1.3f) 1 else 2,
                 ) {
-                    val favourites = tr("mastodon_button_favorite")
-                    OutlinedButton(onClick = { ui.navigate(Screen.Feed(Timeline.Favourites, favourites)) },
-                        modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
-                        Icon(Icons.Default.FavoriteBorder, null, Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(favourites)
+                    val header = safeWebUrl(person.header)?.takeUnless {
+                        it.substringBefore('?').substringBefore('#').substringAfterLast('/') == "missing.png"
                     }
-                    val bookmarks = tr("mastodon_bookmarks")
-                    OutlinedButton(onClick = { ui.navigate(Screen.Feed(Timeline.Bookmarks, bookmarks)) },
-                        modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
-                        Icon(PostIcons.Bookmark, null, Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(bookmarks)
-                    }
-                }
-            } else {
-                val rel = relationship
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(
-                        enabled = !relationshipBusy,
-                        onClick = {
-                            changeRelationship(if (rel?.following == true || rel?.requested == true) "unfollow" else "follow")
-                        },
-                        modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                    ) {
-                        if (relationshipBusy) {
-                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                            Spacer(Modifier.width(8.dp))
-                        }
-                        Text(tr(if (rel?.requested == true) "mastodon_follow_requested"
-                            else if (rel?.following == true) "mastodon_following" else "mastodon_follow"))
-                    }
-                    if (ui.me != null) {
-                        Box {
-                            IconButton(onClick = { moderationMenu = true }, enabled = !relationshipBusy) {
-                                Icon(Icons.Default.MoreVert, tr("mastodon_more_actions"))
-                            }
-                            DropdownMenu(expanded = moderationMenu, onDismissRequest = { moderationMenu = false }) {
-                                DropdownMenuItem(text = { Text(tr(if (rel?.muting == true) "mastodon_unmute" else "mastodon_mute")) },
-                                    onClick = {
-                                        moderationMenu = false
-                                        changeRelationship(if (rel?.muting == true) "unmute" else "mute")
-                                    })
-                                DropdownMenuItem(text = { Text(tr(if (rel?.blocking == true) "mastodon_unblock" else "mastodon_block")) },
-                                    onClick = {
-                                        moderationMenu = false
-                                        changeRelationship(if (rel?.blocking == true) "unblock" else "block")
-                                    })
-                                DropdownMenuItem(text = { Text(tr("mastodon_report")) }, onClick = {
-                                    moderationMenu = false
-                                    report = true
-                                })
-                            }
-                        }
-                    }
-                }
-                if (rel?.followedBy == true) Text(tr("mastodon_follows_you"), style = MaterialTheme.typography.labelMedium)
-            }
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                OutlinedButton(onClick = { qr = true }, enabled = safeWebUrl(person.url) != null,
-                    modifier = Modifier.heightIn(min = 48.dp)) {
-                    Text("QR")
-                }
-                OutlinedButton(onClick = { safeWebUrl(person.url)?.let(ui.platform::share) },
-                    enabled = safeWebUrl(person.url) != null, modifier = Modifier.heightIn(min = 48.dp)) {
-                    Icon(Icons.Default.Share, null, Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(tr("mastodon_button_share"))
-                }
-            }
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                TextButton(onClick = { ui.navigate(Screen.People(id, false)) }, contentPadding = PaddingValues(0.dp)) {
-                    Text("${person.followersCount} ${tr("mastodon_followers_count_label")}", style = MaterialTheme.typography.labelLarge)
-                }
-                TextButton(onClick = { ui.navigate(Screen.People(id, true)) }, contentPadding = PaddingValues(0.dp)) {
-                    Text("${person.followingCount} ${tr("mastodon_following_count")}", style = MaterialTheme.typography.labelLarge)
-                }
-                Text("${person.statusesCount} ${tr("mastodon_posts")}",
-                    Modifier.heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically),
-                    style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            HtmlContent(ui, person.note, emojis = person.emojis)
-            person.fields.forEach { field ->
-                Row {
-                    Text(field.name + if (field.verifiedAt != null) " ✓" else "",
-                        Modifier.widthIn(max = 140.dp).padding(end = 12.dp), style = MaterialTheme.typography.labelLarge)
-                    Box(Modifier.weight(1f)) { HtmlContent(ui, field.value, emojis = person.emojis) }
-                }
-            }
-            Text("${tr("mastodon_joined")}: ${person.createdAt.take(10)}", style = MaterialTheme.typography.bodySmall)
-        }
-        val labels =
-            listOf(
-                tr("mastodon_posts"),
-                tr("mastodon_media"),
-                tr("mastodon_featured"),
-                tr("mastodon_activity"),
-                tr("settings_about"),
-            )
-        ScrollableTabRow(selected) {
-            labels.forEachIndexed { i, label ->
-                Tab(selected == i, { selected = i }, text = { Text(label) })
-            }
-        }
-        if (selected == 3)
-            Row(
-                Modifier.padding(horizontal = 16.dp).horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                FilterChip(
-                    showReplies,
-                    { showReplies = !showReplies },
-                    label = { Text(tr("mastodon_filter_show_replies")) },
-                )
-                FilterChip(
-                    showBoosts,
-                    { showBoosts = !showBoosts },
-                    label = { Text(tr("mastodon_filter_show_boosts")) },
-                )
-            }
-        if (selected == 4)
-            Column(
-                Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text("${tr("mastodon_joined")}: ${person.createdAt.take(10)}")
-                person.fields.forEach { field ->
-                    Column {
-                        EmojiText(
-                            field.name + if (field.verifiedAt != null) " ✓" else "",
-                            person.emojis,
-                            style = MaterialTheme.typography.labelMedium,
+                    if (header != null)
+                        AsyncImage(
+                            header,
+                            tr("mastodon_profile_header"),
+                            Modifier.fillMaxWidth().height(120.dp).clip(MaterialTheme.shapes.large),
+                            contentScale = ContentScale.Crop,
                         )
-                        HtmlContent(ui, field.value, emojis = person.emojis)
+                    AccountRow(person) { ui.open(person.url) }
+                    val self = ui.me?.id == id
+                    val rel = relationship
+                    ProfileActionRow(
+                        label = tr(if (self) "mastodon_edit_profile"
+                            else if (rel?.requested == true) "mastodon_follow_requested"
+                            else if (rel?.following == true) "mastodon_following" else "mastodon_follow"),
+                        busy = !self && relationshipBusy,
+                        shareEnabled = safeWebUrl(person.url) != null,
+                        onPrimary = {
+                            if (self) ui.navigate(Screen.EditProfile)
+                            else changeRelationship(if (rel?.following == true || rel?.requested == true) "unfollow" else "follow")
+                        },
+                        onQr = { qr = true },
+                        onShare = { safeWebUrl(person.url)?.let(ui.platform::share) },
+                        overflow = if (self || ui.me == null) null else {
+                            {
+                                Box {
+                                    IconButton(onClick = { moderationMenu = true }, enabled = !relationshipBusy,
+                                        modifier = Modifier.size(48.dp)) {
+                                        Icon(Icons.Default.MoreVert, tr("mastodon_more_actions"))
+                                    }
+                                    DropdownMenu(expanded = moderationMenu, onDismissRequest = { moderationMenu = false }) {
+                                        DropdownMenuItem(text = { Text(tr(if (rel?.muting == true) "mastodon_unmute" else "mastodon_mute")) },
+                                            onClick = {
+                                                moderationMenu = false
+                                                changeRelationship(if (rel?.muting == true) "unmute" else "mute")
+                                            })
+                                        DropdownMenuItem(text = { Text(tr(if (rel?.blocking == true) "mastodon_unblock" else "mastodon_block")) },
+                                            onClick = {
+                                                moderationMenu = false
+                                                changeRelationship(if (rel?.blocking == true) "unblock" else "block")
+                                            })
+                                        DropdownMenuItem(text = { Text(tr("mastodon_report")) }, onClick = {
+                                            moderationMenu = false
+                                            report = true
+                                        })
+                                    }
+                                }
+                            }
+                        },
+                    )
+                    if (self) {
+                        FlowRow(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            maxItemsInEachRow = if (LocalDensity.current.fontScale > 1.3f) 1 else 2,
+                        ) {
+                            val favourites = tr("mastodon_button_favorite")
+                            OutlinedButton(onClick = { ui.navigate(Screen.Feed(Timeline.Favourites, favourites)) },
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                                Icon(Icons.Default.FavoriteBorder, null, Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text(favourites)
+                            }
+                            val bookmarks = tr("mastodon_bookmarks")
+                            OutlinedButton(onClick = { ui.navigate(Screen.Feed(Timeline.Bookmarks, bookmarks)) },
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                                Icon(PostIcons.Bookmark, null, Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text(bookmarks)
+                            }
+                        }
+                    } else if (rel?.followedBy == true) {
+                        Text(tr("mastodon_follows_you"), style = MaterialTheme.typography.labelMedium)
+                    }
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        TextButton(onClick = { ui.navigate(Screen.People(id, false)) }, contentPadding = PaddingValues(0.dp)) {
+                            Text("${person.followersCount} ${tr("mastodon_followers_count_label")}", style = MaterialTheme.typography.labelLarge)
+                        }
+                        TextButton(onClick = { ui.navigate(Screen.People(id, true)) }, contentPadding = PaddingValues(0.dp)) {
+                            Text("${person.followingCount} ${tr("mastodon_following_count")}", style = MaterialTheme.typography.labelLarge)
+                        }
+                        Text("${person.statusesCount} ${tr("mastodon_posts")}",
+                            Modifier.heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically),
+                            style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    HtmlContent(ui, person.note, emojis = person.emojis)
+                    person.fields.forEach { field ->
+                        Row {
+                            Text(field.name + if (field.verifiedAt != null) " ✓" else "",
+                                Modifier.widthIn(max = 140.dp).padding(end = 12.dp), style = MaterialTheme.typography.labelLarge)
+                            Box(Modifier.weight(1f)) { HtmlContent(ui, field.value, emojis = person.emojis) }
+                        }
+                    }
+                    Text("${tr("mastodon_joined")}: ${person.createdAt.take(10)}", style = MaterialTheme.typography.bodySmall)
+                }
+                val labels =
+                    listOf(
+                        tr("mastodon_posts"),
+                        tr("mastodon_media"),
+                        tr("mastodon_featured"),
+                        tr("mastodon_activity"),
+                        tr("settings_about"),
+                    )
+                ScrollableTabRow(selected) {
+                    labels.forEachIndexed { i, label ->
+                        Tab(selected == i, { selected = i }, text = { Text(label) })
                     }
                 }
-                if (person.bot) Text("Bot")
-                if (person.locked) Text(tr("mastodon_profile_locked"))
+                if (selected == 3)
+                    Row(
+                        Modifier.padding(horizontal = 16.dp).horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        FilterChip(
+                            showReplies,
+                            { showReplies = !showReplies },
+                            label = { Text(tr("mastodon_filter_show_replies")) },
+                        )
+                        FilterChip(
+                            showBoosts,
+                            { showBoosts = !showBoosts },
+                            label = { Text(tr("mastodon_filter_show_boosts")) },
+                        )
+                    }
             }
-        else
+        }
+        if (selected == 4) {
+            LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 88.dp)) {
+                item(key = "profile:leading") { leadingContent() }
+                item {
+                    Column(
+                        Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Text("${tr("mastodon_joined")}: ${person.createdAt.take(10)}")
+                        person.fields.forEach { field ->
+                            Column {
+                                EmojiText(
+                                    field.name + if (field.verifiedAt != null) " ✓" else "",
+                                    person.emojis,
+                                    style = MaterialTheme.typography.labelMedium,
+                                )
+                                HtmlContent(ui, field.value, emojis = person.emojis)
+                            }
+                        }
+                        if (person.bot) Text("Bot")
+                        if (person.locked) Text(tr("mastodon_profile_locked"))
+                    }
+                }
+            }
+        } else {
             key(id, selected, showReplies, showBoosts) {
                 FeedScreen(
                     ui,
@@ -377,8 +375,10 @@ fun ProfileScreen(ui: UiContext, id: String) {
                         excludeReplies = selected == 0 || (selected == 3 && !showReplies),
                         excludeReblogs = selected == 0 || (selected == 3 && !showBoosts),
                     ),
+                    leadingContent = leadingContent,
                 )
             }
+        }
         if (qr) ProfileQr(ui, person) { qr = false }
     }
     if (report)
@@ -410,6 +410,79 @@ fun ProfileScreen(ui: UiContext, id: String) {
             },
         )
 }
+@Composable
+private fun ProfileActionRow(
+    label: String,
+    busy: Boolean,
+    shareEnabled: Boolean,
+    onPrimary: () -> Unit,
+    onQr: () -> Unit,
+    onShare: () -> Unit,
+    overflow: (@Composable () -> Unit)?,
+) {
+    val density = LocalDensity.current
+    val measurer = rememberTextMeasurer()
+    val style = MaterialTheme.typography.labelLarge
+    val primary: @Composable (Modifier) -> Unit = { modifier ->
+        Button(onClick = onPrimary, enabled = !busy, modifier = modifier.heightIn(min = 48.dp)) {
+            if (busy) {
+                CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                Spacer(Modifier.width(8.dp))
+            }
+            Text(label)
+        }
+    }
+    val secondary: @Composable () -> Unit = {
+        OutlinedIconButton(onClick = onQr, enabled = shareEnabled, modifier = Modifier.size(48.dp)) {
+            Icon(ProfileQrIcon, "QR")
+        }
+        OutlinedIconButton(onClick = onShare, enabled = shareEnabled, modifier = Modifier.size(48.dp)) {
+            Icon(Icons.Default.Share, tr("mastodon_button_share"))
+        }
+        overflow?.invoke()
+    }
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val primaryWidth = with(density) { measurer.measure(AnnotatedString(label), style, softWrap = false).size.width.toDp() } +
+            48.dp + if (busy) 26.dp else 0.dp
+        val secondaryCount = if (overflow == null) 2 else 3
+        if (density.fontScale > 1.3f || maxWidth < primaryWidth + 56.dp * secondaryCount) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                primary(Modifier.fillMaxWidth())
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    secondary()
+                }
+            }
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                primary(Modifier.weight(1f))
+                secondary()
+            }
+        }
+    }
+}
+
+private val ProfileQrIcon = ImageVector.Builder("QR", 24.dp, 24.dp, 24f, 24f).apply {
+    path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f) {
+        for ((x, y) in listOf(3f to 3f, 15f to 3f, 3f to 15f)) {
+            moveTo(x, y)
+            lineTo(x + 6f, y)
+            lineTo(x + 6f, y + 6f)
+            lineTo(x, y + 6f)
+            close()
+        }
+        moveTo(15f, 14f)
+        lineTo(15f, 18f)
+        lineTo(18f, 18f)
+        lineTo(18f, 21f)
+        moveTo(20f, 14f)
+        lineTo(21f, 14f)
+        lineTo(21f, 18f)
+        moveTo(14f, 21f)
+        lineTo(15f, 21f)
+    }
+}.build()
+
 @Composable
 fun PeopleScreen(ui: UiContext, id: String, following: Boolean) {
     var people by remember { mutableStateOf<List<Account>>(emptyList()) }

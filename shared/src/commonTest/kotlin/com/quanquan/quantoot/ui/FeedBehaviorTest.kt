@@ -199,6 +199,7 @@ class FeedBehaviorTest {
         val restored = cache.read()!!
         assertTrue(restored.items.size <= 100)
         assertTrue(restored.index < restored.items.size)
+        assertEquals(0, restored.offset)
         assertEquals("exact-tail", restored.nextCursor)
         assertFalse(restored.continuationKnown)
         persisted = "{invalid"
