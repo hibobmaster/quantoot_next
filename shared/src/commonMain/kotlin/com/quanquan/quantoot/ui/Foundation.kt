@@ -133,7 +133,10 @@ class UiContext(
 internal fun navigateTo(routes: List<Screen>, screen: Screen): List<Screen> {
     if (screen is Screen.Thread) {
         val existing = routes.indexOfLast { it is Screen.Thread && it.id == screen.id }
-        if (existing >= 0) return routes.take(existing) + screen
+        if (existing >= 0) {
+            val previous = routes[existing] as Screen.Thread
+            return routes.take(existing) + screen.copy(focusReplyId = screen.focusReplyId ?: previous.focusReplyId)
+        }
     }
     return if (routes.lastOrNull() == screen) routes else routes + screen
 }

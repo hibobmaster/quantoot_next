@@ -296,4 +296,33 @@ class FeedBehaviorTest {
         assertEquals(listOf("visible"), pager.rows.map { it.id })
     }
 
+    @Test
+    fun sourcesCannotInsertIntoOtherFeedsAndLocalWritesReconcileMembership() = runTest {
+        var calls = 0
+        val pager = FeedPager(backgroundScope, { s: Status -> s.id }) {
+            calls++
+            Page(listOf(Status(id = "server")), "next")
+        }
+        pager.restore()
+        val local = StreamEvent.Created(StreamSource.Local, Status(id = "local"))
+        pager.apply(local, StreamSource.User, defer = false, active = true)
+        assertTrue(pager.rows.isEmpty())
+        pager.apply(local, StreamSource.Local, defer = false, active = true)
+        assertEquals(listOf("local"), pager.rows.map { it.id })
+        pager.apply(StreamEvent.Created(StreamSource.LocalWrite, Status(id = "published")), StreamSource.Local, false, true)
+        runCurrent()
+        assertFalse(pager.rows.any { it.id == "published" })
+        assertTrue(pager.rows.any { it.id == "server" })
+        assertEquals(1, calls)
+        pager.apply(StreamEvent.Reconnected(StreamSource.User), StreamSource.Local, true, true)
+        runCurrent()
+        assertEquals(1, calls)
+        pager.apply(StreamEvent.Reconnected(StreamSource.Local), StreamSource.Local, true, true)
+        runCurrent()
+        assertEquals(2, calls)
+        pager.apply(StreamEvent.Reconnected(StreamSource.Local), StreamSource.Local, true, false)
+        runCurrent()
+        assertEquals(2, calls)
+    }
+
 }

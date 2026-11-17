@@ -219,6 +219,25 @@ internal class FeedPager<T>(
     }
 }
 
+internal fun FeedPager<Status>.apply(
+    event: StreamEvent,
+    source: StreamSource?,
+    defer: Boolean,
+    active: Boolean,
+) {
+    when (event) {
+        is StreamEvent.Created -> when (event.source) {
+            StreamSource.LocalWrite -> if (active) load(defer = defer)
+            source -> created(event.status, defer = defer)
+            else -> Unit
+        }
+        is StreamEvent.Edited, is StreamEvent.Deleted -> prune()
+        is StreamEvent.Reconnected ->
+            if (active && (source == null || event.source == source)) load(defer = defer)
+        is StreamEvent.Notify -> Unit
+    }
+}
+
 internal fun groupFeedNotifications(items: List<Notification>): List<List<Notification>> {
     fun compareIds(a: String, b: String): Int {
         if (a.any { !it.isDigit() } || b.any { !it.isDigit() }) return 0

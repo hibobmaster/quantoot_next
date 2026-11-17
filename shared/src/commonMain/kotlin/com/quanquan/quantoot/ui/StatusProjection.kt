@@ -66,6 +66,8 @@ internal class StatusProjection {
         }
     }
 
+    fun known(id: String): Status? = records[id]?.value?.let(::project)
+
     fun project(entry: Status): Status? = project(entry, emptySet())
 
     private fun project(entry: Status, visiting: Set<String>): Status? {

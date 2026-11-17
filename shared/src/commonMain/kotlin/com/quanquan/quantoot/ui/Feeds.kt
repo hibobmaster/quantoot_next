@@ -89,25 +89,22 @@ private fun <T> rememberFeedPager(
     LaunchedEffect(pager, foreground, isActive) {
         if (active && !wasActive && pager.ready) pager.load(defer = readingOlder())
         wasActive = active
-        if (active) while (isActive) {
+        if (active) while (currentCoroutineContext().isActive) {
             delay(20_000)
             if (pager.ready && !pager.busy) pager.load(defer = readingOlder())
         }
     }
-    LaunchedEffect(pager, isActive) {
+    LaunchedEffect(pager, isActive, foreground) {
         snapshotFlow {
             Triple(
                 listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1,
                 listState.layoutInfo.totalItemsCount,
-                pager.rows.size,
+                pager.busy,
             )
+        }.collect { (last, total, busy) ->
+            if (active && !busy && total > 0 && last >= total - 4 && pager.ready && pager.error == null)
+                pager.load(more = true)
         }
-            .collect { (last, total, _) ->
-                if (
-                    isActive && total > 0 && last >= total - 4 && pager.ready && pager.error == null
-                )
-                    pager.load(more = true)
-            }
     }
     return pager
 }
@@ -135,18 +132,7 @@ fun FeedScreen(ui: UiContext, source: Timeline, isActive: Boolean = true) {
         }
         LaunchedEffect(pager, isActive, foreground) {
             ui.events.collect { event ->
-                when (event) {
-                    is StreamEvent.Created -> when (event.source) {
-                        StreamSource.LocalWrite -> if (isActive && foreground) pager.load(defer = readingOlder())
-                        streamSource -> pager.created(event.status, defer = readingOlder())
-                        else -> Unit
-                    }
-                    is StreamEvent.Edited, is StreamEvent.Deleted -> pager.prune()
-                    is StreamEvent.Reconnected ->
-                        if (isActive && foreground && (streamSource == null || event.source == streamSource))
-                            pager.load(defer = readingOlder())
-                    is StreamEvent.Notify -> Unit
-                }
+                pager.apply(event, streamSource, defer = readingOlder(), active = isActive && foreground)
             }
         }
         LaunchedEffect(pager.rows.firstOrNull()?.id, isActive) {
@@ -210,37 +196,6 @@ fun FeedScreen(ui: UiContext, source: Timeline, isActive: Boolean = true) {
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun ThreadScreen(ui: UiContext, id: String, focusReplyId: String? = null) {
-    var posts by remember(id, ui.revision) { mutableStateOf<List<Status>?>(null) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var attempt by remember { mutableIntStateOf(0) }
-    LaunchedEffect(id, attempt, ui.revision) {
-        try {
-            val status = ui.statuses.read({ ui.api.status(id) }) { listOf(it) }
-            val context = ui.statuses.read({ ui.api.context(id) }) { it.ancestors + it.descendants }
-            posts = context.ancestors + status + context.descendants
-            error = null
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            error = e.message
-        }
-    }
-    Column {
-        ErrorNotice(error) { attempt++ }
-        if (posts == null && error == null) Loading()
-        LazyColumn(
-            contentPadding = PaddingValues(bottom = 80.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(posts.orEmpty().mapNotNull(ui.statuses::project), key = { it.id }) {
-                StatusCard(ui, it, highlighted = it.id == id)
             }
         }
     }
@@ -408,9 +363,10 @@ fun NotificationsScreen(ui: UiContext, isActive: Boolean = true) {
             }
         val groups = groupFeedNotifications(pager.rows)
         val handling = remember { mutableStateListOf<String>() }
-        LaunchedEffect(pager, isActive) {
+        val foreground by ui.platform.foreground.collectAsState()
+        LaunchedEffect(pager, isActive, foreground) {
             ui.events.collect { event ->
-                if (event is StreamEvent.Notify)
+                if (event is StreamEvent.Notify && event.source == StreamSource.User)
                     pager.created(
                         event.notification,
                         defer =
@@ -419,7 +375,7 @@ fun NotificationsScreen(ui: UiContext, isActive: Boolean = true) {
                                 !isActive,
                     )
                 if (event is StreamEvent.Deleted || event is StreamEvent.Edited) pager.prune()
-                if (event is StreamEvent.Reconnected && event.source == StreamSource.User)
+                if (event is StreamEvent.Reconnected && event.source == StreamSource.User && isActive && foreground)
                     pager.load(defer = listState.firstVisibleItemIndex > 0 || !isActive)
             }
         }
