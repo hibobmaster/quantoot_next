@@ -55,9 +55,10 @@ final class ClientExperienceTests: XCTestCase {
 
         XCTAssertFalse(app.buttons["Refresh"].exists,
                        "Timeline refresh belongs to the pull gesture.")
-        let replies = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "View replies")).firstMatch
-        XCTAssertTrue(replies.waitForExistence(timeout: 20))
-        replies.tap()
+        let replies = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "View replies"))
+        XCTAssertTrue(replies.firstMatch.waitForExistence(timeout: 20))
+        let visibleReply = try XCTUnwrap(replies.allElementsBoundByIndex.first { $0.isHittable })
+        visibleReply.tap()
         let heading = app.descendants(matching: .any)
             .matching(NSPredicate(format: "label == %@", "Replies")).firstMatch
         XCTAssertTrue(heading.waitForExistence(timeout: 20))

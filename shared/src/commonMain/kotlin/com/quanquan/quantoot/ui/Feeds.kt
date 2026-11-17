@@ -19,7 +19,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
@@ -55,9 +54,10 @@ private fun HomeTimelineSelector(labels: List<String>, selected: Int, onSelect: 
     val style = MaterialTheme.typography.titleSmall
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val labelWidth = with(density) { (maxWidth / labels.size - 24.dp).roundToPx().coerceAtLeast(1) }
-        val cannotWrap = labels.any {
-            measurer.measure(AnnotatedString(it), style, constraints = Constraints(maxWidth = labelWidth))
-                .didOverflowWidth
+        val cannotWrap = labels.any { label ->
+            label.split(Regex("\\s+")).any { word ->
+                measurer.measure(AnnotatedString(word), style, softWrap = false).size.width > labelWidth
+            }
         }
         if (cannotWrap) {
             ScrollableTabRow(selected, edgePadding = 0.dp) {

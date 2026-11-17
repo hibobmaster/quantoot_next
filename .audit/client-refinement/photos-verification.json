@@ -1,0 +1,25 @@
+{
+  "beforeCount": 6,
+  "afterCount": 7,
+  "selectedAttachmentID": "117630161154541838",
+  "selectedOriginalSha256": "684c331de32fa4378e1fc1e2b4e378b6ee82c033f2be5c326ab5a270989179e5",
+  "selectedJpegDataSha256": "d200ecca4968463df0e2015089f038be30ec8ef825d8ba905de29132f399f98c",
+  "newAssets": [
+    {
+      "primaryKey": 7,
+      "relativePath": "DCIM/100APPLE/IMG_0007.JPG",
+      "uuid": "295C5C31-76D5-48A0-91FC-143801E78714",
+      "width": 745,
+      "height": 1280,
+      "sizeBytes": 132618,
+      "sha256": "a80a486f1f24ef89cd2293a17b9a3cb125fe340236a11233fd27832c9e6237c8",
+      "wholeFileMatches": false,
+      "originalImageDataMatches": true,
+      "originalDimensionsMatch": true,
+      "comparison": "all-JPEG-bytes-except-Exif-APP1",
+      "jpegDataSha256": "d200ecca4968463df0e2015089f038be30ec8ef825d8ba905de29132f399f98c"
+    }
+  ],
+  "verified": true,
+  "metadataNormalization": "Photos may rewrite EXIF; whole-file identity is reported separately from original image-data identity."
+}

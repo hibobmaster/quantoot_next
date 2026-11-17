@@ -1,27 +1,35 @@
 # 客户端功能对照
 
-0.6.1 修复了首次 iOS 体验中报告的七类问题，并对照 `/Users/bobmaster/Projects/quantoot` 中的 Flutter 实现补齐了以下交互。
+0.6.2（8）继续对照原版 Flutter 客户端改进界面和发帖流程。原版位于 `/Users/bobmaster/Projects/quantoot`，本轮未修改原版仓库。
 
-| 需求 | 当前行为 | 代码 |
+| 本轮需求 | 当前行为 | 主要实现 |
 | --- | --- | --- |
-| 语言选择布局 | 全宽底部面板、当前项标记、可滚动选项和引导页 | `Foundation.kt`、`QuanTootApp.kt` |
-| 空实例继续登录 | 留空使用 m.qqs.tw，登录和公开浏览都可继续 | `Accounts.kt` |
-| 刷新与服务器同步 | 顶部下拉刷新，移除 Refresh 行；分开处理新帖、编辑、删除、通知和重连 | `MastodonApi.kt`、`StatusProjection.kt`、`FeedCache.kt` |
-| 图片填满容器 | 根据尺寸选择预览比例并裁切填满；画廊保留完整原图 | `MediaAttachments.kt`、`MediaGallery.kt` |
-| 回复展示 | 正文和回复数打开会话，上下文、回复层级和固定回复入口；发布后定位回复所属会话 | `StatusCard.kt`、`ThreadScreen.kt`、`ThreadState.kt` |
-| 控件样式 | 统一选择面板、开关、圆角设置行、帖子操作面板、图标、编辑器和资料页背景图 | `Foundation.kt`、`Settings.kt`、`PostActionSheet.kt`、`Composer.kt`、`Accounts.kt` |
-| 原版缺口 | 多图翻页与缩放、ALT、标签和提及内部跳转、链接预览图、引用解析、表情分类、标签补全、发帖语言、服务器规则与联系方式 | `ContentLinks.kt`、`PostContent.kt`、`EmojiPickerSheet.kt`、`ComposerTools.kt`、`ServerInformation.kt` |
+| Profile 按钮 | 编辑或关注使用主按钮，喜欢、书签、二维码和分享使用带边框的次级按钮；主操作位于长简介之前 | `ui/Accounts.kt` |
+| 系统字体 | 使用系统排版，移除 Wenkai 字体资源 | `ui/Foundation.kt` |
+| 嵌套帖子层级 | 引用帖使用内缩、独立浅色或暗色背景、边框和紧凑作者信息；保留引用授权检查 | `ui/StatusCard.kt`、`ui/PostContent.kt` |
+| 首页标签布局 | 常规字号下三个标签等宽；单词放不下时使用可横向滚动的完整标签 | `ui/Feeds.kt` |
+| 通知展示 | 回复保留完整帖子；喜欢和转发使用紧凑且尊重内容警告的预览；关注、投票和更新使用事件行；分组保留头像数量与剩余人数 | `ui/NotificationItem.kt` |
+| 发帖默认值与退出确认 | 延迟返回的偏好只更新用户未修改的字段；设置变化计入草稿改动；未修改的编辑保持干净 | `ui/Composer.kt` |
+| 编辑已有帖子 | 保留未修改的引用策略和语言；可见性只读；PUT 使用 JSON 数组，避免空附件列表被服务器当成错误媒体 ID | `ui/Composer.kt`、`data/MastodonApi.kt` |
+| 图片保存 | 保存选择的原图资源；仅请求添加照片权限；在画廊内显示保存中、成功、错误与重试，阻止重复点击 | `ui/MediaGallery.kt`、`platform/IosPlatformServices.kt` |
 
-服务器同步保持时间线的来源和账户隔离。编辑更新原位置，删除不会被较早的请求恢复，新内容在阅读旧帖时暂存并显示提示。前台每 20 秒进行 REST 补偿，重新连接后也会补齐数据。游客使用 REST；会话页通过上下文接口补齐不能从当前流获得的回复。后台取消活动任务。
+共享测试共 112 项通过，失败、错误和跳过均为零。Android Release 构建通过。最终 iOS 回归和实体设备交付结果保存在 `.audit/client-refinement/verification.json`。
 
-媒体敏感标记只遮挡媒体，不再无故隐藏没有内容警告的正文。画廊的分享、ALT 和缩放对应当前附件，未支持的附件仍保留其页码。保存操作目前只支持图片。
+真实账号验证使用 iPhone 17 Pro 模拟器上已有的 ai 测试账号，没有清除其存储。创建的两个临时帖均为没有其他收件人的 direct 帖子。第一个用于恢复并校准原生测试，第二个完成了一次连续的发布、编辑、重启回读和删除流程。随后分别通过成功的认证精确链接搜索及账户时间线读取确认二者已消失。没有修改或删除原有帖子，也没有提取或记录令牌。
 
-引用展示遵循服务器返回的授权状态。只有 `accepted` 可以展示引用内容；待批准、撤回、屏蔽、静音和未知状态显示不可用提示。[Mastodon Quote 规范](https://docs.joinmastodon.org/entities/Quote/)
+图片保存验证新增了一个系统相册资源。选定的 JPEG 保存后仍为 745 × 1280，压缩图像数据及全部非 EXIF 字节与原图一致。Photos 调整了 EXIF，因此完整文件哈希不同。该结论只覆盖实际验证的这一张 JPEG，证据与可重跑检查脚本分别为 `.audit/client-refinement/photos-verification.json` 和 `scripts/verify_saved_photo.py`。
 
-共享测试覆盖事件与请求交错、删除、操作回执、分页游标、引用状态、媒体索引和内部链接。iOS 界面检查使用原有测试账号，不清除其存储，不发送帖子。检查中的草稿在退出时丢弃。当前验证摘要位于 `.audit/client-polish/verification.json`，阶段提交保留在 `codex/client-polish` 分支。
+已有投票帖的编辑暂时通过浏览器完成。当前 Mastodon REST 模型不返回恢复全部投票设置所需的信息，直接提交可能重置隐藏计票等设置。客户端显示说明并阻止该提交。新建投票仍保留现有功能，本轮未联网执行投票、举报、关注请求处理或账户资料设置写入。帖子发布后的可见性由服务器固定，编辑器明确显示这一限制。
 
-最终共享测试为 90 项通过、0 项失败；iPhone 17 Pro 上的 7 项界面场景全部通过。WebSocket 的 Ktor 调度器回归测试先失败后通过；修复后的两次界面运行分别在进入公开时间线约 5.4 秒和 5.3 秒时观察到新帖提示，早于 20 秒的 REST 补偿周期。编辑和删除的交错由共享测试验证，未在真实账号上制造编辑、删除事件。
+0.6.1 已完成的功能继续保留：
 
-0.6.1（7）的 arm64 Release 已通过签名校验，并覆盖安装、启动于实体 iPhone 18 Pro（iOS 27.2）；设备回读确认版本为 0.6.1、构建号为 7。IPA 位于 `iosApp/build/releases/QuanToot-0.6.1-7.ipa`，源代码快照为 `4ae09f0`。设备回执、截图和 IPA 的 SHA-256 保存在上述验证摘要中。
+| 需求 | 当前行为 |
+| --- | --- |
+| 语言与默认实例 | 全宽语言选择面板；实例留空使用 m.qqs.tw，可登录或公开浏览 |
+| 刷新与服务器同步 | 顶部下拉刷新；按事件来源处理新帖、编辑、删除、通知和重连，保留账户隔离 |
+| 媒体与回复 | 图片裁切填满预览，多图翻页、缩放和 ALT；正文和回复数打开有层级的会话 |
+| 原版交互 | 帖子操作面板、标签和提及内部跳转、链接预览图、表情分类、标签补全、发帖语言、服务器规则及联系方式 |
 
-本轮没有联网执行发帖、删帖、投票、举报及账户设置写入。图片写入系统相册的权限流程也未在这轮操作中验收。截图和只读检查不代表这些写入流程已经通过。
+同步继续由 StatusProjection、FeedPager 和 FeedCache 分别管理内容、成员顺序与游标。前台每 20 秒进行 REST 补偿，断线重连后也会补齐数据。后台取消活动任务。引用仅在服务器返回 accepted 时展示内容，其余授权状态保留不可用提示。画廊保存仍只支持图片。
+
+0.6.1 的 90 项共享测试、7 项只读原生场景及设备安装证据保存在 `.audit/client-polish`，作为历史基线。本轮原生场景、截图、服务器读取回执和 Photos 对比保存在 `.audit/client-refinement`，决策记录继续追加到 `.audit/client-polish.tsv`。阶段提交保留在 `codex/client-polish`。

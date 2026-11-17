@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.quanquan.quantoot.data.MastodonApiTest" tests="19" skipped="0" failures="0" errors="0" timestamp="2026-11-17T10:18:56.305Z" hostname="BobMasters-Mac-mini.local" time="0.095">
+  <properties/>
+  <testcase name="publishingSendsFormArraysAndStableOperationKey" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.005"/>
+  <testcase name="editingSendsStructuredMediaAndPollValues" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.002"/>
+  <testcase name="filterUpdatesPreserveKeywordIdsAndDestroyRemovedKeywords" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.004"/>
+  <testcase name="redirectsDoNotForwardTokensAndErrorsDoNotReflectSecrets" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.001"/>
+  <testcase name="guestTimelineEncodesPagingAndNeverSendsAuthorization" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.002"/>
+  <testcase name="requestDeadlineIncludesTheResponseBody" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.003"/>
+  <testcase name="textKeepsParagraphsAndRemoteMentionsWithoutExecutingMarkup" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.002"/>
+  <testcase name="uploadLimitsRejectBeforeNetwork" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.005"/>
+  <testcase name="explicitOpaqueCursorSurvivesRefreshAndNewApiInstance" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.006"/>
+  <testcase name="acceptedMediaWaitsUntilProcessingCompletes" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.007"/>
+  <testcase name="unsafeOrMalformedNextLinksDoNotExposeContinuation" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.01"/>
+  <testcase name="nestedStatusesStopAtSixLevels" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.002"/>
+  <testcase name="privateQueriesFailBeforeNetworkButPublicReadsRemainAvailable" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.002"/>
+  <testcase name="responseLimitsRejectOversizedDeepAndExcessiveTokenJson" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.026"/>
+  <testcase name="instanceAndExternalUrlsRejectAmbiguousAuthorities" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.0"/>
+  <testcase name="callerCancellationIsPreserved" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.002"/>
+  <testcase name="closingClientStopsStreamReconnectBackoffImmediately" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.007"/>
+  <testcase name="opaquePagingUsesEndpointSpecificLinkCursors" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.006"/>
+  <testcase name="editedPostCanClearContentWarningAndAttachments" classname="com.quanquan.quantoot.data.MastodonApiTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

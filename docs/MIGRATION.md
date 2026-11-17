@@ -25,7 +25,7 @@
 | 修改昵称、简介、头像、背景图、自定义字段 | `ProfileUpdate`、`ui/Accounts.kt` |
 | 隐私、默认发帖设置、过滤器、通知策略 | `ui/Settings.kt`，使用对应服务器 API |
 | 服务器信息、隐私政策、图片缓存清理 | `ui/Settings.kt` |
-| 原有配色、字体和图标 | `ui/Foundation.kt`、`composeResources` |
+| 原有配色和图标、系统字体 | `ui/Foundation.kt`、`composeResources` |
 
 ## 数据和安全
 
@@ -55,6 +55,6 @@ Android 导入原项目默认 FlutterSecureStorage 11 的 RSA-OAEP 加 AES-GCM �
 
 iOS UI 测试使用 `m.qqs.tw` 的公开时间线，因此需要网络。它只在没有已选实例的模拟器上运行初次设置，否则跳过以保护已有状态。存储迁移测试遇到真实已存账户时也会跳过。此次两项存储测试和游客 UI 测试均未跳过。
 
-共享 MockEngine 测试不访问用户账号。初始迁移后的界面修复使用 iPhone 17 Pro 模拟器上已有的测试账号，验证登录状态保留、现有回复、媒体、编辑器和服务器资料。没有向服务器发帖、编辑、删除、投票、举报或写入账户设置。系统相册权限及实际媒体格式兼容性仍需真机验收。
+共享 MockEngine 测试不访问用户账号。0.6.1 的界面修复使用 iPhone 17 Pro 模拟器上已有的测试账号，验证登录状态保留、现有回复、媒体、编辑器和服务器资料。那一轮没有向服务器发帖、编辑、删除、投票、举报或写入账户设置。
 
-0.6.1 的逐项修复和验证范围记录在 [客户端功能对照](CLIENT_PARITY.md)。初始迁移的 43 项测试证据保留为历史基线，后续测试结果与界面截图位于 `.audit/client-polish`。
+0.6.2 使用同一测试账号验证了临时帖的发布、编辑、删除和一张 JPEG 的相册保存。具体范围和限制记录在 [客户端功能对照](CLIENT_PARITY.md)。初始迁移的 43 项测试证据保留为历史基线。0.6.1 结果位于 `.audit/client-polish`，0.6.2 结果位于 `.audit/client-refinement`。
