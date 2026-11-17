@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.BringIntoViewSpec
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,7 +17,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.key
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Rect
@@ -37,7 +37,6 @@ import androidx.compose.ui.semantics.verticalScrollAxisRange
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -45,10 +44,11 @@ internal fun ProfileScrollLayout(
     state: ProfileScrollState,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(),
+    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
+    onSelect: (ProfileSelection) -> Unit,
     header: @Composable () -> Unit,
     body: ProfileBodyScope.(ProfileSelection) -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
     val childBringIntoView = LocalBringIntoViewSpec.current
     Layout(
         modifier = modifier
@@ -66,7 +66,7 @@ internal fun ProfileScrollLayout(
         content = {
             Box(Modifier.fillMaxWidth().then(ProfileRevealElement(state, ProfileRegion.Header))) { header() }
             Box(Modifier.fillMaxWidth().then(ProfileRevealElement(state, ProfileRegion.Categories))) {
-                ProfileCategoryRow(state.selection) { next -> scope.launch { state.select(next) } }
+                ProfileCategoryRow(state.selection, onSelect)
             }
             key(state.bodyState) {
                 CompositionLocalProvider(LocalBringIntoViewSpec provides ParentOwnsBringIntoView) {
@@ -74,6 +74,7 @@ internal fun ProfileScrollLayout(
                         state = state.bodyState,
                         userScrollEnabled = false,
                         contentPadding = contentPadding,
+                        verticalArrangement = verticalArrangement,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         ProfileBodyScope(this, state, childBringIntoView).body(state.selection)

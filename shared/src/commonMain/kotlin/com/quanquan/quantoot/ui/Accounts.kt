@@ -167,9 +167,6 @@ fun ProfileScreen(ui: UiContext, id: String) {
     var attempt by remember { mutableIntStateOf(0) }
     var report by remember { mutableStateOf(false) }
     var comment by remember { mutableStateOf("") }
-    var selected by remember(id) { mutableIntStateOf(0) }
-    var showReplies by remember(id) { mutableStateOf(false) }
-    var showBoosts by remember(id) { mutableStateOf(true) }
     var qr by remember(id) { mutableStateOf(false) }
     var relationshipBusy by remember(id) { mutableStateOf(false) }
     var moderationMenu by remember(id) { mutableStateOf(false) }
@@ -205,8 +202,10 @@ fun ProfileScreen(ui: UiContext, id: String) {
             if (error == null) Loading()
             return@Column
         }
-        val leadingContent: @Composable () -> Unit = {
-            Column {
+        ProfileTimeline(
+            ui,
+            person,
+            header = {
                 Column(
                     Modifier.padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -309,76 +308,28 @@ fun ProfileScreen(ui: UiContext, id: String) {
                     }
                     Text("${tr("mastodon_joined")}: ${person.createdAt.take(10)}", style = MaterialTheme.typography.bodySmall)
                 }
-                val labels =
-                    listOf(
-                        tr("mastodon_posts"),
-                        tr("mastodon_media"),
-                        tr("mastodon_featured"),
-                        tr("mastodon_activity"),
-                        tr("settings_about"),
-                    )
-                ScrollableTabRow(selected, edgePadding = 0.dp) {
-                    labels.forEachIndexed { i, label ->
-                        Tab(selected == i, { selected = i }, text = { Text(label) })
-                    }
-                }
-                if (selected == 3)
-                    Row(
-                        Modifier.padding(horizontal = 16.dp).horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        FilterChip(
-                            showReplies,
-                            { showReplies = !showReplies },
-                            label = { Text(tr("mastodon_filter_show_replies")) },
-                        )
-                        FilterChip(
-                            showBoosts,
-                            { showBoosts = !showBoosts },
-                            label = { Text(tr("mastodon_filter_show_boosts")) },
-                        )
-                    }
-            }
-        }
-        if (selected == 4) {
-            LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 88.dp)) {
-                item(key = "profile:leading") { leadingContent() }
-                item {
-                    Column(
-                        Modifier.fillMaxWidth().padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        Text("${tr("mastodon_joined")}: ${person.createdAt.take(10)}")
-                        person.fields.forEach { field ->
-                            Column {
-                                EmojiText(
-                                    field.name + if (field.verifiedAt != null) " ✓" else "",
-                                    person.emojis,
-                                    style = MaterialTheme.typography.labelMedium,
-                                )
-                                HtmlContent(ui, field.value, emojis = person.emojis)
-                            }
+            },
+            about = {
+                Column(
+                    Modifier.fillMaxWidth().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text("${tr("mastodon_joined")}: ${person.createdAt.take(10)}")
+                    person.fields.forEach { field ->
+                        Column {
+                            EmojiText(
+                                field.name + if (field.verifiedAt != null) " ✓" else "",
+                                person.emojis,
+                                style = MaterialTheme.typography.labelMedium,
+                            )
+                            HtmlContent(ui, field.value, emojis = person.emojis)
                         }
-                        if (person.bot) Text("Bot")
-                        if (person.locked) Text(tr("mastodon_profile_locked"))
                     }
+                    if (person.bot) Text("Bot")
+                    if (person.locked) Text(tr("mastodon_profile_locked"))
                 }
-            }
-        } else {
-            key(id, selected, showReplies, showBoosts) {
-                FeedScreen(
-                    ui,
-                    Timeline.AccountPosts(
-                        id,
-                        onlyMedia = selected == 1,
-                        pinned = selected == 2,
-                        excludeReplies = selected == 0 || (selected == 3 && !showReplies),
-                        excludeReblogs = selected == 0 || (selected == 3 && !showBoosts),
-                    ),
-                    leadingContent = leadingContent,
-                )
-            }
-        }
+            },
+        )
         if (qr) ProfileQr(ui, person) { qr = false }
     }
     if (report)

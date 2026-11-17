@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -30,13 +31,28 @@ internal data class ProfileSelection(
     val showBoosts: Boolean = true,
 )
 
+internal sealed interface ProfileBodyOpening {
+    data class Initial(val motionRevision: Long) : ProfileBodyOpening
+    data object Selection : ProfileBodyOpening
+}
+
+internal class ProfileBodyAttachment(
+    val selection: ProfileSelection,
+    val opening: ProfileBodyOpening,
+    val list: LazyListState = LazyListState(),
+)
+
+internal data class ProfileBodyLocation(val collapsed: Float, val index: Int = 0, val offset: Int = 0)
+
 @Composable
 internal fun rememberProfileScrollState(): ProfileScrollState = remember { ProfileScrollState() }
 
 @Stable
 internal class ProfileScrollState : ScrollableState {
     private val motion = MutatorMutex()
-    private var attachment by mutableStateOf(BodyAttachment(ProfileSelection(), LazyListState()))
+    var attachment by mutableStateOf(ProfileBodyAttachment(ProfileSelection(), ProfileBodyOpening.Initial(0)))
+        private set
+    private var motionRevision by mutableLongStateOf(0L)
     var geometry by mutableStateOf(ProfileScrollGeometry())
         private set
     var coordinates: LayoutCoordinates? = null
@@ -61,17 +77,35 @@ internal class ProfileScrollState : ScrollableState {
     suspend fun select(next: ProfileSelection) {
         if (next == selection) return
         motion.mutate(MutatePriority.PreventUserInput) {
-            attachment = BodyAttachment(next, LazyListState())
+            attachment = ProfileBodyAttachment(next, ProfileBodyOpening.Selection)
         }
     }
 
     override suspend fun scroll(scrollPriority: MutatePriority, block: suspend ScrollScope.() -> Unit) {
+        motionRevision++
         withMotion(scrollPriority) { block() }
     }
 
     override fun dispatchRawDelta(delta: Float): Float = 0f
 
+    internal suspend fun restore(
+        target: ProfileBodyAttachment,
+        location: ProfileBodyLocation,
+        expectedMotionRevision: Long? = null,
+    ) {
+        fun current() = target === attachment &&
+            (expectedMotionRevision == null || motionRevision == expectedMotionRevision)
+        if (!current()) return
+        if (expectedMotionRevision == null) motionRevision++
+        withMotion(MutatePriority.PreventUserInput) {
+            if (!current()) return@withMotion
+            geometry = geometry.copy(collapsed = location.collapsed.coerceIn(0f, geometry.headerHeight.toFloat()))
+            body.snapToItem(location.index, location.offset)
+        }
+    }
+
     internal suspend fun reveal(region: ProfileRegion, bounds: () -> Rect?) {
+        motionRevision++
         withMotion(MutatePriority.Default) {
             val rect = bounds() ?: return@withMotion
             val top = if (region == ProfileRegion.Body) geometry.categoryHeight.toFloat() else 0f
@@ -107,8 +141,6 @@ internal class ProfileScrollState : ScrollableState {
             return result.consumed
         }
     }
-
-    private data class BodyAttachment(val selection: ProfileSelection, val list: LazyListState)
 }
 
 internal enum class ProfileRegion { Header, Categories, Body }
