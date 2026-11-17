@@ -191,6 +191,26 @@ class ThreadBehaviorTest {
     }
 
     @Test
+    fun replyingToAnAncestorOpensTheAncestorConversation() {
+        val ancestor = Status(id = "ancestor")
+        val sibling = Status(id = "sibling", inReplyToId = ancestor.id)
+        val compose = Screen.Compose(reply = ancestor)
+        val routes = listOf(Screen.Thread(root.id), compose)
+        val result = routesAfterPublish(routes, compose, sibling).last() as Screen.Thread
+        assertEquals(ancestor.id, result.id)
+        assertEquals(sibling.id, result.focusReplyId)
+    }
+
+    @Test
+    fun unrelatedPublishedRepliesCannotBecomeDescendants() = runTest {
+        val thread = ThreadState(root.id, backgroundScope) { ThreadResult(root, StatusContext()) }
+        thread.includePublished(Status(id = "sibling", inReplyToId = "ancestor"))
+        thread.refresh()
+        runCurrent()
+        assertTrue(thread.descendants.isEmpty())
+    }
+
+    @Test
     fun publishingReturnsToExistingThreadAndFocusesConfirmedReply() {
         val compose = Screen.Compose(reply = reply)
         val routes = listOf(Screen.Profile("author"), Screen.Thread(root.id), compose)
