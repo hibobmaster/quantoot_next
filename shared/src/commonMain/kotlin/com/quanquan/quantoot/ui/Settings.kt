@@ -2,9 +2,15 @@ package com.quanquan.quantoot.ui
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import coil3.SingletonImageLoader
 import coil3.compose.LocalPlatformContext
@@ -15,9 +21,11 @@ import kotlinx.coroutines.*
 @Composable
 fun SettingsScreen(ui: UiContext, state: SessionState) {
     var section by remember { mutableStateOf<String?>(null) }
+    val scrollState = rememberScrollState()
     val loader = SingletonImageLoader.get(LocalPlatformContext.current)
+    LaunchedEffect(section) { scrollState.scrollTo(0) }
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        Modifier.fillMaxSize().verticalScroll(scrollState).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (section != null)
@@ -27,7 +35,9 @@ fun SettingsScreen(ui: UiContext, state: SessionState) {
                 Choice(tr("settings_language"), state.locale ?: "system", languageOptions()) {
                     ui.run { ui.store.setLocale(it) }
                 }
-                OutlinedButton(
+                SettingsRow(
+                    tr("settings_clear_media_cache"),
+                    Icons.Default.Delete,
                     onClick = {
                         ui.run {
                             loader.memoryCache?.clear()
@@ -35,52 +45,50 @@ fun SettingsScreen(ui: UiContext, state: SessionState) {
                             ui.message = "Media cache cleared"
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(tr("settings_clear_media_cache"))
-                }
+                )
                 if (ui.me != null) {
-                    listOf(
-                            "privacy" to "mastodon_settings_privacy",
-                            "defaults" to "mastodon_settings_posting_defaults",
-                            "filters" to "mastodon_settings_filters",
-                            "policy" to "mastodon_settings_notifications",
-                        )
-                        .forEach { (key, label) ->
-                            OutlinedButton(
-                                onClick = { section = key },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Text(tr(label))
-                            }
-                        }
+                    SettingsRow(tr("mastodon_settings_privacy"), Icons.Default.Lock) {
+                        section = "privacy"
+                    }
+                    SettingsRow(tr("mastodon_settings_posting_defaults"), Icons.Default.Settings) {
+                        section = "defaults"
+                    }
+                    SettingsRow(tr("mastodon_settings_filters"), Icons.AutoMirrored.Filled.List) {
+                        section = "filters"
+                    }
+                    SettingsRow(tr("mastodon_settings_notifications"), Icons.Default.Notifications) {
+                        section = "policy"
+                    }
                 }
-                OutlinedButton(
-                    onClick = { section = "server" },
-                    modifier = Modifier.fillMaxWidth(),
+                SettingsRow(tr("mastodon_settings_about_server"), Icons.Default.Info) {
+                    section = "server"
+                }
+                SettingsRow(tr("settings_privacy_policy"), Icons.Default.Lock) {
+                    section = "privacyPolicy"
+                }
+                Column(
+                    Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Text(tr("mastodon_settings_about_server"))
+                    Text("QuanToot", style = MaterialTheme.typography.headlineSmall)
+                    Text(
+                        "0.6.0",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
-                OutlinedButton(
-                    onClick = { section = "privacyPolicy" },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(tr("settings_privacy_policy"))
+                SettingsRow(tr("settings_open_source_licenses"), Icons.AutoMirrored.Filled.List) {
+                    section = "licenses"
                 }
-                Text("QuanToot", style = MaterialTheme.typography.headlineSmall)
-                Text("0.6.0", style = MaterialTheme.typography.bodySmall)
-                TextButton(onClick = { section = "licenses" }) {
-                    Text(tr("settings_open_source_licenses"))
-                }
-                TextButton(
+                SettingsRow(
+                    "${tr("settings_developer_support")}: BobMaster",
+                    Icons.Default.AccountCircle,
                     onClick = {
                         ui.platform.share("QuanToot support: BobMaster <bobmaster@hibobmaster.com>")
                     }
-                ) {
-                    Text("${tr("settings_developer_support")}: BobMaster")
-                }
-                TextButton(onClick = { ui.open("https://quanquan.space/") }) {
-                    Text(tr("settings_feedback"))
+                )
+                SettingsRow(tr("settings_feedback"), Icons.Default.Email) {
+                    ui.open("https://quanquan.space/")
                 }
             }
             "privacy",
@@ -111,6 +119,30 @@ fun SettingsScreen(ui: UiContext, state: SessionState) {
                         TextButton(onClick = { ui.open(url) }) { Text(label) }
                     }
             }
+        }
+    }
+}
+
+@Composable
+private fun SettingsRow(label: String, icon: ImageVector, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Row(
+            Modifier.padding(horizontal = 16.dp, vertical = 18.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(icon, null, tint = MaterialTheme.colorScheme.primary)
+            Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -388,14 +420,13 @@ private fun FiltersSettings(ui: UiContext) {
 
 @Composable
 private fun ServerSettings(ui: UiContext) {
-    var info by remember { mutableStateOf<ServerInfo?>(null) }
-    var description by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
+    var info by remember(ui.api) { mutableStateOf<ServerInfo?>(null) }
+    var description by remember(ui.api) { mutableStateOf("") }
+    var error by remember(ui.api) { mutableStateOf<String?>(null) }
     var attempt by remember { mutableIntStateOf(0) }
-    LaunchedEffect(attempt) {
+    LaunchedEffect(ui.api, attempt) {
         try {
             info = ui.api.serverInfo()
-            description = ui.api.serverDescription()
             error = null
         } catch (e: CancellationException) {
             throw e
@@ -403,20 +434,19 @@ private fun ServerSettings(ui: UiContext) {
             error = e.message
         }
     }
+    LaunchedEffect(ui.api) {
+        try {
+            description = ui.api.serverDescription()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            description = ""
+        }
+    }
     ErrorNotice(error) { attempt++ }
     if (info == null && error == null) Loading()
     info?.let { server ->
-        Text(server.title, style = MaterialTheme.typography.headlineSmall)
-        Text(server.domain)
-        Text(server.version)
-        HtmlContent(ui, server.description)
-        Text("${server.maxCharacters} characters per post")
-        HtmlContent(ui, description)
-        TextButton(
-            onClick = { ui.open("https://${ui.api.instance.removePrefix("https://")}/about") }
-        ) {
-            Text(tr("mastodon_open_in_browser"))
-        }
+        ServerInformation(ui, server, description)
     }
 }
 

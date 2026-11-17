@@ -7,6 +7,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -181,11 +183,15 @@ fun ProfileScreen(ui: UiContext, id: String) {
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (person.header.isNotBlank())
+            val header = safeWebUrl(person.header)?.takeUnless {
+                it.substringBefore('?').substringBefore('#').substringAfterLast('/') == "missing.png"
+            }
+            if (header != null)
                 AsyncImage(
-                    safeWebUrl(person.header),
+                    header,
                     tr("mastodon_profile_header"),
-                    Modifier.fillMaxWidth().height(100.dp),
+                    Modifier.fillMaxWidth().height(120.dp).clip(MaterialTheme.shapes.large),
+                    contentScale = ContentScale.Crop,
                 )
             AccountRow(person) { ui.open(person.url) }
             HtmlContent(ui, person.note, emojis = person.emojis)
