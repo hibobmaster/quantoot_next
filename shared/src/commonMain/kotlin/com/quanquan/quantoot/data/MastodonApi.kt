@@ -643,9 +643,9 @@ class MastodonApi(
             ?.content
             .orEmpty()
 
-    fun events(source: StreamSource): Flow<StreamEvent> = flow {
+    fun events(source: StreamSource): Flow<StreamEvent> = channelFlow {
         val subscription = streamSubscription(source)
-        if (token == null) return@flow
+        if (token == null) return@channelFlow
         val collectionJob = currentCoroutineContext().job
         val onClose = streamLifetime.invokeOnCompletion { collectionJob.cancel() }
         try {
@@ -665,7 +665,7 @@ class MastodonApi(
                         subscription.second?.let { url.parameters.append("tag", it) }
                         bearerAuth(token)
                     }) {
-                        if (connected) emit(StreamEvent.Reconnected(source))
+                        if (connected) send(StreamEvent.Reconnected(source))
                         connected = true
                         retry = 1000
                         maxFrameSize = 512 * 1024L
@@ -682,7 +682,7 @@ class MastodonApi(
                             if (frame.data.size > 512 * 1024)
                                 throw ApiException(-1, "Streaming frame exceeds the limit")
                             val envelope = boundedJson(frame.readText()) as? JsonObject ?: continue
-                            parseStreamEvent(source, envelope)?.let { emit(it) }
+                            parseStreamEvent(source, envelope)?.let { send(it) }
                             retry = 1000
                         }
                     }
