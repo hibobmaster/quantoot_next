@@ -9,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -25,12 +24,25 @@ internal fun ServerInformation(ui: UiContext, server: ServerInfo, description: S
         tr("mastodon_settings_server_contact"),
     )
     safeWebUrl(server.thumbnail.orEmpty())?.let { thumbnail ->
-        AsyncImage(
-            thumbnail,
-            null,
-            Modifier.fillMaxWidth().aspectRatio(1.91f).clip(MaterialTheme.shapes.large),
-            contentScale = ContentScale.Crop,
-        )
+        var failed by remember(thumbnail) { mutableStateOf(false) }
+        var loading by remember(thumbnail) { mutableStateOf(true) }
+        if (!failed) Surface(
+            modifier = Modifier.fillMaxWidth().aspectRatio(1.91f),
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                if (loading) CircularProgressIndicator(Modifier.size(28.dp))
+                AsyncImage(
+                    thumbnail,
+                    null,
+                    Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop,
+                    onSuccess = { loading = false },
+                    onError = { failed = true },
+                )
+            }
+        }
     }
     SelectionContainer {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {

@@ -199,6 +199,11 @@ class ThreadBehaviorTest {
         val result = routesAfterPublish(routes, compose, sibling).last() as Screen.Thread
         assertEquals(ancestor.id, result.id)
         assertEquals(sibling.id, result.focusReplyId)
+        assertEquals(
+            listOf(Screen.Profile("author"), Screen.Thread(ancestor.id, focusReplyId = sibling.id)),
+            routesAfterPublish(listOf(Screen.Profile("author"), Screen.Thread(ancestor.id),
+                Screen.Thread(root.id), compose), compose, sibling),
+        )
     }
 
     @Test

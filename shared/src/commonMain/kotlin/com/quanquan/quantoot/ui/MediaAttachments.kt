@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -165,7 +166,8 @@ private fun MediaPreview(
     var loading by remember(preview) { mutableStateOf(preview != null) }
     var failed by remember(preview) { mutableStateOf(preview == null) }
     Box(
-        modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest)
+        modifier.testTag("media-preview-${media.id}")
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             .clickable(enabled = revealed, role = Role.Button, onClick = onOpen),
         contentAlignment = Alignment.Center,
     ) {

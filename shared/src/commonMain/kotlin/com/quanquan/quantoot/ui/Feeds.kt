@@ -2,10 +2,15 @@ package com.quanquan.quantoot.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
@@ -203,6 +208,7 @@ fun FeedScreen(ui: UiContext, source: Timeline, isActive: Boolean = true) {
 
 @Composable
 fun DiscoveryScreen(ui: UiContext) {
+    val keyboard = LocalSoftwareKeyboardController.current
     var query by remember { mutableStateOf("") }
     var results by remember { mutableStateOf(SearchResults()) }
     var trends by remember { mutableStateOf<List<Status>>(emptyList()) }
@@ -270,15 +276,21 @@ fun DiscoveryScreen(ui: UiContext) {
             }
     }
     Column {
-        Row(Modifier.fillMaxWidth().padding(12.dp)) {
+        Row(Modifier.fillMaxWidth().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
                 query,
                 { query = it },
                 label = { Text(tr("mastodon_search_instance", "instance" to ui.api.instance)) },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
+                shape = MaterialTheme.shapes.medium,
+                keyboardOptions = KeyboardOptions(autoCorrectEnabled = false, imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { keyboard?.hide(); load() }),
             )
-            TextButton(onClick = { load() }, enabled = !busy) { Text(tr("mastodon_explore")) }
+            FilledTonalButton(onClick = { keyboard?.hide(); load() }, enabled = !busy,
+                modifier = Modifier.heightIn(min = 56.dp)) { Text(tr("mastodon_explore")) }
         }
         ErrorNotice(error) { load(failedMore) }
         LazyColumn(

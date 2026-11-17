@@ -15,7 +15,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThreadScreen(ui: UiContext, id: String, focusReplyId: String? = null) {
     val scope = rememberCoroutineScope()
