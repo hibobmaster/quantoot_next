@@ -346,22 +346,100 @@ class MastodonApiTest {
                     engine { request ->
                         assertEquals(HttpMethod.Put, request.method)
                         assertEquals("/api/v1/statuses/edit", request.url.encodedPath)
-                        val form =
-                            parseQueryString(
-                                (request.body as OutgoingContent.ByteArrayContent)
-                                    .bytes()
-                                    .decodeToString()
+                        val payload =
+                            (request.body as OutgoingContent.ByteArrayContent)
+                                .bytes()
+                                .decodeToString()
+                        val json =
+                            if (request.body.contentType?.match(ContentType.Application.Json) == true)
+                                Json.parseToJsonElement(payload).jsonObject
+                            else null
+                        val form = if (json == null) parseQueryString(payload) else null
+                        assertEquals(
+                            "",
+                            json?.get("spoiler_text")?.jsonPrimitive?.content
+                                ?: form?.get("spoiler_text"),
+                        )
+                        val mediaIds =
+                            json?.get("media_ids")?.jsonArray?.map { it.jsonPrimitive.content }
+                                ?: form?.getAll("media_ids[]").orEmpty()
+                        if (mediaIds.any { it.isBlank() }) {
+                            respond(
+                                """{"error":"Media attachments with IDs 0 not found"}""",
+                                HttpStatusCode.UnprocessableEntity,
+                                jsonHeaders,
                             )
-                        assertEquals("", form["spoiler_text"])
-                        assertEquals(listOf(""), form.getAll("media_ids[]"))
-                        respond("{}", headers = jsonHeaders)
+                        } else {
+                            respond(
+                                """{"id":"edit","content":"<p>edited</p>"}""",
+                                headers = jsonHeaders,
+                            )
+                        }
                     }
                 ),
             )
         try {
-            api.publish(StatusDraft("edited"), "edit")
+            val edited = api.publish(StatusDraft("edited"), "edit")
+            assertEquals("edit", edited.id)
+            assertEquals("<p>edited</p>", edited.content)
         } finally {
             api.close()
+        }
+    }
+
+    @Test
+    fun editingSendsStructuredMediaAndPollValues() = runTest {
+        val drafts =
+            listOf(
+                StatusDraft(
+                    "Edited & updated",
+                    language = "zh",
+                    spoilerText = "Warning",
+                    sensitive = true,
+                    mediaIds = listOf("10", "20"),
+                    quotePolicy = "followers",
+                ) to
+                    """{"status":"Edited & updated","visibility":"public","language":"zh","spoiler_text":"Warning","sensitive":true,"media_ids":["10","20"],"quote_approval_policy":"followers"}""",
+                StatusDraft(
+                    "Edited poll",
+                    poll = PollDraft(listOf("Tea & cake", "Coffee + pie"), 900, true, true),
+                ) to
+                    """{"status":"Edited poll","visibility":"public","spoiler_text":"","sensitive":false,"media_ids":[],"poll":{"options":["Tea & cake","Coffee + pie"],"expires_in":900,"multiple":true,"hide_totals":true}}""",
+            )
+        for ((draft, expected) in drafts) {
+            val api =
+                MastodonApi(
+                    "social.example",
+                    "secret",
+                    HttpClient(
+                        engine { request ->
+                            assertEquals(HttpMethod.Put, request.method)
+                            assertEquals("/api/v1/statuses/edit", request.url.encodedPath)
+                            assertEquals("operation-1", request.headers["Idempotency-Key"])
+                            assertEquals(
+                                ContentType.Application.Json,
+                                request.body.contentType?.withoutParameters(),
+                            )
+                            assertEquals(
+                                Json.parseToJsonElement(expected),
+                                Json.parseToJsonElement(
+                                    (request.body as OutgoingContent.ByteArrayContent)
+                                        .bytes()
+                                        .decodeToString()
+                                )
+                            )
+                            respond("""{"id":"edit"}""", headers = jsonHeaders)
+                        }
+                    ),
+                )
+            try {
+                assertEquals(
+                    "edit",
+                    api.publish(draft, "edit", idempotencyKey = "operation-1").id,
+                )
+            } finally {
+                api.close()
+            }
         }
     }
 
