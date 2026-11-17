@@ -113,8 +113,8 @@ fun StatusCard(
     highlighted: Boolean = false,
     nested: Boolean = false,
 ) {
-    val status = ui.changed[entry.original.id] ?: entry.original
-    if (status.id in ui.deleted) return
+    val projected = ui.statuses.project(entry) ?: return
+    val status = projected.original
     var revealed by
         remember(status.id) { mutableStateOf(status.spoilerText.isBlank() && !status.sensitive) }
     var menu by remember { mutableStateOf(false) }
@@ -123,7 +123,8 @@ fun StatusCard(
     var reportComment by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     Card(
-        Modifier.fillMaxWidth().padding(horizontal = if (nested) 0.dp else 10.dp),
+        Modifier.fillMaxWidth().padding(horizontal = if (nested) 0.dp else 10.dp)
+            .clickable { ui.navigate(Screen.Thread(status.id)) },
         colors =
             CardDefaults.cardColors(
                 containerColor =
@@ -134,9 +135,9 @@ fun StatusCard(
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (status.pinned)
                 Text(tr("mastodon_featured"), style = MaterialTheme.typography.labelMedium)
-            if (entry.reblog != null)
+            if (projected.reblog != null)
                 Text(
-                    tr("mastodon_boosted_by", "name" to entry.account.name),
+                    tr("mastodon_boosted_by", "name" to projected.account.name),
                     style = MaterialTheme.typography.labelMedium,
                 )
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -270,11 +271,9 @@ fun StatusCard(
                     TextButton(
                         modifier =
                             Modifier.semantics {
-                                contentDescription = "Reply, ${status.repliesCount} replies"
+                                contentDescription = "View replies, ${status.repliesCount} replies"
                             },
-                        onClick = {
-                            ui.requireLogin { ui.navigate(Screen.Compose(reply = status)) }
-                        },
+                        onClick = { ui.navigate(Screen.Thread(status.id)) },
                     ) {
                         Text("↩ ${status.repliesCount}")
                     }
@@ -291,13 +290,13 @@ fun StatusCard(
                                 busy = true
                                 ui.run {
                                     try {
-                                        ui.update(
+                                        ui.statuses.action(status.id, StatusAction.Reblog) {
                                             ui.api.setStatusAction(
                                                 status.id,
                                                 StatusAction.Reblog,
                                                 !status.reblogged,
                                             )
-                                        )
+                                        }
                                     } finally {
                                         busy = false
                                     }
@@ -324,13 +323,13 @@ fun StatusCard(
                                 busy = true
                                 ui.run {
                                     try {
-                                        ui.update(
+                                        ui.statuses.action(status.id, StatusAction.Favourite) {
                                             ui.api.setStatusAction(
                                                 status.id,
                                                 StatusAction.Favourite,
                                                 !status.favourited,
                                             )
-                                        )
+                                        }
                                     } finally {
                                         busy = false
                                     }
@@ -350,13 +349,13 @@ fun StatusCard(
                         onClick = {
                             ui.requireLogin {
                                 ui.run {
-                                    ui.update(
+                                    ui.statuses.action(status.id, StatusAction.Bookmark) {
                                         ui.api.setStatusAction(
                                             status.id,
                                             StatusAction.Bookmark,
                                             !status.bookmarked,
                                         )
-                                    )
+                                    }
                                 }
                             }
                         },
@@ -387,7 +386,7 @@ fun StatusCard(
                         deleteConfirm = false
                         ui.run {
                             ui.api.deleteStatus(status.id)
-                            ui.deleted.add(status.id)
+                            ui.ingest(StreamEvent.Deleted(StreamSource.LocalWrite, status.id))
                         }
                     }
                 ) {

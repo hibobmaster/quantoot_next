@@ -157,8 +157,7 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
                     )
                 val result = ui.api.publish(payload, route.edit?.id, draft.keyFor(payload))
                 ui.drafts.remove(key)
-                ui.update(result)
-                ui.back()
+                ui.published(route, result)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

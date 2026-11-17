@@ -30,6 +30,7 @@ import com.quanquan.quantoot.platform.PlatformServices
 import com.quanquan.quantoot.resources.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import org.jetbrains.compose.resources.Font
 
 val LocalStrings = staticCompositionLocalOf { Strings("en", "en") }
@@ -40,7 +41,7 @@ fun tr(key: String, vararg args: Pair<String, String>) = LocalStrings.current.te
 sealed interface Screen {
     data class Feed(val source: Timeline, val title: String) : Screen
 
-    data class Thread(val id: String) : Screen
+    data class Thread(val id: String, val focusReplyId: String? = null) : Screen
 
     data class Profile(val id: String) : Screen
 
@@ -69,6 +70,7 @@ class UiContext(
     val scope: CoroutineScope,
     val navigate: (Screen) -> Unit,
     val back: () -> Unit,
+    private val finishPublishing: (Screen.Compose, Status) -> Unit,
 ) {
     var me by mutableStateOf(initialMe)
     var beforeBack: (() -> Unit)? = null
@@ -80,10 +82,10 @@ class UiContext(
     var error by mutableStateOf<String?>(null)
     var message by mutableStateOf<String?>(null)
     var revision by mutableIntStateOf(0)
-    val changed = mutableStateMapOf<String, Status>()
-    val deleted = mutableStateListOf<String>()
+    internal val statuses = StatusProjection()
     val drafts = mutableMapOf<String, ComposerDraft>()
-    val events = MutableSharedFlow<StreamEvent>(extraBufferCapacity = 32)
+    private val eventBus = MutableSharedFlow<StreamEvent>(extraBufferCapacity = 32)
+    val events = eventBus.asSharedFlow()
     private var failedOperation: (suspend () -> Unit)? = null
 
     fun run(block: suspend () -> Unit) = scope.launch {
@@ -113,11 +115,34 @@ class UiContext(
         raw?.let(::safeWebUrl)?.let(platform::openUrl)
     }
 
-    fun update(status: Status) {
-        changed[status.id] = status
-        if (status.reblog != null) changed[status.original.id] = status.original
-        revision++
+    suspend fun ingest(event: StreamEvent) {
+        statuses.apply(event)
+        eventBus.emit(event)
     }
+
+    suspend fun published(route: Screen.Compose, status: Status) {
+        ingest(
+            if (route.edit == null) StreamEvent.Created(StreamSource.LocalWrite, status)
+            else StreamEvent.Edited(StreamSource.LocalWrite, status)
+        )
+        finishPublishing(route, status)
+    }
+
+}
+
+internal fun navigateTo(routes: List<Screen>, screen: Screen): List<Screen> {
+    if (screen is Screen.Thread) {
+        val existing = routes.indexOfLast { it is Screen.Thread && it.id == screen.id }
+        if (existing >= 0) return routes.take(existing) + screen
+    }
+    return if (routes.lastOrNull() == screen) routes else routes + screen
+}
+
+internal fun routesAfterPublish(routes: List<Screen>, compose: Screen.Compose, status: Status): List<Screen> {
+    val previous = if (routes.lastOrNull() is Screen.Compose) routes.dropLast(1) else routes
+    val parent = compose.reply ?: return previous
+    val thread = previous.lastOrNull() as? Screen.Thread
+    return navigateTo(previous, Screen.Thread(thread?.id ?: parent.id, focusReplyId = status.id))
 }
 
 @Composable

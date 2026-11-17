@@ -233,12 +233,22 @@ enum class StatusAction(val endpoint: String) {
     Bookmark("bookmark"),
 }
 
+sealed interface StreamSource {
+    data object User : StreamSource
+    data object Local : StreamSource
+    data object Federated : StreamSource
+    data class Hashtag(val name: String) : StreamSource
+    data object LocalWrite : StreamSource
+}
+
 sealed interface StreamEvent {
-    data class Update(val status: Status) : StreamEvent
+    val source: StreamSource
 
-    data class Delete(val id: String) : StreamEvent
-
-    data class Notify(val notification: Notification) : StreamEvent
+    data class Created(override val source: StreamSource, val status: Status) : StreamEvent
+    data class Edited(override val source: StreamSource, val status: Status) : StreamEvent
+    data class Deleted(override val source: StreamSource, val id: String) : StreamEvent
+    data class Notify(override val source: StreamSource, val notification: Notification) : StreamEvent
+    data class Reconnected(override val source: StreamSource) : StreamEvent
 }
 
 data class ServerInfo(

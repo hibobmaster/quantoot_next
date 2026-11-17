@@ -41,7 +41,7 @@ class FeedBehaviorTest {
                 continuationKnown = true,
             )
         )
-        pager.receive(Notification(id = "40"), defer = false)
+        pager.created(Notification(id = "40"), defer = false)
         pager.load(more = true)
         runCurrent()
         assertEquals("10", requested)
@@ -77,7 +77,7 @@ class FeedBehaviorTest {
         pager.restore(FeedSnapshot(listOf(Status(id = "1"))))
         pager.load()
         runCurrent()
-        pager.receive(Status(id = "3"), defer = false)
+        pager.created(Status(id = "3"), defer = false)
         response.complete(Page(listOf(Status(id = "2"), Status(id = "1")), "older"))
         runCurrent()
         assertEquals(listOf("3", "2", "1"), pager.rows.map { it.id })
@@ -90,7 +90,7 @@ class FeedBehaviorTest {
         pager.restore(FeedSnapshot(listOf(Status(id = "2"), Status(id = "1"))))
         pager.load()
         runCurrent()
-        pager.receive(Status(id = "1", content = "fresh"), defer = false)
+        pager.created(Status(id = "1", content = "fresh"), defer = false)
         response.complete(Page(listOf(Status(id = "2"), Status(id = "1"))))
         runCurrent()
         assertEquals(listOf("2", "1"), pager.rows.map { it.id })
@@ -204,4 +204,96 @@ class FeedBehaviorTest {
         persisted = "{invalid"
         assertNull(cache.read())
     }
+    @Test
+    fun projectedEditAndDeletionWinOverRefreshPageAndCache() = runTest {
+        val statuses = StatusProjection()
+        val original = Status(id = "original", content = "old")
+        val edited = original.copy(content = "new", editedAt = "2026-11-17T00:01:00Z")
+        val boost = Status(id = "boost", reblog = original)
+        val response = CompletableDeferred<Page<Status>>()
+        val pager = FeedPager(backgroundScope, { s: Status -> s.id }, statuses::project) {
+            statuses.read({ response.await() }) { it.items }
+        }
+        pager.restore(FeedSnapshot(listOf(original), nextCursor = "opaque", continuationKnown = true))
+        pager.load(more = true)
+        runCurrent()
+        statuses.apply(StreamEvent.Edited(StreamSource.User, edited))
+        pager.prune()
+        assertEquals("new", pager.rows.single().content)
+        statuses.apply(StreamEvent.Deleted(StreamSource.Local, original.id))
+        pager.prune()
+        response.complete(Page(listOf(original, boost), "next-opaque"))
+        runCurrent()
+        assertTrue(pager.rows.isEmpty())
+        assertEquals("next-opaque", pager.snapshot().nextCursor)
+        pager.restore(FeedSnapshot(listOf(original, boost)))
+        assertTrue(pager.rows.isEmpty())
+        assertTrue(pager.snapshot().items.isEmpty())
+    }
+
+    @Test
+    fun pendingEditAndDeleteDoNotInsertOrChangeTheReadingOrder() = runTest {
+        val statuses = StatusProjection()
+        val pager = FeedPager(backgroundScope, { s: Status -> s.id }, statuses::project) { Page(emptyList()) }
+        pager.restore(FeedSnapshot(listOf(Status(id = "known"))))
+        val created = Status(id = "new")
+        statuses.apply(StreamEvent.Created(StreamSource.User, created))
+        pager.created(created, defer = true)
+        statuses.apply(StreamEvent.Edited(StreamSource.User, created.copy(content = "edited")))
+        statuses.apply(StreamEvent.Edited(StreamSource.User, Status(id = "absent")))
+        pager.prune()
+        assertEquals(listOf("known"), pager.rows.map { it.id })
+        assertEquals("edited", pager.pending.single().content)
+        statuses.apply(StreamEvent.Deleted(StreamSource.User, "new"))
+        pager.prune()
+        pager.reveal()
+        assertEquals(listOf("known"), pager.rows.map { it.id })
+        assertTrue(pager.pending.isEmpty())
+    }
+
+    @Test
+    fun arrivalsSurviveCacheRestoreAndSupersededRequestsExactlyOnce() = runTest {
+        val first = CompletableDeferred<Page<Status>>()
+        var requests = 0
+        val pager = FeedPager(backgroundScope, { s: Status -> s.id }) {
+            if (++requests == 1) withContext(NonCancellable) { first.await() }
+            else Page(listOf(Status(id = "fresh"), Status(id = "old")), "fresh-cursor")
+        }
+        pager.created(Status(id = "arrival"), defer = false)
+        pager.restore(FeedSnapshot(listOf(Status(id = "old"))))
+        assertEquals(listOf("arrival", "old"), pager.rows.map { it.id })
+        pager.load()
+        runCurrent()
+        pager.load()
+        runCurrent()
+        first.complete(Page(listOf(Status(id = "stale")), "stale-cursor"))
+        runCurrent()
+        assertEquals(listOf("arrival", "fresh", "old"), pager.rows.map { it.id })
+        assertEquals("fresh-cursor", pager.snapshot().nextCursor)
+        pager.created(Status(id = "arrival"), defer = false)
+        assertEquals(1, pager.rows.count { it.id == "arrival" })
+    }
+
+    @Test
+    fun restoreInvalidatesInFlightRequestsAndEmptyProjectedPageCanContinue() = runTest {
+        val response = CompletableDeferred<Page<Status>>()
+        val requests = mutableListOf<String?>()
+        val pager = FeedPager(backgroundScope, { s: Status -> s.id }, { it.takeUnless { it.id == "deleted" } }) { cursor ->
+            requests += cursor
+            if (requests.size == 1) withContext(NonCancellable) { response.await() }
+            else Page(listOf(Status(id = "visible")))
+        }
+        pager.restore()
+        pager.load()
+        runCurrent()
+        pager.restore(FeedSnapshot(listOf(Status(id = "deleted")), nextCursor = "next", continuationKnown = true))
+        response.complete(Page(listOf(Status(id = "wrong"))))
+        runCurrent()
+        assertTrue(pager.rows.isEmpty())
+        pager.load(more = true)
+        runCurrent()
+        assertEquals(listOf(null, "next"), requests)
+        assertEquals(listOf("visible"), pager.rows.map { it.id })
+    }
+
 }

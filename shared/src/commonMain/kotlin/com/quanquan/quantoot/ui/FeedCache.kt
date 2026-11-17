@@ -87,29 +87,23 @@ internal class FeedCache<T>(
 internal class FeedPager<T>(
     private val scope: CoroutineScope,
     private val id: (T) -> String,
+    private val project: (T) -> T? = { it },
     private val fetch: suspend (String?) -> Page<T>,
 ) {
     var rows by mutableStateOf<List<T>>(emptyList())
         private set
-
     var pending by mutableStateOf<List<T>>(emptyList())
         private set
-
     var busy by mutableStateOf(false)
         private set
-
     var paging by mutableStateOf(false)
         private set
-
     var error by mutableStateOf<String?>(null)
         private set
-
     var failedMore by mutableStateOf(false)
         private set
-
     var exhausted by mutableStateOf(false)
         private set
-
     var ready by mutableStateOf(false)
         private set
 
@@ -117,27 +111,38 @@ internal class FeedPager<T>(
     private var continuationKnown by mutableStateOf(false)
     private var generation = 0
     private var request: Job? = null
-    private var arrivalsDuringRefresh: List<T> = emptyList()
+    private var creations: List<T> = emptyList()
+    private val removed = mutableSetOf<String>()
+
+    private fun projected(items: List<T>): List<T> =
+        items.mapNotNull(project).filterNot { id(it) in removed }.distinctBy(id)
 
     fun restore(snapshot: FeedSnapshot<T>? = null) {
-        rows = snapshot?.items.orEmpty().distinctBy(id)
+        request?.cancel()
+        generation++
+        if (ready) {
+            pending = emptyList()
+            creations = emptyList()
+        }
+        rows = projected((if (ready) emptyList() else rows) + snapshot?.items.orEmpty())
+        pending = projected(pending).filterNot { item -> rows.any { id(it) == id(item) } }
         cursor = snapshot?.nextCursor
         continuationKnown = snapshot?.continuationKnown == true
         exhausted = continuationKnown && cursor == null
+        busy = false
+        paging = false
         ready = true
     }
 
     fun snapshot(index: Int = 0, offset: Int = 0): FeedSnapshot<T> =
-        FeedSnapshot(rows, index, offset, cursor, continuationKnown)
+        FeedSnapshot(projected(rows), index, offset, cursor, continuationKnown)
 
     fun load(more: Boolean = false, defer: Boolean = false) {
-        if (!ready || (more && (busy || exhausted || rows.isEmpty() || !continuationKnown))) return
-        if (!more) {
-            request?.cancel()
-            arrivalsDuringRefresh = emptyList()
-        }
+        if (!ready || (more && (busy || exhausted || !continuationKnown))) return
+        if (!more) request?.cancel()
         val version = ++generation
         val maxId = if (more) cursor else null
+        val preserveTail = defer && continuationKnown && rows.isNotEmpty()
         busy = true
         paging = more
         error = null
@@ -145,24 +150,27 @@ internal class FeedPager<T>(
         request = scope.launch {
             try {
                 val result = fetch(maxId)
-                val page = result.items.distinctBy(id)
+                currentCoroutineContext().ensureActive()
                 if (version != generation) return@launch
+                val page = projected(result.items)
+                val confirmed = result.items.map(id).toSet()
+                creations = projected(creations).filterNot { id(it) in confirmed }
+                prune()
+                val existing = rows.map(id).toSet()
+                val updates = page.associateBy(id)
                 if (more) {
-                    val existing = rows.map(id).toSet()
-                    val additions = page.filterNot { id(it) in existing }
-                    rows = rows + additions
+                    rows = rows.map { updates[id(it)] ?: it } + page.filterNot { id(it) in existing }
                     exhausted = result.nextCursor == null || result.nextCursor == maxId
                     cursor = result.nextCursor
                     continuationKnown = true
-                } else if (defer && continuationKnown && rows.isNotEmpty()) {
-                    val existing = rows.map(id).toSet()
+                } else if (preserveTail) {
                     val firstKnown = page.indexOfFirst { id(it) in existing }
                     val arrivals = if (firstKnown < 0) page else page.take(firstKnown)
-                    pending = (arrivals + pending).distinctBy(id).take(100)
-                    val updates = page.associateBy(id)
+                    pending = projected(creations + arrivals + pending)
+                        .filterNot { id(it) in existing }.take(100)
                     rows = rows.map { updates[id(it)] ?: it }
                 } else {
-                    rows = (arrivalsDuringRefresh + pending + page).distinctBy(id)
+                    rows = projected(creations + pending + page)
                     pending = emptyList()
                     cursor = result.nextCursor
                     continuationKnown = true
@@ -181,27 +189,33 @@ internal class FeedPager<T>(
         }
     }
 
-    fun receive(item: T, defer: Boolean) {
-        val itemId = id(item)
-        if (busy && !paging)
-            arrivalsDuringRefresh = (listOf(item) + arrivalsDuringRefresh).distinctBy(id).take(100)
+    fun created(item: T, defer: Boolean) {
+        val value = project(item)?.takeUnless { id(it) in removed } ?: return
+        val itemId = id(value)
         if (rows.any { id(it) == itemId }) {
-            rows = rows.map { if (id(it) == itemId) item else it }
+            rows = rows.map { if (id(it) == itemId) value else it }
             return
         }
-        pending = (listOf(item) + pending).distinctBy(id).take(100)
+        if (pending.none { id(it) == itemId })
+            creations = projected(listOf(value) + creations).take(100)
+        pending = projected(listOf(value) + pending).take(100)
         if (!defer) reveal()
     }
 
     fun reveal() {
-        rows = (pending + rows).distinctBy(id)
+        rows = projected(pending + rows)
         pending = emptyList()
     }
 
+    fun prune() {
+        rows = projected(rows)
+        pending = projected(pending)
+        creations = projected(creations)
+    }
+
     fun remove(predicate: (T) -> Boolean) {
-        rows = rows.filterNot(predicate)
-        pending = pending.filterNot(predicate)
-        arrivalsDuringRefresh = arrivalsDuringRefresh.filterNot(predicate)
+        removed += (rows + pending + creations).filter(predicate).map(id)
+        prune()
     }
 }
 

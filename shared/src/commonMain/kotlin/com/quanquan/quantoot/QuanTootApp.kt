@@ -122,8 +122,17 @@ private fun AppShell(
                 store,
                 state.activeSession?.account,
                 scope,
-                { routes.add(it) },
+                { screen ->
+                    val next = navigateTo(routes.toList(), screen)
+                    routes.clear()
+                    routes.addAll(next)
+                },
                 { if (routes.isNotEmpty()) routes.removeLast() },
+                { compose, status ->
+                    val next = routesAfterPublish(routes.toList(), compose, status)
+                    routes.clear()
+                    routes.addAll(next)
+                },
             )
         }
     SideEffect { ui.me = state.activeSession?.account }
@@ -133,10 +142,9 @@ private fun AppShell(
         if (ui.me != null && foreground) {
             ui.run { unread = api.unreadCount() }
             try {
-                api.events().collect { event ->
+                api.events(StreamSource.User).collect { event ->
                     if (event is StreamEvent.Notify) unread++
-                    if (event is StreamEvent.Delete) ui.deleted.add(event.id)
-                    ui.events.emit(event)
+                    ui.ingest(event)
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -258,7 +266,7 @@ private fun AppShell(
                 key(route, if (route == null) tab else -1) {
                     when (route) {
                         is Screen.Feed -> FeedScreen(ui, route.source)
-                        is Screen.Thread -> ThreadScreen(ui, route.id)
+                        is Screen.Thread -> ThreadScreen(ui, route.id, route.focusReplyId)
                         is Screen.Profile -> ProfileScreen(ui, route.id)
                         is Screen.People -> PeopleScreen(ui, route.id, route.following)
                         is Screen.Compose -> ComposerScreen(ui, route)

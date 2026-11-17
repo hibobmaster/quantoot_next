@@ -7,6 +7,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -45,6 +46,7 @@ private fun <T> rememberFeedPager(
     listState: LazyListState,
     isActive: Boolean,
     id: (T) -> String,
+    project: (T) -> T?,
     fetch: suspend (String?) -> Page<T>,
 ): FeedPager<T> {
     val scope = rememberCoroutineScope()
@@ -54,16 +56,20 @@ private fun <T> rememberFeedPager(
             feedCacheKey(ui.api.instance, accountKey, identity)
         }
     val cache = remember(key) { FeedCache(ui.platform.preferences, key, serializer) }
-    val pager = remember(key) { FeedPager(scope, id, fetch) }
+    val pager = remember(key) { FeedPager(scope, id, project, fetch) }
+    val foreground by ui.platform.foreground.collectAsState()
+    val active by rememberUpdatedState(isActive && foreground)
+    fun readingOlder() = listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 160
     LaunchedEffect(pager) {
         val saved = cache.read()
         pager.restore(saved)
-        if (saved != null && saved.items.isNotEmpty())
-            listState.scrollToItem(saved.index.coerceAtMost(saved.items.lastIndex), saved.offset)
-        pager.load(
-            defer =
-                listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 160
-        )
+        if (saved != null && pager.rows.isNotEmpty()) {
+            val anchor = saved.items.getOrNull(saved.index)?.let(id)
+            val restoredIndex = pager.rows.indexOfFirst { id(it) == anchor }
+                .takeIf { it >= 0 } ?: saved.index.coerceAtMost(pager.rows.lastIndex)
+            listState.scrollToItem(restoredIndex, saved.offset)
+        }
+        if (active) pager.load(defer = readingOlder())
     }
     LaunchedEffect(pager) {
         snapshotFlow {
@@ -79,16 +85,14 @@ private fun <T> rememberFeedPager(
                 }
             }
     }
-    val foreground by ui.platform.foreground.collectAsState()
-    var wasForeground by remember(pager) { mutableStateOf(foreground) }
-    LaunchedEffect(foreground, isActive) {
-        if (foreground && !wasForeground && isActive && pager.ready)
-            pager.load(
-                defer =
-                    listState.firstVisibleItemIndex > 0 ||
-                        listState.firstVisibleItemScrollOffset > 160
-            )
-        wasForeground = foreground
+    var wasActive by remember(pager) { mutableStateOf(isActive && foreground) }
+    LaunchedEffect(pager, foreground, isActive) {
+        if (active && !wasActive && pager.ready) pager.load(defer = readingOlder())
+        wasActive = active
+        if (active) while (isActive) {
+            delay(20_000)
+            if (pager.ready && !pager.busy) pager.load(defer = readingOlder())
+        }
     }
     LaunchedEffect(pager, isActive) {
         snapshotFlow {
@@ -116,24 +120,32 @@ fun FeedScreen(ui: UiContext, source: Timeline, isActive: Boolean = true) {
         val listState = rememberLazyListState()
         val scope = rememberCoroutineScope()
         val pager =
-            rememberFeedPager(ui, identity, Status.serializer(), listState, isActive, { it.id }) {
-                ui.api.timeline(source, maxId = it)
+            rememberFeedPager(
+                ui, identity, Status.serializer(), listState, isActive, { it.id }, ui.statuses::project,
+            ) { cursor ->
+                ui.statuses.read({ ui.api.timeline(source, maxId = cursor) }) { it.items }
             }
-        LaunchedEffect(pager, isActive) {
+        val foreground by ui.platform.foreground.collectAsState()
+        val streamSource = source.streamSource()
+        fun readingOlder() = listState.firstVisibleItemIndex > 0 ||
+            listState.firstVisibleItemScrollOffset > 160 || !isActive
+        LaunchedEffect(ui, streamSource, foreground, isActive) {
+            if (ui.me != null && foreground && isActive && streamSource != null && streamSource != StreamSource.User)
+                ui.api.events(streamSource).collect { ui.ingest(it) }
+        }
+        LaunchedEffect(pager, isActive, foreground) {
             ui.events.collect { event ->
                 when (event) {
-                    is StreamEvent.Update ->
-                        if (source == Timeline.Home)
-                            pager.receive(
-                                event.status,
-                                defer =
-                                    listState.firstVisibleItemIndex > 0 ||
-                                        listState.firstVisibleItemScrollOffset > 160 ||
-                                        !isActive,
-                            )
-                    is StreamEvent.Delete ->
-                        pager.remove { it.id == event.id || it.original.id == event.id }
-                    else -> Unit
+                    is StreamEvent.Created -> when (event.source) {
+                        StreamSource.LocalWrite -> if (isActive && foreground) pager.load(defer = readingOlder())
+                        streamSource -> pager.created(event.status, defer = readingOlder())
+                        else -> Unit
+                    }
+                    is StreamEvent.Edited, is StreamEvent.Deleted -> pager.prune()
+                    is StreamEvent.Reconnected ->
+                        if (isActive && foreground && (streamSource == null || event.source == streamSource))
+                            pager.load(defer = readingOlder())
+                    is StreamEvent.Notify -> Unit
                 }
             }
         }
@@ -149,12 +161,6 @@ fun FeedScreen(ui: UiContext, source: Timeline, isActive: Boolean = true) {
         }
         Column {
             Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
-                TextButton(
-                    onClick = { pager.load(defer = listState.firstVisibleItemIndex > 0) },
-                    enabled = !pager.busy,
-                ) {
-                    Text(tr("mastodon_refresh"))
-                }
                 if (pager.pending.isNotEmpty())
                     TextButton(
                         onClick = {
@@ -174,17 +180,16 @@ fun FeedScreen(ui: UiContext, source: Timeline, isActive: Boolean = true) {
                 modifier = Modifier.weight(1f),
             ) {
                 LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
                     state = listState,
                     contentPadding = PaddingValues(bottom = 88.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     items(
-                        pager.rows.filterNot {
-                            it.id in ui.deleted || it.original.id in ui.deleted
-                        },
+                        pager.rows,
                         key = { it.id },
                     ) { status ->
-                        StatusCard(ui, ui.changed[status.id] ?: status)
+                        StatusCard(ui, status)
                     }
                     item {
                         when {
@@ -211,14 +216,14 @@ fun FeedScreen(ui: UiContext, source: Timeline, isActive: Boolean = true) {
 }
 
 @Composable
-fun ThreadScreen(ui: UiContext, id: String) {
+fun ThreadScreen(ui: UiContext, id: String, focusReplyId: String? = null) {
     var posts by remember(id, ui.revision) { mutableStateOf<List<Status>?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var attempt by remember { mutableIntStateOf(0) }
     LaunchedEffect(id, attempt, ui.revision) {
         try {
-            val status = ui.api.status(id)
-            val context = ui.api.context(id)
+            val status = ui.statuses.read({ ui.api.status(id) }) { listOf(it) }
+            val context = ui.statuses.read({ ui.api.context(id) }) { it.ancestors + it.descendants }
             posts = context.ancestors + status + context.descendants
             error = null
         } catch (e: CancellationException) {
@@ -234,8 +239,8 @@ fun ThreadScreen(ui: UiContext, id: String) {
             contentPadding = PaddingValues(bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            items(posts.orEmpty().filterNot { it.id in ui.deleted }, key = { it.id }) {
-                StatusCard(ui, ui.changed[it.id] ?: it, highlighted = it.id == id)
+            items(posts.orEmpty().mapNotNull(ui.statuses::project), key = { it.id }) {
+                StatusCard(ui, it, highlighted = it.id == id)
             }
         }
     }
@@ -265,11 +270,11 @@ fun DiscoveryScreen(ui: UiContext) {
             failedMore = more
             try {
                 if (requestedQuery.isBlank()) {
-                    trends = ui.api.trends()
+                    trends = ui.statuses.read({ ui.api.trends() }) { it }
                     tags = ui.api.trendingTags()
                     searched = false
                 } else {
-                    val next = ui.api.search(requestedQuery, offset = if (more) offset else 0)
+                    val next = ui.statuses.read({ ui.api.search(requestedQuery, offset = if (more) offset else 0) }) { it.statuses }
                     val merged =
                         if (more)
                             SearchResults(
@@ -340,7 +345,7 @@ fun DiscoveryScreen(ui: UiContext) {
                     }
                 }
                 items(results.statuses, key = { "status:${it.id}" }) {
-                    StatusCard(ui, ui.changed[it.id] ?: it)
+                    StatusCard(ui, it)
                 }
                 item {
                     if (!exhausted)
@@ -362,7 +367,7 @@ fun DiscoveryScreen(ui: UiContext) {
                         Text("#${tag.name}")
                     }
                 }
-                items(trends, key = { it.id }) { StatusCard(ui, ui.changed[it.id] ?: it) }
+                items(trends, key = { it.id }) { StatusCard(ui, it) }
             }
             item {
                 if (busy) Loading()
@@ -393,25 +398,29 @@ fun NotificationsScreen(ui: UiContext, isActive: Boolean = true) {
                 listState,
                 isActive,
                 { it.id },
-            ) {
-                ui.api.notifications(it).let { items -> Page(items, items.lastOrNull()?.id) }
+                { notification ->
+                    if (notification.status == null) notification
+                    else ui.statuses.project(notification.status)?.let { notification.copy(status = it) }
+                },
+            ) { cursor ->
+                ui.statuses.read({ ui.api.notifications(cursor) }) { items -> items.mapNotNull { it.status } }
+                    .let { items -> Page(items, items.lastOrNull()?.id) }
             }
-        val groups =
-            remember(pager.rows, ui.deleted.toList()) {
-                groupFeedNotifications(pager.rows.filterNot { it.status?.id in ui.deleted })
-            }
+        val groups = groupFeedNotifications(pager.rows)
         val handling = remember { mutableStateListOf<String>() }
         LaunchedEffect(pager, isActive) {
             ui.events.collect { event ->
                 if (event is StreamEvent.Notify)
-                    pager.receive(
+                    pager.created(
                         event.notification,
                         defer =
                             listState.firstVisibleItemIndex > 0 ||
                                 listState.firstVisibleItemScrollOffset > 160 ||
                                 !isActive,
                     )
-                if (event is StreamEvent.Delete) pager.remove { it.status?.id == event.id }
+                if (event is StreamEvent.Deleted || event is StreamEvent.Edited) pager.prune()
+                if (event is StreamEvent.Reconnected && event.source == StreamSource.User)
+                    pager.load(defer = listState.firstVisibleItemIndex > 0 || !isActive)
             }
         }
         LaunchedEffect(pager.rows.firstOrNull()?.id, isActive) {
@@ -426,12 +435,6 @@ fun NotificationsScreen(ui: UiContext, isActive: Boolean = true) {
         }
         Column {
             Row {
-                TextButton(
-                    onClick = { pager.load(defer = listState.firstVisibleItemIndex > 0) },
-                    enabled = !pager.busy,
-                ) {
-                    Text(tr("mastodon_refresh"))
-                }
                 if (pager.pending.isNotEmpty())
                     TextButton(
                         onClick = {
@@ -451,6 +454,7 @@ fun NotificationsScreen(ui: UiContext, isActive: Boolean = true) {
                 modifier = Modifier.weight(1f),
             ) {
                 LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
                     state = listState,
                     contentPadding = PaddingValues(bottom = 88.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -508,7 +512,7 @@ fun NotificationsScreen(ui: UiContext, isActive: Boolean = true) {
                                         }
                                     }
                                 }
-                            notification.status?.let { StatusCard(ui, ui.changed[it.id] ?: it) }
+                            notification.status?.let { StatusCard(ui, it) }
                         }
                     }
                     item {

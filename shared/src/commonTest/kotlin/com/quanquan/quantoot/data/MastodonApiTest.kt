@@ -592,6 +592,7 @@ class MastodonApiTest {
         val api =
             MastodonApi(
                 "social.example",
+                accessToken = "test-token",
                 client =
                     HttpClient(
                         engine {
@@ -600,7 +601,7 @@ class MastodonApiTest {
                         }
                     ),
             )
-        val collector = backgroundScope.launch { api.events().collect() }
+        val collector = backgroundScope.launch { api.events(StreamSource.User).collect() }
         runCurrent()
         assertEquals(1, attempts)
         advanceTimeBy(1000)

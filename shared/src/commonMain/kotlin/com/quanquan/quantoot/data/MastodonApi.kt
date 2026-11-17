@@ -643,11 +643,14 @@ class MastodonApi(
             ?.content
             .orEmpty()
 
-    fun events(): Flow<StreamEvent> = flow {
+    fun events(source: StreamSource): Flow<StreamEvent> = flow {
+        val subscription = streamSubscription(source)
+        if (token == null) return@flow
         val collectionJob = currentCoroutineContext().job
         val onClose = streamLifetime.invokeOnCompletion { collectionJob.cancel() }
         try {
             var retry = 1000L
+            var connected = false
             while (currentCoroutineContext().isActive && streamLifetime.isActive) {
                 try {
                     val streamRoot = (cachedServer ?: serverInfo()).streamingUrl ?: base
@@ -658,12 +661,13 @@ class MastodonApi(
                     val authority = normalizeInstance(httpsRoot)
                     http.webSocket({
                         url("wss://$authority/api/v1/streaming")
-                        url.parameters.append(
-                            "stream",
-                            if (token == null) "public:local" else "user",
-                        )
-                        token?.let { bearerAuth(it) }
+                        url.parameters.append("stream", subscription.first)
+                        subscription.second?.let { url.parameters.append("tag", it) }
+                        bearerAuth(token)
                     }) {
+                        if (connected) emit(StreamEvent.Reconnected(source))
+                        connected = true
+                        retry = 1000
                         maxFrameSize = 512 * 1024L
                         var window = TimeSource.Monotonic.markNow()
                         var count = 0
@@ -678,26 +682,7 @@ class MastodonApi(
                             if (frame.data.size > 512 * 1024)
                                 throw ApiException(-1, "Streaming frame exceeds the limit")
                             val envelope = boundedJson(frame.readText()) as? JsonObject ?: continue
-                            val event = (envelope["event"] as? JsonPrimitive)?.content ?: continue
-                            val payload = envelope["payload"] ?: continue
-                            val value =
-                                if (
-                                    payload is JsonPrimitive &&
-                                        payload.isString &&
-                                        event != "delete"
-                                )
-                                    boundedJson(payload.content)
-                                else payload
-                            when (event) {
-                                "update",
-                                "status.update" -> emit(StreamEvent.Update(decodeApi(value)))
-                                "notification" -> emit(StreamEvent.Notify(decodeApi(value)))
-                                "delete" ->
-                                    (value as? JsonPrimitive)
-                                        ?.content
-                                        ?.takeIf { it.length <= 200 }
-                                        ?.let { emit(StreamEvent.Delete(it)) }
-                            }
+                            parseStreamEvent(source, envelope)?.let { emit(it) }
                             retry = 1000
                         }
                     }
@@ -718,5 +703,41 @@ class MastodonApi(
         streamLifetime.cancel()
         http.close()
         sourceHttp.close()
+    }
+}
+
+internal fun Timeline.streamSource(): StreamSource? = when (this) {
+    Timeline.Home -> StreamSource.User
+    is Timeline.Public -> if (local) StreamSource.Local else StreamSource.Federated
+    is Timeline.Hashtag -> StreamSource.Hashtag(tag.lowercase())
+    else -> null
+}
+
+internal fun streamSubscription(source: StreamSource): Pair<String, String?> = when (source) {
+    StreamSource.User -> "user" to null
+    StreamSource.Local -> "public:local" to null
+    StreamSource.Federated -> "public" to null
+    is StreamSource.Hashtag -> "hashtag" to source.name
+    StreamSource.LocalWrite -> error("Local changes have no wire subscription")
+}
+
+internal fun parseStreamEvent(source: StreamSource, envelope: JsonObject): StreamEvent? {
+    val subscription = streamSubscription(source)
+    if ("stream" in envelope) {
+        val stream = (envelope["stream"] as? JsonArray)
+            ?.map { (it as? JsonPrimitive)?.content } ?: return null
+        if (stream != listOfNotNull(subscription.first, subscription.second)) return null
+    }
+    val event = (envelope["event"] as? JsonPrimitive)?.content ?: return null
+    if (event !in setOf("update", "status.update", "delete", "notification")) return null
+    val payload = envelope["payload"] ?: return null
+    val value = if (payload is JsonPrimitive && payload.isString && event != "delete")
+        boundedJson(payload.content) else payload
+    return when (event) {
+        "update" -> StreamEvent.Created(source, decodeApi(value))
+        "status.update" -> StreamEvent.Edited(source, decodeApi(value))
+        "notification" -> StreamEvent.Notify(source, decodeApi(value))
+        else -> (value as? JsonPrimitive)?.content?.takeIf { it.isNotBlank() && it.length <= 200 }
+            ?.let { StreamEvent.Deleted(source, it) }
     }
 }
