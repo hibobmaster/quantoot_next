@@ -97,6 +97,20 @@ final class ClientInteractionTests: XCTestCase {
     }
 
     @MainActor
+    func testDoubleTapZoomRemainsAvailable() throws {
+        continueAfterFailure = false
+        let app = gallery()
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).doubleTap()
+        let reset = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Reset zoom")).firstMatch
+        let enlarged = NSPredicate { _, _ in reset.exists && reset.label.contains("300%") }
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: enlarged, object: nil)], timeout: 5), .completed)
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).doubleTap()
+        let fitted = NSPredicate { _, _ in reset.exists && reset.label.contains("100%") }
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: fitted, object: nil)], timeout: 5), .completed)
+        capture("Gallery double tap zoom and reset", app)
+    }
+
+    @MainActor
     func testHomeSourceSurvivesRootTabSwitches() throws {
         continueAfterFailure = false
         let app = launch()
