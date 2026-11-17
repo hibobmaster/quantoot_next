@@ -2,6 +2,8 @@ package com.quanquan.quantoot
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -10,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.quanquan.quantoot.auth.*
 import com.quanquan.quantoot.model.*
@@ -66,21 +69,36 @@ fun QuanTootApp(platform: PlatformServices) {
 @Composable
 private fun LanguageChooser(select: (String) -> Unit) {
     var language by remember { mutableStateOf("system") }
-    Column(
-        Modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Image(painterResource(Res.drawable.quantoot_logo), "QuanToot", Modifier.size(104.dp))
-        Spacer(Modifier.height(24.dp))
-        Text(tr("onboarding_language_title"), style = MaterialTheme.typography.headlineMedium)
-        Text(tr("onboarding_language_description"), Modifier.padding(vertical = 16.dp))
-        Choice(tr("settings_language"), language, languageOptions()) { language = it }
-        Button(
-            onClick = { select(language) },
-            modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+    BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        Column(
+            Modifier.widthIn(max = 480.dp).fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .heightIn(min = maxHeight)
+                .padding(horizontal = 24.dp, vertical = 32.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(tr("onboarding_continue"))
+            Image(painterResource(Res.drawable.quantoot_logo), "QuanToot", Modifier.size(96.dp))
+            Spacer(Modifier.height(24.dp))
+            Text(
+                tr("onboarding_language_title"),
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                tr("onboarding_language_description"),
+                Modifier.padding(top = 12.dp, bottom = 28.dp),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            Choice(tr("settings_language"), language, languageOptions()) { language = it }
+            Button(
+                onClick = { select(language) },
+                modifier = Modifier.padding(top = 20.dp).fillMaxWidth().heightIn(min = 52.dp),
+            ) {
+                Text(tr("onboarding_continue"))
+            }
         }
     }
 }

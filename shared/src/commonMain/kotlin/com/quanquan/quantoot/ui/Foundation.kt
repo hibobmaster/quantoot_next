@@ -2,12 +2,26 @@ package com.quanquan.quantoot.ui
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.quanquan.quantoot.auth.AccountStore
 import com.quanquan.quantoot.data.*
@@ -160,7 +174,18 @@ fun QuanTheme(content: @Composable () -> Unit) {
             labelMedium = base.labelMedium.copy(fontFamily = family),
             labelSmall = base.labelSmall.copy(fontFamily = family),
         )
-    MaterialTheme(colorScheme = palette, typography = typography, content = content)
+    MaterialTheme(
+        colorScheme = palette,
+        typography = typography,
+        shapes = Shapes(
+            extraSmall = RoundedCornerShape(6.dp),
+            small = RoundedCornerShape(10.dp),
+            medium = RoundedCornerShape(16.dp),
+            large = RoundedCornerShape(24.dp),
+            extraLarge = RoundedCornerShape(28.dp),
+        ),
+        content = content,
+    )
 }
 
 @Composable
@@ -192,15 +217,34 @@ fun Empty(label: String = tr("mastodon_empty_timeline")) {
 
 @Composable
 fun Toggle(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().clickable { onChange(!checked) }.padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = MaterialTheme.shapes.medium,
     ) {
-        Text(label, Modifier.weight(1f))
-        Switch(checked, onChange)
+        Row(
+            Modifier.fillMaxWidth()
+                .toggleable(checked, role = Role.Switch, onValueChange = onChange)
+                .heightIn(min = 56.dp)
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(label, Modifier.weight(1f).padding(end = 16.dp))
+            Switch(
+                checked = checked,
+                onCheckedChange = null,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainer,
+                    uncheckedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                ),
+            )
+        }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Choice(
     label: String,
@@ -209,19 +253,85 @@ fun Choice(
     onChange: (String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Box {
-        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
-            Text("$label: ${options.firstOrNull { it.first == value }?.second ?: value}")
-        }
-        DropdownMenu(expanded, { expanded = false }) {
-            options.forEach { (key, text) ->
-                DropdownMenuItem(
-                    text = { Text(text) },
-                    onClick = {
-                        expanded = false
-                        onChange(key)
-                    },
+    val selectedLabel = options.firstOrNull { it.first == value }?.second ?: value
+    Surface(
+        onClick = { expanded = true },
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Row(
+            Modifier.heightIn(min = 72.dp).padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                Text(selectedLabel, style = MaterialTheme.typography.titleMedium)
+            }
+            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
+        }
+    }
+    if (expanded) {
+        ModalBottomSheet(
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.semantics { paneTitle = label },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            sheetMaxWidth = Dp.Unspecified,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
+            Text(
+                label,
+                Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 16.dp)
+                    .semantics { heading() },
+                style = MaterialTheme.typography.titleLarge,
+            )
+            LazyColumn(
+                Modifier.fillMaxWidth().heightIn(max = 440.dp).selectableGroup(),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                items(options, key = { it.first }) { (key, text) ->
+                    val selected = key == value
+                    Surface(
+                        color =
+                            if (selected) MaterialTheme.colorScheme.primaryContainer
+                            else Color.Transparent,
+                        shape = MaterialTheme.shapes.medium,
+                    ) {
+                        Row(
+                            Modifier.fillMaxWidth()
+                                .selectable(
+                                    selected = selected,
+                                    role = Role.RadioButton,
+                                    onClick = {
+                                        expanded = false
+                                        onChange(key)
+                                    },
+                                )
+                                .heightIn(min = 56.dp)
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            Text(text, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+                            if (selected) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            } else {
+                                Spacer(Modifier.size(24.dp))
+                            }
+                        }
+                    }
+                }
             }
         }
     }

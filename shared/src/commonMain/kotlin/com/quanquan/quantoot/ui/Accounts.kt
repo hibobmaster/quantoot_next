@@ -3,9 +3,12 @@ package com.quanquan.quantoot.ui
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.quanquan.quantoot.auth.*
@@ -14,40 +17,71 @@ import com.quanquan.quantoot.model.*
 import com.quanquan.quantoot.platform.*
 import kotlinx.coroutines.*
 
+private const val DEFAULT_INSTANCE = "m.qqs.tw"
+
 @Composable
 fun InstanceScreen(store: AccountStore, state: SessionState, platform: PlatformServices) {
     var instance by remember { mutableStateOf(state.instance.orEmpty()) }
     val scope = rememberCoroutineScope()
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp, vertical = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        Text(tr("mastodon_instance_title"), style = MaterialTheme.typography.headlineMedium)
-        Text(tr("mastodon_instance_description"))
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                "QuanToot",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Text(tr("mastodon_instance_title"), style = MaterialTheme.typography.headlineMedium)
+            Text(
+                tr("mastodon_instance_description"),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         OutlinedTextField(
             instance,
             { instance = it },
+            enabled = !state.busy,
             label = { Text(tr("mastodon_instance_label")) },
             placeholder = { Text(tr("mastodon_instance_hint")) },
+            supportingText = {
+                Text(tr("mastodon_instance_default_hint", "instance" to DEFAULT_INSTANCE))
+            },
             singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                autoCorrectEnabled = false,
+                keyboardType = KeyboardType.Uri,
+                imeAction = ImeAction.Done,
+            ),
+            shape = MaterialTheme.shapes.medium,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+            ),
             modifier = Modifier.fillMaxWidth(),
         )
         ErrorNotice(state.error) { store.clearError() }
-        Button(
-            onClick = { scope.launch { store.login(instance) } },
-            enabled = !state.busy && instance.isNotBlank(),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(tr("mastodon_continue_login"))
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Button(
+                onClick = { scope.launch { store.login(instance.ifBlank { DEFAULT_INSTANCE }) } },
+                enabled = !state.busy,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+            ) {
+                Text(tr("mastodon_continue_login"))
+            }
+            OutlinedButton(
+                onClick = { scope.launch { store.browse(instance.ifBlank { DEFAULT_INSTANCE }) } },
+                enabled = !state.busy,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+            ) {
+                Text(tr("mastodon_browse_without_login"))
+            }
+            if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         }
-        OutlinedButton(
-            onClick = { scope.launch { store.browse(instance) } },
-            enabled = !state.busy && instance.isNotBlank(),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(tr("mastodon_browse_without_login"))
-        }
-        if (state.busy) Loading()
     }
 }
 
