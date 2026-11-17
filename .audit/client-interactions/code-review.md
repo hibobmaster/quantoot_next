@@ -1,0 +1,11 @@
+# Independent review and calibration
+
+The gpt-6.1-sol profile reviewer found no introduced correctness issue in202cf7b. It checked Profile/About/actions, Home lifetime, cache serialization/bounds, projection/deletion restoration, readiness, deferral, reveal and pagination. The grouped-notification coordinate limitation predates this unit. The actual header/post restoration native case passed in native-profile-first.json, supplying the layout-timing check the reviewer requested.
+
+The gpt-6.1-sol gallery reviewer found no introduced correctness issue ine9adfce. It traced gesture ownership, pointer-event consumption, multi-touch takeover, generations and stale completion, page/activity/zoom cancellation, double-tap source behavior, and save/ALT/video isolation. Source review does not establish the separately uncompleted native double-tap probe.
+
+The independent comment reviewer found no hand-authored prose comments or broad suppressions. It identified one unused ExperimentalCoroutinesApi opt-in in FeedPositionTest, verified against the resolved1.11.0 dependency. Root removed that annotation and import; the integrated131 shared tests passed afterward. No comments were deleted or restored, no HOLD, no refactor or encoding task remains from this review. Generated XcodeGen object labels remain generator output.
+
+The first unified-profile native run passed action geometry, Home return, root-tab retention and both header/status restoration. Its header-scroll assertion failed because it required the Posts tab to remain materialized after that tab had correctly scrolled out of the lazy list. Root inspected the actual recording, then required a post to occupy the reading area while the tab moved above it or became absent. The repeat passed without a production layout change. The screenshot is evidence of a full reading area, not a fixed-height header.
+
+Test helpers now scroll naturally to Profile actions before inspecting them. They do not reset preferences or cache, and retain the new reading-position behavior. The synthetic double-tap limits and unsuccessful host-input attempt are documented separately in gesture-probe-notes.md. Those attempts are not passing acceptance evidence and temporary trace code is absent from the product source.

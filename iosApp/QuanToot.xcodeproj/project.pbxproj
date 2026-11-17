@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		44114A3211B56289628730D6 /* ClientRefinementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB28B6302A1E48906D4BA74F /* ClientRefinementTests.swift */; };
+		60DFEE804F2318B18827FE5A /* ProfileTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0E8591AADE1CE930D4D45FA /* ProfileTestSupport.swift */; };
 		662BEAB40D40BBD682C1F610 /* AuthorizedServerReadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555BF0A79B45FDE763E3048B /* AuthorizedServerReadTests.swift */; };
 		80B60207D8CA05C62B1437D7 /* GuestBrowsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9F667F2F94F3C7696FDB68 /* GuestBrowsingTests.swift */; };
 		BD7F36660AACD2A8746CBBEF /* ClientInteractionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457AB8C12B80793595D29CE9 /* ClientInteractionTests.swift */; };
@@ -41,6 +42,7 @@
 		555BF0A79B45FDE763E3048B /* AuthorizedServerReadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthorizedServerReadTests.swift; sourceTree = "<group>"; };
 		84A1CCACE84233094C05EC9E /* QuanToot.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = QuanToot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		84DF6567EEA62462242BA71C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A0E8591AADE1CE930D4D45FA /* ProfileTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileTestSupport.swift; sourceTree = "<group>"; };
 		AB28B6302A1E48906D4BA74F /* ClientRefinementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientRefinementTests.swift; sourceTree = "<group>"; };
 		B8DD0428EAF02E2FC4DD6ED5 /* QuanToot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = QuanToot.entitlements; sourceTree = "<group>"; };
 		C68C2A03C70EF61E58802A51 /* QuanTootApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuanTootApp.swift; sourceTree = "<group>"; };
@@ -89,6 +91,7 @@
 				457AB8C12B80793595D29CE9 /* ClientInteractionTests.swift */,
 				AB28B6302A1E48906D4BA74F /* ClientRefinementTests.swift */,
 				0A9F667F2F94F3C7696FDB68 /* GuestBrowsingTests.swift */,
+				A0E8591AADE1CE930D4D45FA /* ProfileTestSupport.swift */,
 			);
 			path = QuanTootUITests;
 			sourceTree = "<group>";
@@ -254,6 +257,7 @@
 				BD7F36660AACD2A8746CBBEF /* ClientInteractionTests.swift in Sources */,
 				44114A3211B56289628730D6 /* ClientRefinementTests.swift in Sources */,
 				80B60207D8CA05C62B1437D7 /* GuestBrowsingTests.swift in Sources */,
+				60DFEE804F2318B18827FE5A /* ProfileTestSupport.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -343,7 +347,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -358,7 +362,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.6.2;
+				MARKETING_VERSION = 0.6.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = "$(inherited) -framework QuanTootShared -lsqlite3";
@@ -461,7 +465,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -482,7 +486,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.6.2;
+				MARKETING_VERSION = 0.6.3;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

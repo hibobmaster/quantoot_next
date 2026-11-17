@@ -1,0 +1,18 @@
+{
+  "summary": {
+    "status": "FAILED",
+    "durationMs": 127413,
+    "counts": {
+      "passed": 5,
+      "failed": 1,
+      "skipped": 0
+    },
+    "target": "simulator"
+  },
+  "artifacts": {
+    "buildLogPath": "~/Library/Developer/XcodeBuildMCP/workspaces/QuanToot_Next-60ddf7a34c29/logs/test_sim_2026-11-17T14-20-51-560Z_pid24740_459a1892.log",
+    "xcresultPath": "~/Library/Developer/XcodeBuildMCP/workspaces/QuanToot_Next-60ddf7a34c29/result-bundles/test_sim_2026-11-17T14-20-51-560Z_pid24740_36aa0e33.xcresult",
+    "testProductsPath": "~/Library/Developer/XcodeBuildMCP/workspaces/QuanToot_Next-60ddf7a34c29/test-products/test_sim_2026-11-17T14-20-51-560Z_pid24740_2495120b.xctestproducts"
+  },
+  "note": "Five passes include the corrected header-scroll assertion and the four requested gallery gesture checks; the separate built-in double-tap probe remains invalid/uncompleted."
+}

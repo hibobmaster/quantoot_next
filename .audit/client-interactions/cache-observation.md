@@ -1,0 +1,5 @@
+# Cached content in interaction captures
+
+Some early Profile captures display the earlier temporary marker f62937ff-82a4-40c9-8957-4872c7301885 from a restored status snapshot. That is historical cached content, not a post created in this interaction round. The prior successful authenticated deletion checks remain in .audit/client-refinement/deleted-post-server-receipt.json and deleted-fresh-post-server-receipt.json. This round performs no new posting, editing, deletion or photo-library writes.
+
+Viewport restoration deliberately preserves existing cache membership and deferred refresh behavior. The new tests validate scroll geometry, source retention and anchor position. They do not establish authoritative freshness for every restored cached row. The observed cached frame must not be used to contradict or replace the independent server receipts, or to claim that cached rows are always immediately current after an app restart. Persistent offline deletion reconciliation was not changed by the viewport correction.

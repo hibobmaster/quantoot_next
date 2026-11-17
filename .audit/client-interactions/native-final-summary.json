@@ -1,0 +1,37 @@
+{
+  "devicesAndConfigurations": [
+    {
+      "device": {
+        "architecture": "arm64",
+        "deviceId": "C1AB3B93-F574-4BB3-B972-D7D0079CFF7D",
+        "deviceName": "iPhone 17 Pro",
+        "modelName": "iPhone 17 Pro",
+        "osBuildNumber": "23E254a",
+        "osVersion": "26.4.1",
+        "platform": "iOS Simulator"
+      },
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "passedTests": 21,
+      "skippedTests": 0,
+      "testPlanConfiguration": {
+        "configurationId": "1",
+        "configurationName": "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription": "QuanToot \u00b7 Built with macOS 27.2.1",
+  "expectedFailures": 0,
+  "failedTests": 0,
+  "finishTime": 1794926791.019,
+  "passedTests": 21,
+  "result": "Passed",
+  "runtimeWarnings": [],
+  "skippedTests": 0,
+  "startTime": 1794926499.89,
+  "statistics": [],
+  "testFailures": [],
+  "title": "Test - QuanToot",
+  "topInsights": [],
+  "totalTestCount": 21
+}

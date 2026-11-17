@@ -1,0 +1,18 @@
+{
+  "summary": {
+    "status": "SUCCEEDED",
+    "counts": {
+      "passed": 21,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "artifacts": {
+    "xcresultPath": "/Users/bobmaster/Library/Developer/XcodeBuildMCP/workspaces/QuanToot_Next-60ddf7a34c29/result-bundles/test_sim_2026-11-17T14-40-44-371Z_pid24740_edb84ce4.xcresult",
+    "logPath": "/Users/bobmaster/Library/Developer/XcodeBuildMCP/workspaces/QuanToot_Next-60ddf7a34c29/logs/test_sim_2026-11-17T14-40-44-371Z_pid24740_0ca9aa3a.log",
+    "transportTimeoutSeconds": 300
+  },
+  "configuration": "Debug; iPhone17Pro iOS26.4.1; light; content size large; existing account;21 read-only scenarios",
+  "excludedProbe": "ClientInteractionTests/testDoubleTapZoomRemainsAvailable; see gesture-probe-notes.md",
+  "transportRecovery": "MCP transport timed out after300s while xcodebuild continued; actual completed xcresult and log show TEST EXECUTE SUCCEEDED."
+}

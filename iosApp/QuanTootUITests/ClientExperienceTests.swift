@@ -37,6 +37,7 @@ final class ClientExperienceTests: XCTestCase {
         app.buttons["Close"].firstMatch.tap()
         app.buttons["Close"].firstMatch.tap()
         app.buttons["Profile"].firstMatch.tap()
+        app.revealProfileActions()
         XCTAssertTrue(app.buttons["Edit profile"].firstMatch.waitForExistence(timeout: 20))
     }
 
@@ -49,6 +50,7 @@ final class ClientExperienceTests: XCTestCase {
 
         XCTAssertTrue(app.buttons["Profile"].firstMatch.waitForExistence(timeout: 15))
         app.buttons["Profile"].firstMatch.tap()
+        app.revealProfileActions()
         XCTAssertTrue(app.buttons["Edit profile"].firstMatch.waitForExistence(timeout: 20),
                       "The existing test-account session must remain signed in.")
         app.buttons["Home"].firstMatch.tap()

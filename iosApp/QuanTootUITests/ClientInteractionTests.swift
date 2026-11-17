@@ -10,11 +10,16 @@ final class ClientInteractionTests: XCTestCase {
         let before = posts.frame.minY
         capture("Profile before feed scroll", app)
         drag(app, from: CGVector(dx: 0.5, dy: 0.78), to: CGVector(dx: 0.5, dy: 0.27))
-        let moved = NSPredicate { _, _ in posts.exists && posts.frame.minY < before - 100 }
+        let cards = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "status-card-"))
+        let moved = NSPredicate { _, _ in
+            (!posts.exists || posts.frame.minY < before - 100) && cards.allElementsBoundByIndex.contains {
+                $0.frame.minY < app.frame.height * 0.4 && $0.frame.maxY > app.frame.height * 0.4
+            }
+        }
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: moved, object: nil)], timeout: 5), .completed,
                        "Scrolling the posts must move the profile header out of the reading area.")
         capture("Profile header collapsed into feed", app)
-        XCTAssertLessThan(posts.frame.maxY, app.frame.height * 0.4)
+        if posts.exists { XCTAssertLessThan(posts.frame.maxY, app.frame.height * 0.4) }
         XCTAssertFalse(app.buttons["Edit profile"].firstMatch.isHittable)
     }
 
@@ -33,6 +38,32 @@ final class ClientInteractionTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(qr.frame.width, 44)
         XCTAssertGreaterThanOrEqual(qr.frame.height, 44)
         XCTAssertLessThanOrEqual(qr.frame.width, 64)
+    }
+
+    @MainActor
+    func testProfileActionsAndReadingRemainAccessible() throws {
+        continueAfterFailure = false
+        let app = profile()
+        let edit = app.buttons["Edit profile"].firstMatch
+        let qr = app.buttons["QR"].firstMatch
+        let share = app.buttons["Share"].firstMatch
+        XCTAssertTrue(qr.exists && share.exists)
+        XCTAssertEqual(qr.frame.midY, share.frame.midY, accuracy: 2)
+        XCTAssertGreaterThanOrEqual(qr.frame.height, 44)
+        XCTAssertGreaterThanOrEqual(share.frame.width, 44)
+        if abs(edit.frame.midY - qr.frame.midY) > 2 {
+            XCTAssertGreaterThanOrEqual(edit.frame.width, app.frame.width - 48)
+            XCTAssertGreaterThanOrEqual(qr.frame.minY, edit.frame.maxY)
+        }
+        capture("Accessible profile actions", app)
+        for _ in 0..<4 {
+            if !edit.exists || !edit.isHittable { break }
+            drag(app, from: CGVector(dx: 0.5, dy: 0.78), to: CGVector(dx: 0.5, dy: 0.27))
+        }
+        XCTAssertFalse(edit.exists && edit.isHittable)
+        let cards = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "status-card-"))
+        XCTAssertTrue(cards.firstMatch.waitForExistence(timeout: 15))
+        capture("Accessible profile reading area", app)
     }
 
     @MainActor
@@ -98,15 +129,16 @@ final class ClientInteractionTests: XCTestCase {
 
     @MainActor
     func testDoubleTapZoomRemainsAvailable() throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["QUANTOOT_EXTERNAL_TIMED_TAPS"] == "1",
+                          "Requires host HID taps with a real interval; XCTest doubleTap synthesizes zero between taps.")
         continueAfterFailure = false
         let app = gallery()
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).doubleTap()
         let reset = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Reset zoom")).firstMatch
         let enlarged = NSPredicate { _, _ in reset.exists && reset.label.contains("300%") }
-        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: enlarged, object: nil)], timeout: 5), .completed)
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).doubleTap()
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: enlarged, object: nil)], timeout: 45), .completed)
+        capture("Gallery timed double tap zoom", app)
         let fitted = NSPredicate { _, _ in reset.exists && reset.label.contains("100%") }
-        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: fitted, object: nil)], timeout: 5), .completed)
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: fitted, object: nil)], timeout: 45), .completed)
         capture("Gallery double tap zoom and reset", app)
     }
 
@@ -188,13 +220,7 @@ final class ClientInteractionTests: XCTestCase {
         let app = launch()
         XCTAssertTrue(app.buttons["Profile"].firstMatch.waitForExistence(timeout: 15))
         app.buttons["Profile"].firstMatch.tap()
-        let edit = app.buttons["Edit profile"].firstMatch
-        _ = edit.waitForExistence(timeout: 3)
-        for _ in 0..<10 {
-            if edit.exists && edit.isHittable { break }
-            drag(app, from: CGVector(dx: 0.5, dy: 0.3), to: CGVector(dx: 0.5, dy: 0.83))
-        }
-        XCTAssertTrue(edit.waitForExistence(timeout: 15) && edit.isHittable)
+        app.revealProfileActions()
         return app
     }
 

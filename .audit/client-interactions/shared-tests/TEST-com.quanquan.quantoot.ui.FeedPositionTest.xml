@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.quanquan.quantoot.ui.FeedPositionTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-11-17T14:40:58.704Z" hostname="BobMasters-Mac-mini.local" time="0.115">
+  <properties/>
+  <testcase name="cacheIdentityStillSeparatesAccountInstanceAndProfileFilters" classname="com.quanquan.quantoot.ui.FeedPositionTest" time="0.004"/>
+  <testcase name="headerAndStatusPositionsRoundTripWithoutSharingPixelOffsets" classname="com.quanquan.quantoot.ui.FeedPositionTest" time="0.002"/>
+  <testcase name="paginationNeedsAVisibleStatusNearTheEndOrTheFooter" classname="com.quanquan.quantoot.ui.FeedPositionTest" time="0.0"/>
+  <testcase name="invalidHeaderOffsetsAreRejectedAtTheCacheBoundary" classname="com.quanquan.quantoot.ui.FeedPositionTest" time="0.0"/>
+  <testcase name="emptyProfileRetainsHeaderAndClampsAfterHeaderHeightChanges" classname="com.quanquan.quantoot.ui.FeedPositionTest" time="0.001"/>
+  <testcase name="homeChoicesRetainSourcesAndGuestDefault" classname="com.quanquan.quantoot.ui.FeedPositionTest" time="0.0"/>
+  <testcase name="firstStatusBoundaryDeterminesDeferredArrivalsAndRevealTarget" classname="com.quanquan.quantoot.ui.FeedPositionTest" time="0.0"/>
+  <testcase name="boundingPreservesHeaderMetadataAndResetsTruncatedStatusPixels" classname="com.quanquan.quantoot.ui.FeedPositionTest" time="0.104"/>
+  <testcase name="restoredAnchorFollowsIdentityThroughInsertionsAndProjection" classname="com.quanquan.quantoot.ui.FeedPositionTest" time="0.002"/>
+  <testcase name="legacySnapshotStillRestoresToItsStatusAfterTheHeader" classname="com.quanquan.quantoot.ui.FeedPositionTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

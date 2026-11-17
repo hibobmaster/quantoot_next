@@ -43,6 +43,7 @@ final class ClientRefinementTests: XCTestCase {
         let app = launch()
         XCTAssertTrue(app.buttons["Profile"].firstMatch.waitForExistence(timeout: 15))
         app.buttons["Profile"].firstMatch.tap()
+        app.revealProfileActions()
         XCTAssertTrue(app.buttons["Edit profile"].firstMatch.waitForExistence(timeout: 20))
         capture("Profile actions", app)
         app.buttons["Notifications"].firstMatch.tap()
@@ -84,6 +85,7 @@ final class ClientRefinementTests: XCTestCase {
         let app = launch()
         XCTAssertTrue(app.buttons["Profile"].firstMatch.waitForExistence(timeout: 15))
         app.buttons["Profile"].firstMatch.tap()
+        app.revealProfileActions()
         XCTAssertTrue(app.buttons["Edit profile"].firstMatch.waitForExistence(timeout: 20))
         let content = app.textViews.matching(NSPredicate(format: "label BEGINSWITH %@", "Content")).firstMatch
         if existing == nil {

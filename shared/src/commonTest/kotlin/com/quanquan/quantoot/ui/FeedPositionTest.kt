@@ -3,10 +3,8 @@ package com.quanquan.quantoot.ui
 import com.quanquan.quantoot.model.*
 import com.quanquan.quantoot.platform.KeyValueStore
 import kotlin.test.*
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class FeedPositionTest {
     private class Preferences : KeyValueStore {
         var value: String? = null
