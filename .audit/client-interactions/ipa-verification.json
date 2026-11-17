@@ -1,0 +1,11 @@
+{
+  "ipa": "/Users/bobmaster/Projects/QuanToot_Next/iosApp/build/releases/QuanToot-0.6.3-9.ipa",
+  "sha256": "25bfdbae3f1bff8f27d37fcc5f1f223fb2560e8d9ec93050dcdef563824a2d18",
+  "sizeBytes": 18887098,
+  "version": "0.6.3",
+  "build": "9",
+  "executableSha256": "0b7df0fde9063d3eec5945de7ef57ee4f53e2e52bab968fbee17455ded2ed75b",
+  "zipIntegrityPassed": true,
+  "matchesBuiltExecutable": true,
+  "bundledExternalFonts": []
+}

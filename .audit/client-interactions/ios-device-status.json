@@ -1,0 +1,17 @@
+{
+  "observedAtUTC": "2026-11-17T15:05:59.658589+00:00",
+  "deviceIdentifier": "A917E82B-8552-5F1D-A719-753A71F8E410",
+  "udid": "00008160-0000059C04C14036",
+  "model": "iPhone18Pro",
+  "os": "27.2",
+  "version": "0.6.3",
+  "build": "9",
+  "bundleID": "com.quanquan.quantoot",
+  "installedInPlace": true,
+  "launchSucceeded": true,
+  "renderedAppObserved": true,
+  "screen": "screenshots/physical-release.png",
+  "screenshotSHA256": "79c2f5cf074f9482a4a37707eec185bee0ea43364e64632ba4df6fdc62f579a7",
+  "previousBlockedState": "ios-device-status-before.json",
+  "ownerAction": "Owner reported unlocked; trusted development connectivity recovered."
+}

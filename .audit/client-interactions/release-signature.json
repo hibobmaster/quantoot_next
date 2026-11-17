@@ -1,0 +1,15 @@
+{
+  "version": "0.6.3",
+  "build": "9",
+  "bundleID": "com.quanquan.quantoot",
+  "applicationIdentifier": "2GF2Q682QZ.com.quanquan.quantoot",
+  "teamIdentifier": "2GF2Q682QZ",
+  "keychainAccessGroups": [
+    "2GF2Q682QZ.com.quanquan.quantoot"
+  ],
+  "profileExpiration": "2027-10-25T07:18:56",
+  "deviceInProfile": true,
+  "bundledFontFiles": [],
+  "architecture": "arm64",
+  "signatureVerified": true
+}
