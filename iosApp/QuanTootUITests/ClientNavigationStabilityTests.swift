@@ -71,6 +71,46 @@ final class ClientNavigationStabilityTests: XCTestCase {
     }
 
     @MainActor
+    func testActivityFiltersAndRepeatedCategoryChangesKeepTheHeaderStable() throws {
+        continueAfterFailure = false
+        let app = launch()
+        XCTAssertTrue(app.buttons["Profile"].firstMatch.waitForExistence(timeout: 15))
+        app.buttons["Profile"].firstMatch.tap()
+        app.revealProfileActions()
+        let posts = app.buttons["Posts"].firstMatch
+        for _ in 0..<8 {
+            if posts.exists && posts.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(posts.exists && posts.isHittable)
+        settle(posts)
+        let anchor = posts.frame.midY
+        let activity = app.buttons["Activity"].firstMatch
+        XCTAssertTrue(activity.exists && activity.isHittable)
+        activity.tap()
+        settle(activity)
+        XCTAssertEqual(activity.frame.midY, anchor, accuracy: 4)
+        for label in ["Show replies", "Show boosts", "Show replies"] {
+            let filter = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", label)).firstMatch
+            XCTAssertTrue(filter.waitForExistence(timeout: 10))
+            XCTAssertTrue(filter.isHittable)
+            filter.tap()
+            settle(activity)
+            XCTAssertEqual(activity.frame.midY, anchor, accuracy: 4)
+        }
+        for label in ["Posts", "Media", "Posts", "Featured", "Posts"] {
+            let category = app.buttons[label].firstMatch
+            XCTAssertTrue(category.exists && category.isHittable)
+            category.tap()
+            XCTAssertTrue(category.isSelected)
+            XCTAssertEqual(category.frame.midY, anchor, accuracy: 4)
+        }
+        settle(posts)
+        XCTAssertEqual(posts.frame.midY, anchor, accuracy: 4)
+        capture("Profile after Activity filters and repeated changes", app)
+    }
+
+    @MainActor
     func testSettingsChildrenUseOneTitleAndOneBackAction() throws {
         continueAfterFailure = false
         let app = launch()

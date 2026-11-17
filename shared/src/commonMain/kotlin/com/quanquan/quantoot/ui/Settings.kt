@@ -83,7 +83,7 @@ fun SettingsScreen(ui: UiContext, state: SessionState, section: SettingsSection?
                 ) {
                     Text("QuanToot", style = MaterialTheme.typography.headlineSmall)
                     Text(
-                        "0.6.4",
+                        "0.6.5",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
