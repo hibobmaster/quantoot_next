@@ -1,0 +1,71 @@
+{
+  "error" : {
+    "code" : 10002,
+    "domain" : "com.apple.dt.CoreDeviceError",
+    "userInfo" : {
+      "BundleIdentifier" : {
+        "string" : "com.quanquan.quantoot"
+      },
+      "NSLocalizedDescription" : {
+        "string" : "The application failed to launch."
+      },
+      "NSUnderlyingError" : {
+        "error" : {
+          "code" : 1,
+          "domain" : "FBSOpenApplicationServiceErrorDomain",
+          "userInfo" : {
+            "BSErrorCodeDescription" : {
+              "string" : "RequestDenied"
+            },
+            "FBSOpenApplicationRequestID" : {
+              "string" : "0xdea0"
+            },
+            "NSLocalizedDescription" : {
+              "string" : "The request to open \"com.quanquan.quantoot\" failed."
+            },
+            "NSLocalizedFailureReason" : {
+              "string" : "The request was denied by service delegate (SBMainWorkspace) for reason: Locked (\"Unable to launch com.quanquan.quantoot because the device was not, or could not be, unlocked\")."
+            },
+            "NSUnderlyingError" : {
+              "error" : {
+                "code" : 7,
+                "domain" : "FBSOpenApplicationErrorDomain",
+                "userInfo" : {
+                  "BSErrorCodeDescription" : {
+                    "string" : "Locked"
+                  },
+                  "NSLocalizedFailureReason" : {
+                    "string" : "Unable to launch com.quanquan.quantoot because the device was not, or could not be, unlocked."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "errorSignature" : "(com.apple.dt.CoreDeviceError 10002 (FBSOpenApplicationServiceErrorDomain 1 (FBSOpenApplicationErrorDomain 7)))",
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "--timeout",
+      "30",
+      "device",
+      "process",
+      "launch",
+      "--device",
+      "00008160-0000059C04C14036",
+      "com.quanquan.quantoot",
+      "--json-output",
+      ".audit/client-refinement/ios-device-launch.json"
+    ],
+    "commandType" : "devicectl.device.process.launch",
+    "environment" : {
+      "TERM" : "dumb"
+    },
+    "jsonVersion" : 5,
+    "outcome" : "failed",
+    "version" : "651.32"
+  }
+}

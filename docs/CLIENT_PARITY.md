@@ -13,7 +13,7 @@
 | 编辑已有帖子 | 保留未修改的引用策略和语言；可见性只读；PUT 使用 JSON 数组，避免空附件列表被服务器当成错误媒体 ID | `ui/Composer.kt`、`data/MastodonApi.kt` |
 | 图片保存 | 保存选择的原图资源；仅请求添加照片权限；在画廊内显示保存中、成功、错误与重试，阻止重复点击 | `ui/MediaGallery.kt`、`platform/IosPlatformServices.kt` |
 
-共享测试共 112 项通过，失败、错误和跳过均为零。Android Release 构建通过。最终 iOS 回归和实体设备交付结果保存在 `.audit/client-refinement/verification.json`。
+共享测试共 112 项通过，失败、错误和跳过均为零。最终 11 项只读 iOS 场景全部通过。Android Release 和签名 iOS Release 构建均通过。0.6.2（8）已覆盖安装到实体 iPhone 18 Pro，设备回读确认版本。手机锁定阻止了最后的启动和画面验收，需要机主解锁后继续。交付结果保存在 `.audit/client-refinement/verification.json`，IPA 为 `iosApp/build/releases/QuanToot-0.6.2-8.ipa`，源代码快照为 `3441b80`。
 
 真实账号验证使用 iPhone 17 Pro 模拟器上已有的 ai 测试账号，没有清除其存储。创建的两个临时帖均为没有其他收件人的 direct 帖子。第一个用于恢复并校准原生测试，第二个完成了一次连续的发布、编辑、重启回读和删除流程。随后分别通过成功的认证精确链接搜索及账户时间线读取确认二者已消失。没有修改或删除原有帖子，也没有提取或记录令牌。
 
