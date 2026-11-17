@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.quanquan.quantoot.ui.SettingsNavigationTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-17T17:53:30.184Z" hostname="BobMasters-Mac-mini.local" time="0.002">
+  <properties/>
+  <testcase name="directChildNavigationAddsAnIndexAndBackReturnsToTheCaller" classname="com.quanquan.quantoot.ui.SettingsNavigationTest" time="0.002"/>
+  <testcase name="indexAndChildSuppressDuplicateTopNavigation" classname="com.quanquan.quantoot.ui.SettingsNavigationTest" time="0.0"/>
+  <testcase name="aNewThreadAppendsWithoutRewritingTheSettingsBackPath" classname="com.quanquan.quantoot.ui.SettingsNavigationTest" time="0.0"/>
+  <testcase name="reopeningTheIndexRetainsOrdinaryPushBehavior" classname="com.quanquan.quantoot.ui.SettingsNavigationTest" time="0.0"/>
+  <testcase name="directChildFromAccountsKeepsAccountsAsItsCaller" classname="com.quanquan.quantoot.ui.SettingsNavigationTest" time="0.0"/>
+  <testcase name="returningToAnExistingThreadPopsSettingsAndPreservesItsReplyFocus" classname="com.quanquan.quantoot.ui.SettingsNavigationTest" time="0.0"/>
+  <testcase name="openingAChildFromTheIndexKeepsOneIndexAndSiblingSelectionReplacesTheChild" classname="com.quanquan.quantoot.ui.SettingsNavigationTest" time="0.0"/>
+  <testcase name="accountsRoundTripReturnsToTheSameSettingsChild" classname="com.quanquan.quantoot.ui.SettingsNavigationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

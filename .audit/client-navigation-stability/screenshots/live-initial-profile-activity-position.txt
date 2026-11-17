@@ -1,0 +1,1 @@
+category=Activity; beforeY=380.6666564941406; afterY=380.6666564941406

@@ -1,0 +1,36 @@
+{
+  "summary": {
+    "status": "SUCCEEDED",
+    "durationMs": 61553,
+    "counts": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "target": "simulator"
+  },
+  "artifacts": {
+    "buildLogPath": "~/Library/Developer/XcodeBuildMCP/workspaces/QuanToot_Next-60ddf7a34c29/logs/test_sim_2026-11-17T18-01-45-086Z_pid24740_a57868a5.log",
+    "xcresultPath": "~/Library/Developer/XcodeBuildMCP/workspaces/QuanToot_Next-60ddf7a34c29/result-bundles/test_sim_2026-11-17T18-01-45-086Z_pid24740_e218fa9c.xcresult",
+    "testProductsPath": "~/Library/Developer/XcodeBuildMCP/workspaces/QuanToot_Next-60ddf7a34c29/test-products/test_sim_2026-11-17T18-01-45-086Z_pid24740_e0281e40.xctestproducts"
+  },
+  "testCases": [
+    {
+      "suite": "ClientInteractionTests",
+      "test": "testProfileRestoresHeaderAndPostPositions",
+      "status": "passed",
+      "durationMs": 19012
+    },
+    {
+      "suite": "ClientNavigationStabilityTests",
+      "test": "testActivityFiltersAndRepeatedCategoryChangesKeepTheHeaderStable",
+      "status": "passed",
+      "durationMs": 37622
+    }
+  ],
+  "diagnostics": {
+    "warningCount": 0,
+    "errors": [],
+    "testFailures": []
+  }
+}

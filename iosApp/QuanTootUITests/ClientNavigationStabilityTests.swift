@@ -98,11 +98,14 @@ final class ClientNavigationStabilityTests: XCTestCase {
             settle(activity)
             XCTAssertEqual(activity.frame.midY, anchor, accuracy: 4)
         }
-        for label in ["Posts", "Media", "Posts", "Featured", "Posts"] {
-            let category = app.buttons[label].firstMatch
+        posts.tap()
+        settle(posts)
+        for label in ["Media", "Posts", "Media", "Posts"] {
+            let category = app.buttons["profile:category:\(label)"].firstMatch
             XCTAssertTrue(category.exists && category.isHittable)
             category.tap()
-            XCTAssertTrue(category.isSelected)
+            let selected = NSPredicate { _, _ in category.exists && category.isSelected }
+            XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: selected, object: nil)], timeout: 3), .completed)
             XCTAssertEqual(category.frame.midY, anchor, accuracy: 4)
         }
         settle(posts)

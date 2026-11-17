@@ -1,0 +1,13 @@
+# Live native acceptance
+
+The five direct acceptance cases pass across the initial three passing cases and a two-case focused rerun. Product source did not change between those executions. The existing signed-in iPhone 17 Pro simulator was not reset or uninstalled.
+
+The original category-switch failure now retains the category-row center at380.667pt for Media, Featured, Activity, About and Posts, with zero measured vertical change across all five transitions. The separate empty-Media drag moves the row from458pt to363.333pt, passing the required movement beyond40pt. All seven Settings children pass the original title/back regression on the integrated source. See native-live-initial.json and the captured position text/screenshots.
+
+The initial run had two additional test failures. The return-position case queried Edit profile after its fixed upward drag had moved that button outside the clipped viewport. The hierarchy and video show a still-visible partially collapsed category row atY306.667pt. The revised case anchors that visible row, asserts it is at least40pt below the viewport top, and retains the original24pt return tolerance. It then still verifies the same visible status identifier and position after a second Accounts round trip.
+
+The repeated-switch case tapped Media while ScrollableTabRow was still animating horizontally after revealing Posts from Activity. The recorded input targeted the moving element's old frame and activated Posts at its new location. The calibrated case first settles the horizontal row, then repeats Media/Posts switches using exact category identifiers and waits for the selected semantic state. Those two categories stay in the same horizontal position. The4pt vertical tolerance remains. All three Activity-filter switches and the separate five-category case remain covered. The virtual-time cache tests independently cover rapid A/B/A before the400ms disk debounce.
+
+Both focused rerun cases passed, including the partial-header and visible-post Accounts return checks. Root viewed the initial empty-Media and corrected visible-post captures, inspected the relevant hierarchy/log events, and extracted the retained calibration frames from the failure recordings. The original failures remain in native-live-initial.json; they are not counted as passing executions. No product guard or timing workaround was added in response to these test calibration issues.
+
+Additional affected-feed, visual, light/large-text and physical-release checks continue after this checkpoint. Prototype results remain separate from live-feed acceptance. Hardware-keyboard traversal into uncomposed Profile rows remains unverified.

@@ -166,11 +166,14 @@ final class ClientInteractionTests: XCTestCase {
         continueAfterFailure = false
         let app = profile()
         drag(app, from: CGVector(dx: 0.5, dy: 0.42), to: CGVector(dx: 0.5, dy: 0.36))
-        let edit = app.buttons["Edit profile"].firstMatch
-        let headerY = edit.frame.minY
-        visitAccountsAndReturn(app, settling: edit)
-        XCTAssertTrue(edit.waitForExistence(timeout: 15))
-        XCTAssertEqual(edit.frame.minY, headerY, accuracy: 24)
+        let categories = app.descendants(matching: .any)["profile:categories"].firstMatch
+        let viewport = app.descendants(matching: .any)["profile:viewport"].firstMatch
+        XCTAssertTrue(categories.exists && viewport.exists)
+        let headerY = categories.frame.minY
+        XCTAssertGreaterThan(headerY, viewport.frame.minY + 40, "Exercise a partially collapsed header.")
+        visitAccountsAndReturn(app, settling: categories)
+        XCTAssertTrue(categories.waitForExistence(timeout: 15))
+        XCTAssertEqual(categories.frame.minY, headerY, accuracy: 24)
         drag(app, from: CGVector(dx: 0.5, dy: 0.78), to: CGVector(dx: 0.5, dy: 0.27))
         let cards = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "status-card-"))
         let card = try XCTUnwrap(cards.allElementsBoundByIndex.first {
