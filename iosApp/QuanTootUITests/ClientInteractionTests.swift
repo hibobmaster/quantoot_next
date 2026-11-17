@@ -84,6 +84,81 @@ final class ClientInteractionTests: XCTestCase {
     }
 
     @MainActor
+    func testShortImageDragKeepsViewerInteractive() throws {
+        continueAfterFailure = false
+        let app = gallery()
+        drag(app, from: CGVector(dx: 0.5, dy: 0.45), to: CGVector(dx: 0.5, dy: 0.51))
+        XCTAssertTrue(app.staticTexts["1 of 2"].exists)
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Zoom in")).firstMatch.tap()
+        let reset = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Reset zoom")).firstMatch
+        XCTAssertTrue(reset.label.contains("150%"))
+        reset.tap()
+        capture("Short image drag returns to viewer", app)
+    }
+
+    @MainActor
+    func testHomeSourceSurvivesRootTabSwitches() throws {
+        continueAfterFailure = false
+        let app = launch()
+        let local = app.buttons["Local"].firstMatch
+        XCTAssertTrue(local.waitForExistence(timeout: 15))
+        local.tap()
+        app.buttons["Explore"].firstMatch.tap()
+        app.buttons["Home"].firstMatch.tap()
+        XCTAssertTrue(local.waitForExistence(timeout: 15))
+        XCTAssertTrue(local.isSelected)
+        app.buttons["Federated"].firstMatch.tap()
+        app.buttons["Profile"].firstMatch.tap()
+        app.buttons["Home"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["Federated"].firstMatch.waitForExistence(timeout: 15))
+        XCTAssertTrue(app.buttons["Federated"].firstMatch.isSelected)
+        capture("Home source after root tab switches", app)
+    }
+
+    @MainActor
+    func testProfileRestoresHeaderAndPostPositions() throws {
+        continueAfterFailure = false
+        let app = profile()
+        drag(app, from: CGVector(dx: 0.5, dy: 0.42), to: CGVector(dx: 0.5, dy: 0.36))
+        let edit = app.buttons["Edit profile"].firstMatch
+        let headerY = edit.frame.minY
+        visitAccountsAndReturn(app, settling: edit)
+        XCTAssertTrue(edit.waitForExistence(timeout: 15))
+        XCTAssertEqual(edit.frame.minY, headerY, accuracy: 24)
+        drag(app, from: CGVector(dx: 0.5, dy: 0.78), to: CGVector(dx: 0.5, dy: 0.27))
+        let cards = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "status-card-"))
+        let card = try XCTUnwrap(cards.allElementsBoundByIndex.first {
+            $0.frame.maxY > app.frame.height * 0.3 && $0.frame.minY < app.frame.height * 0.7
+        })
+        let identifier = card.identifier
+        let postY = card.frame.minY
+        visitAccountsAndReturn(app, settling: card)
+        let restored = app.descendants(matching: .any)[identifier]
+        XCTAssertTrue(restored.waitForExistence(timeout: 15))
+        XCTAssertEqual(restored.frame.minY, postY, accuracy: 24)
+        capture("Profile restores its visible post", app)
+    }
+
+    @MainActor
+    private func visitAccountsAndReturn(_ app: XCUIApplication, settling element: XCUIElement) {
+        var previous = CGRect.null
+        var since = Date()
+        let stable = NSPredicate { _, _ in
+            guard element.exists else { return false }
+            if element.frame != previous {
+                previous = element.frame
+                since = Date()
+                return false
+            }
+            return Date().timeIntervalSince(since) >= 0.6
+        }
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: stable, object: nil)], timeout: 5), .completed)
+        app.buttons["Accounts"].firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["Accounts"].firstMatch.waitForExistence(timeout: 15))
+        app.buttons["Close"].firstMatch.tap()
+    }
+
+    @MainActor
     private func imageDismisses(from: CGVector, to: CGVector) throws {
         continueAfterFailure = false
         let app = gallery()
@@ -99,7 +174,13 @@ final class ClientInteractionTests: XCTestCase {
         let app = launch()
         XCTAssertTrue(app.buttons["Profile"].firstMatch.waitForExistence(timeout: 15))
         app.buttons["Profile"].firstMatch.tap()
-        XCTAssertTrue(app.buttons["Edit profile"].firstMatch.waitForExistence(timeout: 20))
+        let edit = app.buttons["Edit profile"].firstMatch
+        _ = edit.waitForExistence(timeout: 3)
+        for _ in 0..<10 {
+            if edit.exists && edit.isHittable { break }
+            drag(app, from: CGVector(dx: 0.5, dy: 0.3), to: CGVector(dx: 0.5, dy: 0.83))
+        }
+        XCTAssertTrue(edit.waitForExistence(timeout: 15) && edit.isHittable)
         return app
     }
 
