@@ -1,5 +1,7 @@
 package com.quanquan.quantoot.ui
 
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
@@ -20,8 +22,8 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.semantics.contentDescription
@@ -93,6 +95,7 @@ internal fun boundedGalleryOffset(
 }
 
 private class GalleryImageState(media: MediaAttachment) {
+    val gesture = GalleryGestureState()
     var scale by mutableFloatStateOf(1f)
         private set
     var offset by mutableStateOf(Offset.Zero)
@@ -115,11 +118,13 @@ private class GalleryImageState(media: MediaAttachment) {
     }
 
     fun reset() {
+        gesture.cancel()
         scale = 1f
         offset = Offset.Zero
     }
 
     fun zoomTo(value: Float, focal: Offset = Offset(viewport.width / 2f, viewport.height / 2f)) {
+        gesture.cancel()
         transform(focal, Offset.Zero, value.coerceIn(1f, 6f) / scale)
     }
 
@@ -199,7 +204,9 @@ fun MediaGallery(
                 userScrollEnabled = image.scale <= 1f,
                 key = { it },
             ) { index ->
-                GalleryPage(ui, items[index], images[index], index == pager.currentPage)
+                GalleryPage(ui, items[index], images[index], index == pager.currentPage) {
+                    if (index == pager.currentPage && images[index].scale <= 1f) onDismiss()
+                }
             }
             val feedback = saveState.result
             if (feedback is GallerySaveResult.Saved || feedback is GallerySaveResult.Failed) {
@@ -267,11 +274,17 @@ fun MediaGallery(
 }
 
 @Composable
-private fun GalleryPage(ui: UiContext, media: MediaAttachment, image: GalleryImageState, active: Boolean) {
+private fun GalleryPage(
+    ui: UiContext,
+    media: MediaAttachment,
+    image: GalleryImageState,
+    active: Boolean,
+    onDismiss: () -> Unit,
+) {
     val url = mediaOriginalUrl(media)
     Box(Modifier.fillMaxSize().clipToBounds(), contentAlignment = Alignment.Center) {
         when {
-            media.type == "image" && url != null -> GalleryImage(media, url, image)
+            media.type == "image" && url != null -> GalleryImage(media, url, image, active, onDismiss)
             media.type in listOf("video", "gifv", "audio") && url != null -> {
                 if (active) NativeVideoPlayer(
                     url,
@@ -289,28 +302,83 @@ private fun GalleryPage(ui: UiContext, media: MediaAttachment, image: GalleryIma
 }
 
 @Composable
-private fun GalleryImage(media: MediaAttachment, url: String, image: GalleryImageState) {
+private fun GalleryImage(
+    media: MediaAttachment,
+    url: String,
+    image: GalleryImageState,
+    active: Boolean,
+    onDismiss: () -> Unit,
+) {
     var loading by remember(url) { mutableStateOf(true) }
     var failed by remember(url) { mutableStateOf(false) }
+    val dismiss by rememberUpdatedState(onDismiss)
+    val scope = rememberCoroutineScope()
+    val gesture = image.gesture
     Box(
         Modifier.fillMaxSize().onSizeChanged(image::resize)
-            .pointerInput(image) {
-                awaitEachGesture {
-                    awaitFirstDown(requireUnconsumed = false)
-                    do {
-                        val event = awaitPointerEvent()
-                        if (event.changes.any { it.pressed && it.previousPressed } &&
-                            (event.changes.count { it.pressed } > 1 || image.scale > 1f)) {
-                            image.transform(event.calculateCentroid(), event.calculatePan(), event.calculateZoom())
-                            event.changes.filter { it.positionChanged() }.forEach { it.consume() }
+            .pointerInput(image, active) {
+                if (!active) return@pointerInput
+                var lastTapUp: Long? = null
+                fun settle(cancelled: Boolean = false) {
+                    val animation = gesture.release(size.height.toFloat(), 160.dp.toPx(), cancelled) ?: return
+                    scope.launch {
+                        animate(animation.from, animation.target, animationSpec = tween(180)) { value, _ ->
+                            gesture.animate(animation, value)
                         }
-                    } while (event.changes.any { it.pressed })
+                        if (gesture.complete(animation)) dismiss()
+                    }
                 }
-            }
-            .pointerInput(image) {
-                detectTapGestures(onDoubleTap = { focal ->
-                    if (image.scale > 1f) image.reset() else image.zoomTo(3f, focal)
-                })
+                try {
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        val generation = gesture.begin()
+                        val doubleTap = lastTapUp?.let {
+                            down.uptimeMillis - it in viewConfiguration.doubleTapMinTimeMillis..viewConfiguration.doubleTapTimeoutMillis
+                        } == true
+                        lastTapUp = null
+                        gesture.move(Offset.Zero, currentEvent.changes.count { it.pressed }, image.scale > 1f, viewConfiguration.touchSlop)
+                        do {
+                            val event = awaitPointerEvent()
+                            if (!gesture.isCurrent(generation)) return@awaitEachGesture
+                            val owner = gesture.move(
+                                event.calculatePan(), event.changes.count { it.pressed }, image.scale > 1f,
+                                viewConfiguration.touchSlop,
+                            )
+                            if (event.changes.any { it.isConsumed } &&
+                                owner != GalleryGestureOwner.Pager && owner != GalleryGestureOwner.Transform) {
+                                settle(cancelled = true)
+                                return@awaitEachGesture
+                            }
+                            when (owner) {
+                                GalleryGestureOwner.Transform -> {
+                                    if (event.changes.any { it.pressed && it.previousPressed }) {
+                                        image.transform(event.calculateCentroid(), event.calculatePan(), event.calculateZoom())
+                                    }
+                                    event.changes.forEach { it.consume() }
+                                }
+                                GalleryGestureOwner.Dismiss -> event.changes.forEach { it.consume() }
+                                else -> Unit
+                            }
+                            if (event.changes.none { it.pressed }) {
+                                val up = event.changes.firstOrNull { it.id == down.id }
+                                if (owner == GalleryGestureOwner.Undecided && up != null &&
+                                    up.uptimeMillis - down.uptimeMillis < viewConfiguration.longPressTimeoutMillis) {
+                                    up.consume()
+                                    if (doubleTap) {
+                                        if (image.scale > 1f) image.reset() else image.zoomTo(3f, up.position)
+                                    } else lastTapUp = up.uptimeMillis
+                                }
+                                settle()
+                            } else if (owner == GalleryGestureOwner.Undecided &&
+                                awaitPointerEvent(PointerEventPass.Final).changes.any { it.isConsumed }) {
+                                settle(cancelled = true)
+                                return@awaitEachGesture
+                            }
+                        } while (event.changes.any { it.pressed })
+                    }
+                } finally {
+                    gesture.cancel()
+                }
             },
         contentAlignment = Alignment.Center,
     ) {
@@ -321,7 +389,7 @@ private fun GalleryImage(media: MediaAttachment, url: String, image: GalleryImag
                 scaleX = image.scale
                 scaleY = image.scale
                 translationX = image.offset.x
-                translationY = image.offset.y
+                translationY = image.offset.y + gesture.dismissOffset
             },
             contentScale = ContentScale.Fit,
             onLoading = {
