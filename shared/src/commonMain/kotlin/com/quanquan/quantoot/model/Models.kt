@@ -10,6 +10,8 @@ data class CustomEmoji(
     val shortcode: String = "",
     val url: String = "",
     @SerialName("static_url") val staticUrl: String = "",
+    @SerialName("visible_in_picker") val visibleInPicker: Boolean = true,
+    val category: String? = null,
 )
 
 @Serializable
@@ -247,7 +249,15 @@ data class ServerInfo(
     val maxCharacters: Int = 500,
     val streamingUrl: String? = null,
     val supportsPkce: Boolean = false,
+    val thumbnail: String? = null,
+    val activeMonthlyUsers: Int? = null,
+    val contactEmail: String = "",
+    val contactAccount: Account? = null,
+    val rules: List<ServerRule> = emptyList(),
 )
+
+@Serializable
+data class ServerRule(val id: String = "", val text: String = "", val hint: String = "")
 
 @Serializable
 data class FilterKeyword(
