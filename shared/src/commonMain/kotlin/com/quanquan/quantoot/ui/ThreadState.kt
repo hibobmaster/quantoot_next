@@ -157,6 +157,8 @@ internal class ThreadState(
 
     private fun append(status: Status) {
         val value = project(status) ?: return
+        val parent = value.inReplyToId ?: return
+        if (parent != rootId && parent !in parents) return
         if (value.id == rootId || descendantMembers.any { it.id == value.id }) return
         parents[value.id] = value.inReplyToId
         arrivals = arrivals + value

@@ -211,11 +211,11 @@ class ThreadBehaviorTest {
     }
 
     @Test
-    fun publishingReturnsToExistingThreadAndFocusesConfirmedReply() {
+    fun publishingOpensTheReplyParentAndFocusesTheConfirmedReply() {
         val compose = Screen.Compose(reply = reply)
         val routes = listOf(Screen.Profile("author"), Screen.Thread(root.id), compose)
         assertEquals(
-            listOf(Screen.Profile("author"), Screen.Thread(root.id, focusReplyId = nested.id)),
+            listOf(Screen.Profile("author"), Screen.Thread(root.id), Screen.Thread(reply.id, focusReplyId = nested.id)),
             routesAfterPublish(routes, compose, nested),
         )
         assertEquals(

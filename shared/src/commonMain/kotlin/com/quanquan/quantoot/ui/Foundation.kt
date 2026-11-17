@@ -144,8 +144,7 @@ internal fun navigateTo(routes: List<Screen>, screen: Screen): List<Screen> {
 internal fun routesAfterPublish(routes: List<Screen>, compose: Screen.Compose, status: Status): List<Screen> {
     val previous = if (routes.lastOrNull() is Screen.Compose) routes.dropLast(1) else routes
     val parent = compose.reply ?: return previous
-    val thread = previous.lastOrNull() as? Screen.Thread
-    return navigateTo(previous, Screen.Thread(thread?.id ?: parent.id, focusReplyId = status.id))
+    return navigateTo(previous, Screen.Thread(parent.id, focusReplyId = status.id))
 }
 
 @Composable
