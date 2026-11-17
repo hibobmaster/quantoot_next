@@ -75,7 +75,17 @@ data class MediaAttachment(
     @SerialName("remote_url") val remoteUrl: String? = null,
     val description: String? = null,
     val blurhash: String? = null,
+    val meta: MediaMetadata? = null,
 )
+
+@Serializable
+data class MediaMetadata(
+    val original: MediaDimensions? = null,
+    val small: MediaDimensions? = null,
+)
+
+@Serializable
+data class MediaDimensions(val width: Int? = null, val height: Int? = null)
 
 @Serializable
 data class PollOption(
@@ -102,6 +112,13 @@ data class PreviewCard(
     val title: String = "",
     val description: String = "",
     val image: String? = null,
+    val type: String? = null,
+    @SerialName("provider_name") val providerName: String? = null,
+    @SerialName("provider_url") val providerUrl: String? = null,
+    val width: Int? = null,
+    val height: Int? = null,
+    val blurhash: String? = null,
+    @SerialName("image_description") val imageDescription: String? = null,
 )
 
 @Serializable
@@ -139,6 +156,7 @@ data class Status(
     val card: PreviewCard? = null,
     val reblog: Status? = null,
     val quote: Quote? = null,
+    val tags: List<Tag> = emptyList(),
 ) {
     val original: Status
         get() = reblog ?: this
