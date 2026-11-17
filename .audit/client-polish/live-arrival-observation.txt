@@ -1,0 +1,1 @@
+newPostBannerObserved=false; elapsedSinceFeedEntry=12.422241926193237; scheduledRestInterval=20

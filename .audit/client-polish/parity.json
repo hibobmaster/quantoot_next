@@ -1,0 +1,72 @@
+[
+  {
+    "area": "onboarding",
+    "checks": "language picker, blank default instance, shared selection and toggle controls",
+    "status": "implemented_and_checked",
+    "evidence": [
+      "ui-tests-final.json",
+      "screenshots/language-selection-sheet.png",
+      "screenshots/blank-default-instance.png"
+    ]
+  },
+  {
+    "area": "feeds",
+    "checks": "pull refresh, typed server changes, source subscriptions and reconnect reconciliation",
+    "status": "implemented_and_checked",
+    "evidence": [
+      "shared-tests/TEST-com.quanquan.quantoot.ui.FeedBehaviorTest.xml",
+      "shared-tests/TEST-com.quanquan.quantoot.ui.StatusProjectionTest.xml",
+      "live-arrival-after.txt",
+      "live-arrival-final.txt",
+      "screenshots/live-new-post-banner.png"
+    ]
+  },
+  {
+    "area": "threads",
+    "checks": "discoverable card/reply navigation, context, reply hierarchy and persistent compose action",
+    "status": "implemented_and_checked",
+    "evidence": [
+      "shared-tests/TEST-com.quanquan.quantoot.ui.ThreadBehaviorTest.xml",
+      "screenshots/existing-public-conversation-reply.png"
+    ]
+  },
+  {
+    "area": "media",
+    "checks": "filled previews, dimensions, gallery paging, separate sensitivity and spoiler state",
+    "status": "implemented_and_checked",
+    "evidence": [
+      "shared-tests/TEST-com.quanquan.quantoot.ui.MediaBehaviorTest.xml",
+      "screenshots/filled-media-previews.png",
+      "screenshots/paged-original-media-gallery.png"
+    ]
+  },
+  {
+    "area": "content",
+    "checks": "internal mention/tag navigation, quote resolution, preview card images",
+    "status": "implemented_and_checked",
+    "evidence": [
+      "shared-tests/TEST-com.quanquan.quantoot.ui.ContentLinksTest.xml",
+      "shared-tests/TEST-com.quanquan.quantoot.ui.PostContentTest.xml"
+    ]
+  },
+  {
+    "area": "composer",
+    "checks": "post language selection, hashtag completion, categorized visible emojis",
+    "status": "implemented_and_checked",
+    "evidence": [
+      "shared-tests/TEST-com.quanquan.quantoot.ui.ComposerToolsTest.xml",
+      "screenshots/post-language-choices.png",
+      "screenshots/composer-emoji-picker.png"
+    ]
+  },
+  {
+    "area": "server",
+    "checks": "rules, contact, thumbnail, active users and optional extended description",
+    "status": "implemented_and_checked",
+    "evidence": [
+      "shared-tests/TEST-com.quanquan.quantoot.data.ServerMetadataTest.xml",
+      "screenshots/server-rules.png",
+      "screenshots/server-contact.png"
+    ]
+  }
+]

@@ -10,3 +10,9 @@ iosApp/*.xcodeproj/xcuserdata/
 *.xcuserstate
 .audit/*.todo.md
 .audit/grounding.md
+.audit/verification/
+.audit/REVIEW.md
+.audit/contracts.md
+.audit/kmp-migration.tsv
+.audit/client-polish/*.log
+.audit/client-polish/ui-*/

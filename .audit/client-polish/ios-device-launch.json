@@ -1,0 +1,56 @@
+{
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "device",
+      "process",
+      "launch",
+      "--device",
+      "00008160-0000059C04C14036",
+      "com.quanquan.quantoot",
+      "--json-output",
+      ".audit/client-polish/ios-device-launch.json"
+    ],
+    "commandType" : "devicectl.device.process.launch",
+    "environment" : {
+      "TERM" : "dumb"
+    },
+    "jsonVersion" : 5,
+    "outcome" : "success",
+    "version" : "651.32"
+  },
+  "result" : {
+    "deviceIdentifier" : "A917E82B-8552-5F1D-A719-753A71F8E410",
+    "launchOptions" : {
+      "activatedWhenStarted" : true,
+      "arguments" : [
+
+      ],
+      "environmentVariables" : {
+        "TERM" : "dumb"
+      },
+      "platformSpecificOptions" : {
+
+      },
+      "startStopped" : false,
+      "terminateExistingInstances" : false,
+      "user" : {
+        "active" : true
+      }
+    },
+    "process" : {
+      "auditToken" : [
+        4294967295,
+        501,
+        501,
+        501,
+        501,
+        15398,
+        0,
+        38579
+      ],
+      "executable" : "file:///private/var/containers/Bundle/Application/655B10F5-571D-40DE-B0F7-B068219E9140/QuanToot.app/QuanToot",
+      "processIdentifier" : 15398
+    }
+  }
+}

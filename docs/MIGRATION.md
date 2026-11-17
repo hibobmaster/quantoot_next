@@ -11,10 +11,10 @@
 | OAuth、可选 PKCE、state、多账户、切换与移除 | `auth/AccountStore.kt`，随机 state、10 分钟有效期、单次消费、加密提交 |
 | 本站、跨站、主页、标签、账户、收藏、书签时间线 | `data/MastodonApi.kt`、`ui/Feeds.kt` |
 | 分页、刷新、阅读位置、新消息暂存、恢复前台 | `ui/FeedCache.kt`、`ui/Feeds.kt`，缓存按实例、账户和时间线隔离 |
-| 实时更新、编辑、删除、通知 | `MastodonApi.events()`，后台取消，前台重连，断线退避 |
-| 嘟文详情、上下文、回复、转发、喜欢、书签、引用 | `ui/StatusCard.kt`、`ui/Feeds.kt` |
+| 实时更新、编辑、删除、通知 | 带来源的事件、`StatusProjection`、`FeedPager`，后台取消，前台重连，断线退避和前台 REST 补偿 |
+| 嘟文详情、上下文、回复、转发、喜欢、书签、引用 | `ui/StatusCard.kt`、`ui/ThreadScreen.kt`、`ui/ThreadState.kt`，正文和回复数可打开会话 |
 | 内容警告、HTML 链接、自定义表情、预览卡 | `ui/StatusCard.kt`、`ui/RichContent.kt` |
-| 图片查看、缩放、保存、分享、替代文本 | `ui/RichContent.kt`、原生媒体适配 |
+| 多图查看、缩放、保存、分享、替代文本 | `ui/MediaAttachments.kt`、`ui/MediaGallery.kt`、原生媒体适配 |
 | 视频播放 | Android VideoView、iOS AVPlayerViewController |
 | 发帖、回复、编辑、引用、可见性、语言和引用策略 | `ui/Composer.kt`、`StatusDraft` |
 | 附件、异步媒体处理、替代文本、投票、自定义表情 | `MastodonApi.upload()`、`ui/Composer.kt` |
@@ -42,7 +42,7 @@ Android 导入原项目默认 FlutterSecureStorage 11 的 RSA-OAEP 加 AES-GCM �
 ## 有意调整
 
 - OAuth 使用系统浏览器授权，替换嵌入式 WebView。
-- 实例输入为空时不能继续。原 README 明确没有默认实例，旧登录控件却曾填入默认服务器。
+- 按用户要求，实例输入留空时使用 `m.qqs.tw`，登录和公开浏览均可继续。
 - UI 共用 Compose。导航、间距和媒体控件按当前平台实现，未追求逐像素一致。
 - 草稿保留在当前账户的内存状态中。离开编辑器前会确认放弃，重启后不恢复草稿。
 - 时间线缓存最多保存 100 项、512 KiB。显示服务器不支持的设置时，会报告 API 错误。
@@ -55,4 +55,6 @@ Android 导入原项目默认 FlutterSecureStorage 11 的 RSA-OAEP 加 AES-GCM �
 
 iOS UI 测试使用 `m.qqs.tw` 的公开时间线，因此需要网络。它只在没有已选实例的模拟器上运行初次设置，否则跳过以保护已有状态。存储迁移测试遇到真实已存账户时也会跳过。此次两项存储测试和游客 UI 测试均未跳过。
 
-共享 MockEngine 测试不访问用户账号。游客运行检查访问公开实例。没有测试账号，因此真实登录后的发布、编辑、删除、投票、举报和账户设置写入未作联网实测。系统相册权限、实际媒体格式兼容性及辅助功能还需要真机验收。
+共享 MockEngine 测试不访问用户账号。初始迁移后的界面修复使用 iPhone 17 Pro 模拟器上已有的测试账号，验证登录状态保留、现有回复、媒体、编辑器和服务器资料。没有向服务器发帖、编辑、删除、投票、举报或写入账户设置。系统相册权限及实际媒体格式兼容性仍需真机验收。
+
+0.6.1 的逐项修复和验证范围记录在 [客户端功能对照](CLIENT_PARITY.md)。初始迁移的 43 项测试证据保留为历史基线，后续测试结果与界面截图位于 `.audit/client-polish`。

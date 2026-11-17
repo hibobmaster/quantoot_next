@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.quanquan.quantoot.ui.FeedBehaviorTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-11-17T07:51:05.121Z" hostname="BobMasters-Mac-mini.local" time="0.067">
+  <properties/>
+  <testcase name="restoreInvalidatesInFlightRequestsAndEmptyProjectedPageCanContinue" classname="com.quanquan.quantoot.ui.FeedBehaviorTest" time="0.009"/>
+  <testcase name="arrivalsSurviveCacheRestoreAndSupersededRequestsExactlyOnce" classname="com.quanquan.quantoot.ui.FeedBehaviorTest" time="0.001"/>
+  <testcase name="pendingEditAndDeleteDoNotInsertOrChangeTheReadingOrder" classname="com.quanquan.quantoot.ui.FeedBehaviorTest" time="0.006"/>
+  <testcase name="projectedEditAndDeletionWinOverRefreshPageAndCache" classname="com.quanquan.quantoot.ui.FeedBehaviorTest" time="0.001"/>
+  <testcase name="groupedDisplayDoesNotChangeRawPagingCursor" classname="com.quanquan.quantoot.ui.FeedBehaviorTest" time="0.0"/>
+  <testcase name="deferredRefreshKeepsOpaqueTailAfterThreePages" classname="com.quanquan.quantoot.ui.FeedBehaviorTest" time="0.001"/>
+  <testcase name="diskRestoreResumesExactOpaqueCursorAndLegacyRowsRequireReset" classname="com.quanquan.quantoot.ui.FeedBehaviorTest" time="0.001"/>
+  <testcase name="streamArrivalSurvivesRefreshResponse" classname="com.quanquan.quantoot.ui.FeedBehaviorTest" time="0.001"/>
+  <testcase name="existingArrivalDuringRefreshDoesNotMoveItsRow" classname="com.quanquan.quantoot.ui.FeedBehaviorTest" time="0.0"/>
+  <testcase name="cacheIsBoundedAndCorruptDataFallsBack" classname="com.quanquan.quantoot.ui.FeedBehaviorTest" time="0.043"/>
+  <testcase name="sourcesCannotInsertIntoOtherFeedsAndLocalWritesReconcileMembership" classname="com.quanquan.quantoot.ui.FeedBehaviorTest" time="0.002"/>
+  <testcase name="refreshDefersArrivalsAndKeepsReadPositionRows" classname="com.quanquan.quantoot.ui.FeedBehaviorTest" time="0.0"/>
+  <testcase name="interactionsGroupByTypeAndStatusWithUniqueAuthors" classname="com.quanquan.quantoot.ui.FeedBehaviorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
