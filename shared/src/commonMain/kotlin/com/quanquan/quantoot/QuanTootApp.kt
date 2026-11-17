@@ -232,7 +232,7 @@ private fun AppShell(
                 }
         },
         floatingActionButton = {
-            if (routes.isEmpty() || routes.last() !is Screen.Compose)
+            if (routes.isEmpty() || routes.lastOrNull() is Screen.Feed || routes.lastOrNull() is Screen.Profile)
                 FloatingActionButton(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,

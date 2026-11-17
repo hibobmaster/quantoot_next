@@ -116,6 +116,7 @@ private fun english0(): Map<String, String> = mapOf(
 
 private fun english1(): Map<String, String> = mapOf(
     "mastodon_instance_hint" to "m.qqs.tw",
+    "mastodon_instance_default_hint" to "Leave blank to use {instance}.",
     "mastodon_instance_invalid" to "Enter a valid Mastodon instance domain.",
     "mastodon_continue_login" to "Continue to Log In",
     "mastodon_browse_without_login" to "Browse Public Posts",
@@ -426,6 +427,7 @@ private fun chinese0(): Map<String, String> = mapOf(
 
 private fun chinese1(): Map<String, String> = mapOf(
     "mastodon_instance_hint" to "m.qqs.tw",
+    "mastodon_instance_default_hint" to "留空则使用 {instance}。",
     "mastodon_instance_invalid" to "请输入有效的 Mastodon 实例域名。",
     "mastodon_continue_login" to "继续登录",
     "mastodon_browse_without_login" to "浏览公开内容",
@@ -736,6 +738,7 @@ private fun traditional0(): Map<String, String> = mapOf(
 
 private fun traditional1(): Map<String, String> = mapOf(
     "mastodon_instance_hint" to "m.qqs.tw",
+    "mastodon_instance_default_hint" to "留空則使用 {instance}。",
     "mastodon_instance_invalid" to "請輸入有效的 Mastodon 實例網域。",
     "mastodon_continue_login" to "繼續登入",
     "mastodon_browse_without_login" to "瀏覽公開內容",
