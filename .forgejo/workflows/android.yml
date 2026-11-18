@@ -1,0 +1,51 @@
+name: Android CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+env:
+  JAVA_TOOL_OPTIONS: '-Djdk.serialFilter=!com.google.common.collect.CompactHashMap*;!com.google.common.collect.CompactHashSet*;!com.google.common.collect.MapMakerInternalMap*'
+  GRADLE_OPTS: '-Dorg.gradle.jvmargs=-Xmx2g -Dorg.gradle.workers.max=2 -Dorg.gradle.daemon=false -Dorg.gradle.project.kotlin.compiler.execution.strategy=in-process'
+
+jobs:
+  verify:
+    if: forgejo.ref_type != 'tag'
+    runs-on: android-ci
+    timeout-minutes: 30
+    steps:
+      - uses: https://data.forgejo.org/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - run: ./scripts/verify.sh
+      - uses: https://data.forgejo.org/forgejo/upload-artifact@16871d9e8cfcf27ff31822cac382bbb5450f1e1e # Forgejo v4
+        if: always()
+        with:
+          name: shared-test-results
+          path: shared/build/reports/tests/
+          retention-days: 14
+
+  release:
+    if: forgejo.event_name == 'push' && startsWith(forgejo.ref, 'refs/tags/v')
+    runs-on: android-ci
+    timeout-minutes: 30
+    enable-openid-connect: true
+    steps:
+      - uses: https://data.forgejo.org/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check that this tag points into main
+        run: git merge-base --is-ancestor HEAD refs/remotes/origin/main
+      - name: Build release APKs
+        run: ./gradlew --no-daemon -PsplitApks=true :shared:testAndroidHostTest :androidApp:assembleRelease --console=plain
+      - name: Sign and verify the four APKs
+        run: bash ci/android/request-signing.sh
+      - uses: https://data.forgejo.org/forgejo/upload-artifact@16871d9e8cfcf27ff31822cac382bbb5450f1e1e # Forgejo v4
+        with:
+          name: quantoot-android-${{ forgejo.ref_name }}
+          path: androidApp/build/ci-release/
+          if-no-files-found: error

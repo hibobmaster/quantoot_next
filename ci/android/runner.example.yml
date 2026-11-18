@@ -1,0 +1,16 @@
+runner:
+  capacity: 1
+  timeout: 35m
+  labels:
+    - android-ci:docker://quantoot-android-ci:37
+
+cache:
+  enabled: false
+
+container:
+  network: quantoot-ci
+  privileged: false
+  valid_volumes: []
+  docker_host: "-"
+  force_pull: false
+  options: --cpus=2 --memory=3g --memory-swap=4g --pids-limit=512 --cap-drop=NET_RAW --security-opt=no-new-privileges

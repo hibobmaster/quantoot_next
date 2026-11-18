@@ -1,0 +1,23 @@
+[Unit]
+Description=QuanToot Forgejo Actions Runner
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+User=quantoot-runner
+Group=quantoot-runner
+SupplementaryGroups=docker
+StateDirectory=quantoot-ci
+WorkingDirectory=/var/lib/quantoot-ci
+ExecStart=/opt/quantoot-ci/bin/forgejo-runner daemon -c /opt/quantoot-ci/runner.yml
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+
+[Install]
+WantedBy=multi-user.target
