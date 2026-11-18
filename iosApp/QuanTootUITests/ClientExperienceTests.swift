@@ -125,10 +125,17 @@ final class ClientExperienceTests: XCTestCase {
         XCTAssertTrue(emoji.waitForExistence(timeout: 5))
         emoji.tap()
         XCTAssertTrue(app.buttons["✨"].waitForExistence(timeout: 10))
-        app.buttons["✨"].tap()
         capture("Composer emoji picker", app)
-        app.buttons.matching(NSPredicate(format: "label == %@", "Close")).allElementsBoundByIndex.last { $0.isHittable }?.tap()
-        app.swipeUp()
+        app.buttons["✨"].tap()
+        XCTAssertTrue(app.buttons["✨"].waitForNonExistence(timeout: 5))
+        let content = app.textViews.matching(NSPredicate(format: "label BEGINSWITH %@", "Content")).firstMatch
+        XCTAssertTrue((content.value as? String)?.contains("✨") == true)
+        emoji.tap()
+        let custom = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "bilibili_001")).firstMatch
+        XCTAssertTrue(custom.waitForExistence(timeout: 15))
+        custom.tap()
+        XCTAssertTrue(custom.waitForNonExistence(timeout: 5))
+        XCTAssertTrue((content.value as? String)?.contains(":bilibili_001:") == true)
         let language = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Post language")).firstMatch
         XCTAssertTrue(language.waitForExistence(timeout: 5))
         language.tap()

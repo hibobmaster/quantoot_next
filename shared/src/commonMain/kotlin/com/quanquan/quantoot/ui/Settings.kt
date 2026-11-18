@@ -21,6 +21,7 @@ import coil3.compose.LocalPlatformContext
 import com.quanquan.quantoot.LoginPrompt
 import com.quanquan.quantoot.auth.SessionState
 import com.quanquan.quantoot.model.*
+import kotlin.math.roundToLong
 import kotlinx.coroutines.*
 
 enum class SettingsSection(val titleKey: String, val requiresAccount: Boolean) {
@@ -75,6 +76,14 @@ fun SettingsScreen(ui: UiContext, state: SessionState, section: SettingsSection?
 private fun SettingsIndex(ui: UiContext, state: SessionState) {
     var choosingLanguage by remember { mutableStateOf(false) }
     val loader = SingletonImageLoader.get(LocalPlatformContext.current)
+    var cacheBytes by remember(loader) { mutableStateOf<Long?>(null) }
+    var clearingCache by remember(loader) { mutableStateOf(false) }
+    var cacheRevision by remember(loader) { mutableIntStateOf(0) }
+    LaunchedEffect(loader, cacheRevision) {
+        cacheBytes = withContext(Dispatchers.IO) {
+            runCatching { loader.diskCache?.size ?: 0L }.getOrNull()
+        }
+    }
     val cacheCleared = tr("settings_media_cache_cleared")
     val languages = languageOptions()
     val locale = state.locale ?: "system"
@@ -85,11 +94,22 @@ private fun SettingsIndex(ui: UiContext, state: SessionState) {
             detail = languages.firstOrNull { it.first == locale }?.second ?: locale,
             onClick = { choosingLanguage = true },
         )
-        SettingsRow(tr("settings_clear_media_cache"), Icons.Default.Delete, showChevron = false) {
+        SettingsRow(
+            tr("settings_clear_media_cache"), Icons.Default.Delete,
+            showChevron = false,
+            trailingValue = cacheBytes?.let(::formatCacheSize),
+            enabled = !clearingCache,
+        ) {
+            clearingCache = true
             ui.run {
-                loader.memoryCache?.clear()
-                withContext(Dispatchers.Default) { loader.diskCache?.clear() }
-                ui.message = cacheCleared
+                try {
+                    loader.memoryCache?.clear()
+                    withContext(Dispatchers.IO) { loader.diskCache?.clear() }
+                    ui.message = cacheCleared
+                } finally {
+                    clearingCache = false
+                    cacheRevision++
+                }
             }
         }
     }
@@ -122,7 +142,8 @@ private fun SettingsIndex(ui: UiContext, state: SessionState) {
             ui.open("https://quanquan.space/")
         }
     }
-    Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp),
+    Row(Modifier.fillMaxWidth().padding(vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically) {
         BrandMark(Modifier.size(28.dp))
         Text(tr("settings_version_label", "version" to "0.6.5"), style = MaterialTheme.typography.labelMedium,
@@ -133,6 +154,20 @@ private fun SettingsIndex(ui: UiContext, state: SessionState) {
         onChange = { ui.run { ui.store.setLocale(it) } },
         onDismiss = { choosingLanguage = false },
     )
+}
+
+private fun formatCacheSize(bytes: Long): String {
+    if (bytes < 1_000) return "$bytes B"
+    val units = listOf("KB", "MB", "GB", "TB", "PB", "EB")
+    var amount = bytes / 1_000.0
+    var unit = 0
+    while (amount >= 999.95 && unit < units.lastIndex) {
+        amount /= 1_000
+        unit++
+    }
+    val tenths = (amount * 10).roundToLong()
+    val number = if (tenths % 10 == 0L) "${tenths / 10}" else "${tenths / 10}.${tenths % 10}"
+    return "$number ${units[unit]}"
 }
 
 @Composable
@@ -151,9 +186,11 @@ private fun SettingsRow(
     icon: ImageVector,
     detail: String? = null,
     showChevron: Boolean = true,
+    trailingValue: String? = null,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
-    Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = Color.Transparent) {
+    Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), enabled = enabled, color = Color.Transparent) {
         Row(
             Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(horizontal = 3.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -164,6 +201,9 @@ private fun SettingsRow(
                 Text(label, style = MaterialTheme.typography.bodyLarge)
                 if (!detail.isNullOrBlank()) Text(detail, style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (trailingValue != null) {
+                Text(trailingValue, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
             }
             if (showChevron) Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, Modifier.size(18.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant)

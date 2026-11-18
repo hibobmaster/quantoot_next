@@ -446,7 +446,11 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
         ComposerPanel.Emoji -> EmojiPickerSheet(
             emojis.orEmpty(), loading = emojis == null && emojiError == null,
             error = emojiError, onRetry = { emojiAttempt++ },
-            onSelect = { draft.textInput = insertAtSelection(draft.textInput, it) }, onDismiss = dismissPanel,
+            onSelect = {
+                draft.textInput = insertAtSelection(draft.textInput, it)
+                dismissPanel()
+            },
+            onDismiss = dismissPanel,
         )
         ComposerPanel.Visibility -> ChoiceSheet(tr("mastodon_visibility"), draft.visibility, visibilityOptions(),
             draft::chooseVisibility, dismissPanel)
