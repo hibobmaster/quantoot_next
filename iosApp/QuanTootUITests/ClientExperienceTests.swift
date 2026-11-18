@@ -146,6 +146,46 @@ final class ClientExperienceTests: XCTestCase {
     }
 
     @MainActor
+    func testRailwayClipPlaysInGallery() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-app_locale", "en"]
+        app.launch()
+        search("https://m.qqs.tw/@ejsoon/117501796550705991", in: app)
+        let clip = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "media-preview-")).firstMatch
+        XCTAssertTrue(clip.waitForExistence(timeout: 20))
+        clip.tap()
+        XCTAssertTrue(app.staticTexts["1 of 1"].waitForExistence(timeout: 10))
+
+        // Sample the board inside the video, away from the controls and loading indicator.
+        func boardPixels() -> [UInt8] {
+            guard let screen = app.screenshot().image.cgImage else { return [] }
+            let w = CGFloat(screen.width), h = CGFloat(screen.height)
+            guard let board = screen.cropping(to: CGRect(x: w * 0.18, y: h * 0.41, width: w * 0.64, height: h * 0.18)) else { return [] }
+            var rgba = [UInt8](repeating: 0, count: 64 * 32 * 4)
+            rgba.withUnsafeMutableBytes { storage in
+                let context = CGContext(data: storage.baseAddress, width: 64, height: 32, bitsPerComponent: 8,
+                                        bytesPerRow: 64 * 4, space: CGColorSpaceCreateDeviceRGB(),
+                                        bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)
+                context?.draw(board, in: CGRect(x: 0, y: 0, width: 64, height: 32))
+            }
+            return rgba
+        }
+        var firstFrame: [UInt8]?
+        let advancing = NSPredicate { _, _ in
+            let frame = boardPixels()
+            let green = stride(from: 0, to: frame.count, by: 4).filter {
+                Int(frame[$0 + 1]) > Int(frame[$0]) + 12 && Int(frame[$0 + 1]) > Int(frame[$0 + 2]) + 5
+            }
+            guard green.count > 40 else { return false }
+            guard let first = firstFrame else { firstFrame = frame; return false }
+            return green.filter { abs(Int(first[$0]) - Int(frame[$0])) > 12 }.count > 8
+        }
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: advancing, object: nil)], timeout: 40), .completed)
+        capture("Railway clip playing", app)
+    }
+
+    @MainActor
     func testGalleryPreservesBothAttachmentsAndZoomControls() throws {
         continueAfterFailure = false
         let app = XCUIApplication()

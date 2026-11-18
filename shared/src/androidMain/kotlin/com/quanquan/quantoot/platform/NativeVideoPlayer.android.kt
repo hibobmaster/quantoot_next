@@ -10,15 +10,16 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.quanquan.quantoot.data.safeWebUrl
 
 @Composable
-actual fun NativeVideoPlayer(url: String, modifier: Modifier) {
+actual fun NativeVideoPlayer(url: String, modifier: Modifier, onError: () -> Unit) {
     val safe = safeWebUrl(url) ?: return
     key(safe) {
         AndroidView(
             factory = { context ->
                 VideoView(context).apply {
                     setMediaController(MediaController(context).also { it.setAnchorView(this) })
+                    setOnErrorListener { _, _, _ -> onError(); true }
                     setVideoURI(Uri.parse(safe))
-                    setOnPreparedListener { player -> player.isLooping = false }
+                    start()
                 }
             },
             modifier = modifier,

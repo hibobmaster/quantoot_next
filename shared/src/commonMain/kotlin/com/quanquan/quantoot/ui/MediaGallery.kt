@@ -226,7 +226,7 @@ fun MediaGallery(
                     Text(tr(if (feedback is GallerySaveResult.Saved) "mastodon_image_saved" else "mastodon_image_save_failed"))
                 }
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, itemVerticalAlignment = Alignment.CenterVertically) {
                 IconButton(
                     onClick = { scope.launch { pager.animateScrollToPage(items.adjacent(pager.currentPage, -1)) } },
                     enabled = pager.currentPage > 0,
@@ -242,8 +242,8 @@ fun MediaGallery(
                     TextButton(
                         onClick = image::reset,
                         colors = whiteText,
-                        modifier = Modifier.width(64.dp).semantics { contentDescription = strings.text("mastodon_reset_zoom") },
-                    ) { Text("${(image.scale * 100).toInt()}%") }
+                        modifier = Modifier.widthIn(min = 64.dp).semantics { contentDescription = strings.text("mastodon_reset_zoom") },
+                    ) { Text("${(image.scale * 100).toInt()}%", softWrap = false) }
                     TextButton(
                         onClick = { image.zoomTo(image.scale * 1.5f) },
                         enabled = image.scale < 6f,
@@ -257,7 +257,12 @@ fun MediaGallery(
                     colors = whiteControls,
                 ) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, tr("mastodon_next_media")) }
                 if (!media.description.isNullOrBlank()) {
-                    TextButton(onClick = { showAlt = !showAlt }, colors = whiteText, modifier = Modifier.width(48.dp)) { Text("ALT") }
+                    TextButton(
+                        onClick = { showAlt = !showAlt },
+                        colors = whiteText,
+                        modifier = Modifier.widthIn(min = 48.dp),
+                        contentPadding = PaddingValues(horizontal = 6.dp),
+                    ) { Text("ALT", softWrap = false, maxLines = 1) }
                 }
             }
             if (showAlt) {
@@ -282,13 +287,15 @@ private fun GalleryPage(
     onDismiss: () -> Unit,
 ) {
     val url = mediaOriginalUrl(media)
+    var playbackFailed by remember(url, active) { mutableStateOf(false) }
     Box(Modifier.fillMaxSize().clipToBounds(), contentAlignment = Alignment.Center) {
         when {
             media.type == "image" && url != null -> GalleryImage(media, url, image, active, onDismiss)
-            media.type in listOf("video", "gifv", "audio") && url != null -> {
+            media.type in listOf("video", "gifv", "audio") && url != null && !playbackFailed -> {
                 if (active) NativeVideoPlayer(
                     url,
                     if (media.type == "audio") Modifier.fillMaxWidth().height(120.dp) else Modifier.fillMaxSize(),
+                    onError = { playbackFailed = true },
                 )
             }
             else -> Column(horizontalAlignment = Alignment.CenterHorizontally) {

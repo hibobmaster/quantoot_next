@@ -40,4 +40,4 @@ expect fun secureRandomBytes(size: Int): ByteArray
 
 expect fun sha256(bytes: ByteArray): ByteArray
 
-@Composable expect fun NativeVideoPlayer(url: String, modifier: Modifier = Modifier)
+@Composable expect fun NativeVideoPlayer(url: String, modifier: Modifier, onError: () -> Unit)
