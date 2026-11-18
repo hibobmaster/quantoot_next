@@ -201,7 +201,7 @@ private fun AppShell(
                     Box(Modifier.weight(1f)) {
                         key(route, if (route == null) tab else null) {
                             when (route) {
-                                is Screen.Feed -> FeedScreen(ui, route.source)
+                                is Screen.Feed -> FeedScreen(ui, route.source, visit = route.visit)
                                 is Screen.Thread -> ThreadScreen(ui, route.id, route.focusReplyId)
                                 is Screen.Profile -> ProfileScreen(ui, route.id)
                                 is Screen.People -> PeopleScreen(ui, route)

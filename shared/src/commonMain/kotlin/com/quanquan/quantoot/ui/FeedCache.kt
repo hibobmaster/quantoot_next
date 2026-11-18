@@ -221,6 +221,7 @@ internal class FeedPager<T>(
     private val id: (T) -> String,
     private val project: (T) -> T? = { it },
     private val onClose: (FeedPager<T>) -> Unit = {},
+    private val beforeReplace: () -> Unit = {},
     private val fetch: suspend (String?) -> Page<T>,
 ) {
     var rows by mutableStateOf<List<T>>(emptyList())
@@ -306,6 +307,7 @@ internal class FeedPager<T>(
                         .filterNot { id(it) in existing }.take(100)
                     rows = rows.map { updates[id(it)] ?: it }
                 } else {
+                    beforeReplace()
                     rows = projected(creations + pending + page)
                     pending = emptyList()
                     cursor = result.nextCursor

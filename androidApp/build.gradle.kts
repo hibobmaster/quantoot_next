@@ -10,7 +10,7 @@ android {
         applicationId = "com.quanquan.quantoot"
         minSdk = 26
         targetSdk = 37
-        versionCode = 2015
+        versionCode = 2016
         versionName = "0.6.5"
         testInstrumentationRunner = "com.quanquan.quantoot.StorageInstrumentation"
     }

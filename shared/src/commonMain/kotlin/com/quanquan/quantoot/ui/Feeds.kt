@@ -117,6 +117,10 @@ internal interface FeedViewport {
     suspend fun revealFirstStatus()
 }
 
+internal class FeedVisit<T> {
+    var snapshot: FeedSnapshot<T>? = null
+}
+
 private class ListFeedViewport(private val list: LazyListState) : FeedViewport {
     override val emptyPosition = FeedPosition.Status(0, 0)
     private val rowCount: Int
@@ -160,6 +164,8 @@ private fun <T> rememberFeedPager(
     id: (T) -> String,
     project: (T) -> T?,
     displayedCount: (List<T>) -> Int = { it.size },
+    visit: FeedVisit<T>? = null,
+    beforeReplace: () -> Unit = {},
     fetch: suspend (String?) -> Page<T>,
 ): FeedPager<T> {
     val accountKey = ui.store.state.value.activeKey
@@ -174,25 +180,28 @@ private fun <T> rememberFeedPager(
         val pager = remember {
             FeedPager(scope, id, project, onClose = { pager ->
                 try {
-                    attachment?.close(
-                        if (restored && pager.ready) pager.snapshot(viewport.position(), viewport.emptyPosition, id)
-                        else null,
-                    )
+                    val snapshot = if (restored && pager.ready)
+                        pager.snapshot(viewport.position(), viewport.emptyPosition, id)
+                    else null
+                    if (snapshot != null) visit?.snapshot = snapshot
+                    attachment?.close(snapshot)
                 } finally {
                     scope.cancel()
                 }
-            }, fetch = fetch)
+            }, beforeReplace = beforeReplace, fetch = fetch)
         }
         DisposableEffect(pager) {
             val current = cache.attach(cacheKey)
             attachment = current
             scope.launch {
-                val saved = current.read()
+                val savedVisit = visit?.snapshot
+                val saved = savedVisit ?: current.read()
                 ensureActive()
                 if (!current.isCurrent) return@launch
                 pager.restore(saved)
+                val readingPosition = if (visit == null) saved else savedVisit
                 viewport.restore(
-                    saved?.restoredPosition(pager.rows, id, viewport.emptyPosition is FeedPosition.Leading)
+                    readingPosition?.restoredPosition(pager.rows, id, viewport.emptyPosition is FeedPosition.Leading)
                         ?: viewport.emptyPosition,
                 )
                 ensureActive()
@@ -235,9 +244,12 @@ internal fun rememberStatusPager(
     source: Timeline,
     viewport: FeedViewport,
     isActive: Boolean = true,
+    visit: FeedVisit<Status>? = null,
+    beforeReplace: () -> Unit = {},
 ): FeedPager<Status> {
     val pager = rememberFeedPager(
         ui, source.toString(), ui.statusFeedCache, viewport, isActive, { it.id }, ui.statuses::project,
+        visit = visit, beforeReplace = beforeReplace,
     ) { cursor ->
         ui.statuses.read({ ui.api.timeline(source, maxId = cursor) }) { it.items }
     }
@@ -270,18 +282,26 @@ internal fun rememberStatusPager(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeedScreen(
+internal fun FeedScreen(
     ui: UiContext,
     source: Timeline,
     isActive: Boolean = true,
     reselected: SharedFlow<Unit>? = null,
+    visit: FeedVisit<Status>? = null,
 ) {
     val identity = source.toString()
     key(ui.api, ui.store.state.value.activeKey, identity) {
         val listState = rememberLazyListState()
         val viewport = remember(listState) { ListFeedViewport(listState) }
         val scope = rememberCoroutineScope()
-        val pager = rememberStatusPager(ui, source, viewport, isActive)
+        val pager = rememberStatusPager(ui, source, viewport, isActive, visit) {
+            if (
+                visit != null && !listState.isScrollInProgress &&
+                listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+            ) {
+                listState.requestScrollToItem(0)
+            }
+        }
         if (reselected != null) LaunchedEffect(pager, reselected) {
             reselected.collect {
                 pager.reveal()

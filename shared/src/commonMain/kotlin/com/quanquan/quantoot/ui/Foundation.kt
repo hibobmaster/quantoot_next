@@ -35,7 +35,9 @@ val LocalStrings = staticCompositionLocalOf { Strings("en", "en") }
 fun tr(key: String, vararg args: Pair<String, String>) = LocalStrings.current.text(key, *args)
 
 sealed interface Screen {
-    data class Feed(val source: Timeline, val title: String) : Screen
+    data class Feed(val source: Timeline, val title: String) : Screen {
+        internal val visit = if (source is Timeline.Hashtag) FeedVisit<Status>() else null
+    }
 
     data class Thread(val id: String, val focusReplyId: String? = null) : Screen
 

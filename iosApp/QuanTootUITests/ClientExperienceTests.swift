@@ -262,6 +262,52 @@ final class ClientExperienceTests: XCTestCase {
     }
 
     @MainActor
+    func testReopeningHashtagStartsAtTopWhileBackKeepsTheCurrentVisit() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-app_locale", "en"]
+        app.launch()
+        search("https://mastodon.social/@bagder/117636701500634123", in: app)
+        let source = app.descendants(matching: .any)["status-card-117636703604554067"].firstMatch
+        XCTAssertTrue(source.waitForExistence(timeout: 15))
+        source.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.2)).tap()
+        XCTAssertTrue(app.screenHeading("Conversation").waitForExistence(timeout: 10))
+        let link = app.buttons["#curl"].firstMatch
+        let title = app.screenHeading("#curl")
+        func openTag() {
+            XCTAssertTrue(link.waitForExistence(timeout: 15))
+            link.tap()
+            XCTAssertTrue(title.waitForExistence(timeout: 10))
+        }
+        openTag()
+        let cards = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "status-card-"))
+        XCTAssertTrue(cards.firstMatch.waitForExistence(timeout: 15))
+        let newest = app.descendants(matching: .any)[cards.firstMatch.identifier].firstMatch
+        let top = newest.frame.minY
+
+        app.swipeUp()
+        let older = try XCTUnwrap(cards.allElementsBoundByIndex.first {
+            $0.identifier != newest.identifier && $0.isHittable &&
+                $0.frame.minY >= title.frame.maxY && $0.frame.midY < app.frame.height - 30
+        })
+        let saved = app.descendants(matching: .any)[older.identifier].firstMatch
+        let offset = saved.frame.minY
+        saved.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.3)).tap()
+        XCTAssertTrue(app.screenHeading("Conversation").waitForExistence(timeout: 10))
+        app.buttons["Close"].firstMatch.tap()
+        XCTAssertTrue(title.waitForExistence(timeout: 10))
+        XCTAssertTrue(saved.waitForExistence(timeout: 15))
+        XCTAssertEqual(saved.frame.minY, offset, accuracy: 2)
+
+        app.buttons["Close"].firstMatch.tap()
+        openTag()
+        XCTAssertTrue(newest.waitForExistence(timeout: 15))
+        XCTAssertTrue(newest.isHittable)
+        XCTAssertEqual(newest.frame.minY, top, accuracy: 2)
+        capture("Hashtag timeline reopened at the top", app)
+    }
+
+    @MainActor
     func testGalleryShowsDescriptionWithoutAnAltButton() {
         continueAfterFailure = false
         let app = XCUIApplication()
