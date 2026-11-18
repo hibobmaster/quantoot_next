@@ -359,7 +359,7 @@ private fun PostActions(ui: UiContext, status: Status, modifier: Modifier, onVie
         PostAction(
             if (status.bookmarked) PostIcons.Bookmarked else PostIcons.Bookmark,
             tr(if (status.bookmarked) "mastodon_remove_bookmark" else "mastodon_save_bookmark"),
-            Modifier.width(48.dp), active = status.bookmarked, busy = StatusAction.Bookmark in pending,
+            Modifier.weight(1f), active = status.bookmarked, busy = StatusAction.Bookmark in pending,
         ) { toggle(StatusAction.Bookmark, !status.bookmarked) }
     }
 }
@@ -383,8 +383,9 @@ private fun PostAction(
     }
     Row(
         modifier.heightIn(min = 48.dp).clickable(enabled = enabled && !busy, role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = label },
-        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+            .semantics { contentDescription = label }
+            .padding(start = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (busy) CircularProgressIndicator(Modifier.size(18.dp), color = tint, strokeWidth = 2.dp)
