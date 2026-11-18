@@ -146,6 +146,57 @@ final class ClientExperienceTests: XCTestCase {
     }
 
     @MainActor
+    func testFollowingLoadsPastFirstPageAndRestoresSelectedRow() throws {
+        try checkPeopleListReturn("Following")
+    }
+
+    @MainActor
+    func testFollowersLoadPastFirstPageAndRestoreSelectedRow() throws {
+        try checkPeopleListReturn("Followers")
+    }
+
+    @MainActor
+    private func checkPeopleListReturn(_ title: String) throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-app_locale", "en"]
+        app.launch()
+        search("https://m.qqs.tw/@bobmaster", in: app)
+        let profile = app.staticTexts["@bobmaster"].firstMatch
+        XCTAssertTrue(profile.waitForExistence(timeout: 20))
+        profile.tap()
+        let count = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label ENDSWITH %@", " " + title)).firstMatch
+        XCTAssertTrue(count.waitForExistence(timeout: 15))
+        count.tap()
+        XCTAssertTrue(app.screenHeading(title).waitForExistence(timeout: 10))
+        let handles = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "@"))
+        XCTAssertTrue(handles.firstMatch.waitForExistence(timeout: 15))
+        var seen = [String]()
+        for _ in 0..<12 {
+            let visible = handles.allElementsBoundByIndex.filter { $0.isHittable }
+            for handle in visible.map(\.label) where !seen.contains(handle) { seen.append(handle) }
+            if seen.count > 22 { break }
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.82))
+                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.32)),
+                       withVelocity: .slow, thenHoldForDuration: 0.2)
+        }
+        XCTAssertGreaterThan(seen.count, 22)
+        let target = try XCTUnwrap(handles.allElementsBoundByIndex.last {
+            seen.dropFirst(20).contains($0.label) && $0.isHittable && $0.frame.maxY < app.frame.height
+        })
+        let label = target.label
+        let y = target.frame.minY
+        target.tap()
+        XCTAssertTrue(app.screenHeading("Profile").waitForExistence(timeout: 10))
+        app.buttons["Close"].firstMatch.tap()
+        XCTAssertTrue(app.screenHeading(title).waitForExistence(timeout: 10))
+        let restored = app.staticTexts[label].firstMatch
+        XCTAssertTrue(restored.isHittable)
+        XCTAssertEqual(restored.frame.minY, y, accuracy: 2)
+    }
+
+    @MainActor
     func testRailwayClipPlaysInGallery() throws {
         continueAfterFailure = false
         let app = XCUIApplication()

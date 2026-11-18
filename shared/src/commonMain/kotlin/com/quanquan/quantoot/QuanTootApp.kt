@@ -204,7 +204,7 @@ private fun AppShell(
                                 is Screen.Feed -> FeedScreen(ui, route.source)
                                 is Screen.Thread -> ThreadScreen(ui, route.id, route.focusReplyId)
                                 is Screen.Profile -> ProfileScreen(ui, route.id)
-                                is Screen.People -> PeopleScreen(ui, route.id, route.following)
+                                is Screen.People -> PeopleScreen(ui, route)
                                 is Screen.Compose -> ComposerScreen(ui, route)
                                 is Screen.Settings -> SettingsScreen(ui, state, route.section)
                                 Screen.Accounts -> AccountsScreen(ui, state)

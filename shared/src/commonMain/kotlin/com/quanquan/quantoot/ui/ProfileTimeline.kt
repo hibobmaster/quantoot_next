@@ -62,7 +62,7 @@ internal fun ProfileTimeline(
         }
     }
     val refresh = rememberPullToRefreshState()
-    val refreshing = feed?.pager?.let { it.busy && !it.paging } == true
+    val refreshing = feed?.pager?.refreshing == true
     Box(
         Modifier.fillMaxSize().pullToRefresh(
             isRefreshing = refreshing,
@@ -105,6 +105,7 @@ internal fun ProfileTimeline(
                 }
                 item(viewport.footerKey) {
                     when {
+                        pager.refreshing -> Unit
                         pager.busy || !pager.ready -> Loading()
                         pager.rows.isEmpty() && pager.error == null -> Empty()
                         !pager.exhausted && pager.rows.isNotEmpty() -> OutlinedButton(

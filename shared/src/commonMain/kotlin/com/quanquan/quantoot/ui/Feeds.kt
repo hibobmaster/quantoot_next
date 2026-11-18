@@ -293,7 +293,7 @@ fun FeedScreen(
                 pager.load(more = pager.failedMore, defer = viewport.readingOlder())
             }
             PullToRefreshBox(
-                isRefreshing = pager.busy && !pager.paging,
+                isRefreshing = pager.refreshing,
                 onRefresh = { pager.load() },
                 modifier = Modifier.weight(1f).clipToBounds(),
             ) {
@@ -310,7 +310,8 @@ fun FeedScreen(
                     }
                     item(key = FEED_FOOTER_KEY) {
                         when {
-                            pager.busy -> Loading()
+                            pager.refreshing -> Unit
+                            pager.busy || !pager.ready -> Loading()
                             pager.rows.isEmpty() && pager.error == null -> Empty()
                             !pager.exhausted && pager.rows.isNotEmpty() ->
                                 OutlinedButton(
@@ -394,7 +395,7 @@ fun NotificationsScreen(ui: UiContext, isActive: Boolean = true) {
                 pager.load(more = pager.failedMore, defer = viewport.readingOlder())
             }
             PullToRefreshBox(
-                isRefreshing = pager.busy && !pager.paging,
+                isRefreshing = pager.refreshing,
                 onRefresh = { pager.load() },
                 modifier = Modifier.weight(1f),
             ) {
@@ -422,7 +423,8 @@ fun NotificationsScreen(ui: UiContext, isActive: Boolean = true) {
                         }
                     }
                     item {
-                        if (pager.busy) Loading()
+                        if (pager.refreshing) return@item
+                        if (pager.busy || !pager.ready) Loading()
                         else if (groups.isEmpty() && pager.error == null)
                             Empty(tr("mastodon_empty_notifications"))
                         else if (!pager.exhausted)

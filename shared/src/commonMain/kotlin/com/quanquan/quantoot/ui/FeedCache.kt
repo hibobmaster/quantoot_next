@@ -229,6 +229,7 @@ internal class FeedPager<T>(
         private set
     var busy by mutableStateOf(false)
         private set
+    val refreshing: Boolean get() = busy && !paging && rows.isNotEmpty()
     var paging by mutableStateOf(false)
         private set
     var error by mutableStateOf<String?>(null)

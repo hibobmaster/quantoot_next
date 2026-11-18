@@ -9,6 +9,26 @@ import kotlinx.coroutines.test.*
 @OptIn(ExperimentalCoroutinesApi::class)
 class FeedBehaviorTest {
     @Test
+    fun refreshIndicatorOnlyAppearsWhenUpdatingExistingRows() = runTest {
+        val pager = FeedPager(backgroundScope, { status: Status -> status.id }) {
+            Page(listOf(Status(id = "a")), "next")
+        }
+        pager.restore(null)
+        pager.load()
+        assertTrue(pager.busy)
+        assertFalse(pager.refreshing)
+        runCurrent()
+        pager.load()
+        assertTrue(pager.refreshing)
+        runCurrent()
+        pager.load(more = true)
+        assertTrue(pager.paging)
+        assertFalse(pager.refreshing)
+        runCurrent()
+        assertFalse(pager.busy)
+    }
+
+    @Test
     fun interactionsGroupByTypeAndStatusWithUniqueAuthors() {
         val status = Status(id = "post")
         fun notification(id: String, actor: String, type: String = "favourite") =

@@ -63,7 +63,7 @@ fun ThreadScreen(ui: UiContext, id: String, focusReplyId: String? = null) {
     Column(Modifier.fillMaxSize()) {
         ErrorNotice(thread.error, thread::refresh)
         PullToRefreshBox(
-            isRefreshing = thread.busy,
+            isRefreshing = thread.busy && root != null,
             onRefresh = thread::refresh,
             modifier = Modifier.weight(1f),
         ) {

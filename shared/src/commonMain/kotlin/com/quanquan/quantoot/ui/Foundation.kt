@@ -41,7 +41,9 @@ sealed interface Screen {
 
     data class Profile(val id: String) : Screen
 
-    data class People(val id: String, val following: Boolean) : Screen
+    data class People(val id: String, val following: Boolean) : Screen {
+        internal val list = PeopleListState()
+    }
 
     data class Compose(
         val reply: Status? = null,

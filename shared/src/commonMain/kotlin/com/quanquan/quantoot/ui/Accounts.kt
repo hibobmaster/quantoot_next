@@ -592,42 +592,60 @@ private val ProfileQrIcon = ImageVector.Builder("QR", 24.dp, 24.dp, 24f, 24f).ap
     }
 }.build()
 
-@Composable
-fun PeopleScreen(ui: UiContext, id: String, following: Boolean) {
-    var people by remember { mutableStateOf<List<Account>>(emptyList()) }
-    var busy by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var nextCursor by remember(id, following) { mutableStateOf<String?>(null) }
-    var exhausted by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    fun load(more: Boolean = false) {
-        scope.launch {
-            if (busy || (more && exhausted)) return@launch
-            busy = true
-            error = null
-            try {
-                val page = ui.api.people(id, following, if (more) nextCursor else null)
-                people = (if (more) people + page.items else page.items).distinctBy { it.id }
-                exhausted = page.nextCursor == null || (more && page.nextCursor == nextCursor)
-                nextCursor = page.nextCursor
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                error = e.message
-            } finally {
-                busy = false
-            }
+internal class PeopleListState {
+    val viewport = LazyListState()
+    private val rows = mutableStateListOf<Account>()
+    private val accountIds = mutableSetOf<String>()
+    val people: List<Account> get() = rows
+    var cursor by mutableStateOf<String?>(null)
+        private set
+    var exhausted by mutableStateOf(false)
+        private set
+    var loading by mutableStateOf(false)
+        private set
+    var error by mutableStateOf<String?>(null)
+        private set
+    private val loadedCursors = mutableSetOf<String?>()
+
+    suspend fun loadNext(fetch: suspend (String?) -> Page<Account>) {
+        if (loading || exhausted) return
+        loading = true
+        error = null
+        try {
+            val page = fetch(cursor)
+            rows.addAll(page.items.filter { accountIds.add(it.id) })
+            loadedCursors.add(cursor)
+            cursor = page.nextCursor
+            exhausted = cursor == null || cursor in loadedCursors
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            error = e.message ?: e.toString()
+        } finally {
+            loading = false
         }
     }
-    LaunchedEffect(id, following) { load() }
-    Column {
-        ErrorNotice(error) { load() }
-        LazyColumn {
-            items(people, key = { it.id }) { AccountRow(it) { ui.navigate(Screen.Profile(it.id)) } }
-            item {
-                if (busy) Loading()
-                else if (people.isEmpty() && error == null) Empty()
-                else if (!exhausted) TextButton(onClick = { load(true) }) { Text("+20") }
+}
+
+@Composable
+fun PeopleScreen(ui: UiContext, route: Screen.People) {
+    val state = route.list
+    fun load() {
+        ui.scope.launch {
+            state.loadNext { cursor -> ui.api.people(route.id, route.following, cursor) }
+        }
+    }
+
+    LazyColumn(Modifier.fillMaxSize(), state = state.viewport) {
+        items(state.people, key = { it.id }) { AccountRow(it) { ui.navigate(Screen.Profile(it.id)) } }
+        item(contentType = "pagination") {
+            when {
+                state.error != null -> ErrorNotice(state.error, ::load)
+                state.exhausted -> if (state.people.isEmpty()) Empty()
+                else -> {
+                    LaunchedEffect(state, state.cursor) { load() }
+                    Loading()
+                }
             }
         }
     }
