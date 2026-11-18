@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -165,58 +164,6 @@ internal fun routesAfterPublish(routes: List<Screen>, compose: Screen.Compose, s
 }
 
 @Composable
-fun QuanTheme(content: @Composable () -> Unit) {
-    val dark = isSystemInDarkTheme()
-    val palette =
-        if (dark)
-            darkColorScheme(
-                primary = Color(0xFF8FCDBF),
-                onPrimary = Color(0xFF0A3932),
-                primaryContainer = Color(0xFF24564F),
-                onPrimaryContainer = Color(0xFFB8E9DE),
-                secondary = Color(0xFFA7C9C0),
-                secondaryContainer = Color(0xFF304D47),
-                onSecondaryContainer = Color(0xFFCCE8DD),
-                surface = Color(0xFF111714),
-                onSurface = Color(0xFFE8E8DF),
-                onSurfaceVariant = Color(0xFFC5CAC4),
-                surfaceContainer = Color(0xFF1D2420),
-                surfaceContainerLow = Color(0xFF181E1B),
-                surfaceContainerLowest = Color(0xFF0C110F),
-                outlineVariant = Color(0xFF444C46),
-            )
-        else
-            lightColorScheme(
-                primary = Color(0xFF286A60),
-                onPrimary = Color.White,
-                primaryContainer = Color(0xFFD7E9E3),
-                onPrimaryContainer = Color(0xFF123C36),
-                secondary = Color(0xFF476F68),
-                secondaryContainer = Color(0xFFDDE9E5),
-                onSecondaryContainer = Color(0xFF294E47),
-                surface = Color(0xFFF6F2E9),
-                onSurface = Color(0xFF202522),
-                onSurfaceVariant = Color(0xFF59615C),
-                surfaceContainer = Color(0xFFEAE5DB),
-                surfaceContainerLow = Color(0xFFF1EDE4),
-                surfaceContainerLowest = Color(0xFFFFFCF6),
-                outlineVariant = Color(0xFFC8C5BB),
-            )
-    MaterialTheme(
-        colorScheme = palette,
-        typography = Typography(),
-        shapes = Shapes(
-            extraSmall = RoundedCornerShape(6.dp),
-            small = RoundedCornerShape(10.dp),
-            medium = RoundedCornerShape(16.dp),
-            large = RoundedCornerShape(24.dp),
-            extraLarge = RoundedCornerShape(28.dp),
-        ),
-        content = content,
-    )
-}
-
-@Composable
 fun ErrorNotice(error: String?, retry: (() -> Unit)? = null) {
     if (error != null)
         Surface(
@@ -234,13 +181,18 @@ fun ErrorNotice(error: String?, retry: (() -> Unit)? = null) {
 @Composable
 fun Loading() {
     Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
+        CircularProgressIndicator(Modifier.size(26.dp), strokeWidth = 2.dp)
     }
 }
 
 @Composable
 fun Empty(label: String = tr("mastodon_empty_timeline")) {
-    Text(label, Modifier.padding(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Box(
+        Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 40.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }
 
 @Composable
@@ -287,10 +239,9 @@ fun Choice(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         shape = MaterialTheme.shapes.medium,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Row(
-            Modifier.heightIn(min = 72.dp).padding(horizontal = 16.dp, vertical = 12.dp),
+            Modifier.heightIn(min = 64.dp).padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -305,58 +256,68 @@ fun Choice(
             Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
         }
     }
-    if (expanded) {
-        ModalBottomSheet(
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.semantics { paneTitle = label },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            sheetMaxWidth = Dp.Unspecified,
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+    if (expanded) ChoiceSheet(label, value, options, onChange, onDismiss = { expanded = false })
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun ChoiceSheet(
+    label: String,
+    value: String,
+    options: List<Pair<String, String>>,
+    onChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.semantics { paneTitle = label },
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetMaxWidth = Dp.Unspecified,
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        Text(
+            label,
+            Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 16.dp)
+                .semantics { heading() },
+            style = MaterialTheme.typography.titleLarge,
+        )
+        LazyColumn(
+            Modifier.fillMaxWidth().heightIn(max = 440.dp).selectableGroup(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text(
-                label,
-                Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 16.dp)
-                    .semantics { heading() },
-                style = MaterialTheme.typography.titleLarge,
-            )
-            LazyColumn(
-                Modifier.fillMaxWidth().heightIn(max = 440.dp).selectableGroup(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                items(options, key = { it.first }) { (key, text) ->
-                    val selected = key == value
-                    Surface(
-                        color =
-                            if (selected) MaterialTheme.colorScheme.primaryContainer
-                            else Color.Transparent,
-                        shape = MaterialTheme.shapes.medium,
+            items(options, key = { it.first }) { (key, text) ->
+                val selected = key == value
+                Surface(
+                    color =
+                        if (selected) MaterialTheme.colorScheme.primaryContainer
+                        else Color.Transparent,
+                    shape = MaterialTheme.shapes.medium,
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth()
+                            .selectable(
+                                selected = selected,
+                                role = Role.RadioButton,
+                                onClick = {
+                                    onChange(key)
+                                    onDismiss()
+                                },
+                            )
+                            .heightIn(min = 56.dp)
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
-                        Row(
-                            Modifier.fillMaxWidth()
-                                .selectable(
-                                    selected = selected,
-                                    role = Role.RadioButton,
-                                    onClick = {
-                                        expanded = false
-                                        onChange(key)
-                                    },
-                                )
-                                .heightIn(min = 56.dp)
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        ) {
-                            Text(text, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-                            if (selected) {
-                                Icon(
-                                    Icons.Default.Check,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
-                                )
-                            } else {
-                                Spacer(Modifier.size(24.dp))
-                            }
+                        Text(text, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+                        if (selected) {
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        } else {
+                            Spacer(Modifier.size(24.dp))
                         }
                     }
                 }

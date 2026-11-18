@@ -14,7 +14,7 @@ final class ClientRefinementTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(federated.frame.maxX, app.frame.width - 24)
         XCTAssertEqual(home.frame.width, local.frame.width, accuracy: 2)
         XCTAssertEqual(local.frame.width, federated.frame.width, accuracy: 2)
-        XCTAssertGreaterThanOrEqual(local.frame.height, 44)
+        XCTAssertGreaterThanOrEqual(local.frame.height, 44, "Timeline tab frame \(local.frame)")
     }
 
     @MainActor
@@ -34,6 +34,10 @@ final class ClientRefinementTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(federated.frame.height, 44)
         federated.tap()
         XCTAssertTrue(federated.isSelected)
+        app.buttons["Profile"].firstMatch.tap()
+        app.buttons["Home"].firstMatch.tap()
+        XCTAssertTrue(federated.waitForExistence(timeout: 5))
+        XCTAssertTrue(federated.isSelected && federated.isHittable)
         capture("Large text Home selector", app)
     }
 
@@ -47,7 +51,7 @@ final class ClientRefinementTests: XCTestCase {
         XCTAssertTrue(app.buttons["Edit profile"].firstMatch.waitForExistence(timeout: 20))
         capture("Profile actions", app)
         app.buttons["Notifications"].firstMatch.tap()
-        XCTAssertTrue(app.staticTexts["Notifications"].firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.screenHeading("Notifications").waitForExistence(timeout: 10))
         capture("Notification presentation", app)
     }
 

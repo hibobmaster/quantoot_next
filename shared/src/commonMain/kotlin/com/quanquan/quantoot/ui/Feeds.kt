@@ -2,24 +2,27 @@ package com.quanquan.quantoot.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
 import kotlinx.coroutines.*
@@ -36,54 +39,69 @@ internal enum class HomeTimeline(val source: Timeline) {
 }
 
 @Composable
-internal fun HomeScreen(ui: UiContext, selection: HomeTimeline, onSelect: (HomeTimeline) -> Unit) {
+internal fun HomeScreen(
+    ui: UiContext,
+    selection: HomeTimeline,
+    reselected: SharedFlow<Unit>,
+    onSelect: (HomeTimeline) -> Unit,
+) {
     val labels = listOf(tr("mastodon_home"), tr("mastodon_local"), tr("mastodon_federated"))
     Column {
         HomeTimelineSelector(labels, selection.ordinal) { onSelect(HomeTimeline.entries[it]) }
         key(selection) {
-            if (selection == HomeTimeline.Home && ui.me == null) com.quanquan.quantoot.LoginPrompt(ui)
-            else FeedScreen(ui, selection.source)
+            if (selection == HomeTimeline.Home && ui.me == null) {
+                com.quanquan.quantoot.LoginPrompt(ui, "mastodon_home_timeline_login_title",
+                    "mastodon_home_timeline_login_message", Icons.Default.Home)
+            } else FeedScreen(ui, selection.source, reselected = reselected)
         }
     }
 }
 
 @Composable
 private fun HomeTimelineSelector(labels: List<String>, selected: Int, onSelect: (Int) -> Unit) {
+    val style = MaterialTheme.typography.titleSmall
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
-    val style = MaterialTheme.typography.titleSmall
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val labelWidth = with(density) { (maxWidth / labels.size - 24.dp).roundToPx().coerceAtLeast(1) }
-        val cannotWrap = labels.any { label ->
-            label.split(Regex("\\s+")).any { word ->
-                measurer.measure(AnnotatedString(word), style, softWrap = false).size.width > labelWidth
-            }
+    BoxWithConstraints(Modifier.fillMaxWidth().zIndex(1f).background(MaterialTheme.colorScheme.surface)) {
+        val available = with(density) { (maxWidth / labels.size - 24.dp).roundToPx() }
+        val scrollable = labels.any {
+            measurer.measure(AnnotatedString(it), style = style.copy(fontWeight = FontWeight.Bold),
+                softWrap = false).size.width > available
         }
-        if (cannotWrap) {
-            ScrollableTabRow(selected, edgePadding = 0.dp) {
+        if (scrollable) {
+            PrimaryScrollableTabRow(
+                selected, modifier = Modifier.heightIn(min = 48.dp), edgePadding = 0.dp, minTabWidth = 88.dp,
+                containerColor = MaterialTheme.colorScheme.surface,
+                indicator = {}, divider = { HorizontalDivider(thickness = Dp.Hairline) },
+            ) {
                 labels.forEachIndexed { index, label ->
-                    Tab(selected == index, { onSelect(index) }, text = { Text(label) })
+                    HomeTab(label, selected == index, Modifier, onClick = { onSelect(index) })
                 }
             }
         } else {
-            Row(Modifier.fillMaxWidth().selectableGroup().height(IntrinsicSize.Min)) {
+            HorizontalDivider(Modifier.align(Alignment.BottomCenter), thickness = Dp.Hairline)
+            Row(Modifier.fillMaxWidth().selectableGroup()) {
                 labels.forEachIndexed { index, label ->
-                    val active = selected == index
-                    Column(
-                        Modifier.weight(1f).fillMaxHeight()
-                            .selectable(active, role = Role.Tab, onClick = { onSelect(index) }),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Box(Modifier.weight(1f).heightIn(min = 48.dp).padding(horizontal = 12.dp, vertical = 12.dp),
-                            contentAlignment = Alignment.Center) {
-                            Text(label, style = style, textAlign = TextAlign.Center,
-                                color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        Box(Modifier.fillMaxWidth().height(3.dp)
-                            .background(if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant))
-                    }
+                    HomeTab(label, selected == index, Modifier.weight(1f), onClick = { onSelect(index) })
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun HomeTab(label: String, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    Box(
+        modifier.selectable(selected, role = Role.Tab, onClick = onClick).heightIn(min = 48.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(label, Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            style = MaterialTheme.typography.titleSmall, softWrap = false,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)
+        if (selected) {
+            Box(Modifier.align(Alignment.BottomCenter).size(width = 32.dp, height = 3.dp)
+                .background(MaterialTheme.colorScheme.primary, CircleShape))
         }
     }
 }
@@ -256,6 +274,7 @@ fun FeedScreen(
     ui: UiContext,
     source: Timeline,
     isActive: Boolean = true,
+    reselected: SharedFlow<Unit>? = null,
 ) {
     val identity = source.toString()
     key(ui.api, ui.store.state.value.activeKey, identity) {
@@ -263,31 +282,25 @@ fun FeedScreen(
         val viewport = remember(listState) { ListFeedViewport(listState) }
         val scope = rememberCoroutineScope()
         val pager = rememberStatusPager(ui, source, viewport, isActive)
-        Column {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
-                if (pager.pending.isNotEmpty())
-                    TextButton(
-                        onClick = {
-                            pager.reveal()
-                            scope.launch { viewport.revealFirstStatus() }
-                        }
-                    ) {
-                        Text("${tr("mastodon_new_posts")} (${pager.pending.size})")
-                    }
+        if (reselected != null) LaunchedEffect(pager, reselected) {
+            reselected.collect {
+                pager.reveal()
+                viewport.revealFirstStatus()
             }
+        }
+        Column {
             ErrorNotice(pager.error) {
                 pager.load(more = pager.failedMore, defer = viewport.readingOlder())
             }
             PullToRefreshBox(
                 isRefreshing = pager.busy && !pager.paging,
                 onRefresh = { pager.load() },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).clipToBounds(),
             ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = listState,
                     contentPadding = PaddingValues(bottom = 88.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     items(
                         pager.rows,
@@ -314,151 +327,12 @@ fun FeedScreen(
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun DiscoveryScreen(ui: UiContext) {
-    val keyboard = LocalSoftwareKeyboardController.current
-    var query by remember { mutableStateOf("") }
-    var results by remember { mutableStateOf(SearchResults()) }
-    var trends by remember { mutableStateOf<List<Status>>(emptyList()) }
-    var tags by remember { mutableStateOf<List<Tag>>(emptyList()) }
-    var busy by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var searched by remember { mutableStateOf(false) }
-    var offset by remember { mutableIntStateOf(0) }
-    var submittedQuery by remember { mutableStateOf("") }
-    var exhausted by remember { mutableStateOf(false) }
-    var failedMore by remember { mutableStateOf(false) }
-    val listState = rememberLazyListState()
-    val scope = rememberCoroutineScope()
-    fun load(more: Boolean = false) {
-        scope.launch {
-            if (busy || (more && exhausted)) return@launch
-            val requestedQuery = if (more) submittedQuery else query.trim()
-            busy = true
-            error = null
-            failedMore = more
-            try {
-                if (requestedQuery.isBlank()) {
-                    trends = ui.statuses.read({ ui.api.trends() }) { it }
-                    tags = ui.api.trendingTags()
-                    searched = false
-                } else {
-                    val next = ui.statuses.read({ ui.api.search(requestedQuery, offset = if (more) offset else 0) }) { it.statuses }
-                    val merged =
-                        if (more)
-                            SearchResults(
-                                (results.accounts + next.accounts).distinctBy { it.id },
-                                (results.statuses + next.statuses).distinctBy { it.id },
-                                (results.hashtags + next.hashtags).distinctBy { it.name },
-                            )
-                        else next
-                    exhausted =
-                        (next.accounts.isEmpty() &&
-                            next.statuses.isEmpty() &&
-                            next.hashtags.isEmpty()) || (more && merged == results)
-                    results = merged
-                    offset = if (more) offset + 20 else 20
-                    searched = true
-                    submittedQuery = requestedQuery
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                error = e.message
-            } finally {
-                busy = false
-            }
-        }
-    }
-    LaunchedEffect(ui.api) { load() }
-    LaunchedEffect(searched, submittedQuery) {
-        snapshotFlow {
-            Triple(
-                listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1,
-                listState.layoutInfo.totalItemsCount,
-                results,
-            )
-        }
-            .collect { (last, total, _) ->
-                if (searched && total > 0 && last >= total - 4 && error == null) load(true)
-            }
-    }
-    Column {
-        Row(Modifier.fillMaxWidth().padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                query,
-                { query = it },
-                label = { Text(tr("mastodon_search_instance", "instance" to ui.api.instance)) },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                shape = MaterialTheme.shapes.medium,
-                keyboardOptions = KeyboardOptions(autoCorrectEnabled = false, imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { keyboard?.hide(); load() }),
-            )
-            FilledTonalButton(onClick = { keyboard?.hide(); load() }, enabled = !busy,
-                modifier = Modifier.heightIn(min = 56.dp)) { Text(tr("mastodon_explore")) }
-        }
-        ErrorNotice(error) { load(failedMore) }
-        LazyColumn(
-            state = listState,
-            contentPadding = PaddingValues(bottom = 88.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (searched) {
-                items(results.accounts, key = { "account:${it.id}" }) {
-                    AccountRow(it) { ui.navigate(Screen.Profile(it.id)) }
-                }
-                items(results.hashtags, key = { "tag:${it.name}" }) { tag ->
-                    TextButton(
-                        onClick = {
-                            ui.navigate(Screen.Feed(Timeline.Hashtag(tag.name), "#${tag.name}"))
-                        }
-                    ) {
-                        Text("#${tag.name}")
+                if (pager.pending.isNotEmpty()) {
+                    NewPostsButton(pager.pending.size, Modifier.align(Alignment.TopCenter).padding(top = 8.dp)) {
+                        pager.reveal()
+                        scope.launch { viewport.revealFirstStatus() }
                     }
                 }
-                items(results.statuses, key = { "status:${it.id}" }) {
-                    StatusCard(ui, it)
-                }
-                item {
-                    if (!exhausted)
-                        OutlinedButton(
-                            onClick = { load(true) },
-                            enabled = !busy,
-                            modifier = Modifier.padding(16.dp),
-                        ) {
-                            Text(tr(if (error != null) "mastodon_retry" else "mastodon_posts"))
-                        }
-                }
-            } else {
-                items(tags, key = { "tag:${it.name}" }) { tag ->
-                    TextButton(
-                        onClick = {
-                            ui.navigate(Screen.Feed(Timeline.Hashtag(tag.name), "#${tag.name}"))
-                        }
-                    ) {
-                        Text("#${tag.name}")
-                    }
-                }
-                items(trends, key = { it.id }) { StatusCard(ui, it) }
-            }
-            item {
-                if (busy) Loading()
-                else if (
-                    (searched &&
-                        results.accounts.isEmpty() &&
-                        results.statuses.isEmpty() &&
-                        results.hashtags.isEmpty()) ||
-                        (!searched && trends.isEmpty() && tags.isEmpty())
-                )
-                    Empty()
             }
         }
     }
@@ -516,17 +390,6 @@ fun NotificationsScreen(ui: UiContext, isActive: Boolean = true) {
             onDispose { job?.cancel() }
         }
         Column {
-            Row {
-                if (pager.pending.isNotEmpty())
-                    TextButton(
-                        onClick = {
-                            pager.reveal()
-                            scope.launch { viewport.revealFirstStatus() }
-                        }
-                    ) {
-                        Text("${tr("mastodon_new_posts")} (${pager.pending.size})")
-                    }
-            }
             ErrorNotice(pager.error) {
                 pager.load(more = pager.failedMore, defer = viewport.readingOlder())
             }
@@ -539,7 +402,6 @@ fun NotificationsScreen(ui: UiContext, isActive: Boolean = true) {
                     modifier = Modifier.fillMaxSize(),
                     state = listState,
                     contentPadding = PaddingValues(bottom = 88.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     items(groups, key = { it.first().id }) { group ->
                         val notification = group.first()
@@ -574,7 +436,23 @@ fun NotificationsScreen(ui: UiContext, isActive: Boolean = true) {
                             }
                     }
                 }
+                if (pager.pending.isNotEmpty()) {
+                    NewPostsButton(pager.pending.size, Modifier.align(Alignment.TopCenter).padding(top = 8.dp)) {
+                        pager.reveal()
+                        scope.launch { viewport.revealFirstStatus() }
+                    }
+                }
             }
         }
+    }
+}
+
+
+@Composable
+private fun NewPostsButton(count: Int, modifier: Modifier, onClick: () -> Unit) {
+    Button(onClick = onClick, modifier = modifier, elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)) {
+        Icon(Icons.Default.KeyboardArrowUp, null, Modifier.size(18.dp))
+        Spacer(Modifier.width(4.dp))
+        Text("${tr("mastodon_new_posts")} ($count)")
     }
 }

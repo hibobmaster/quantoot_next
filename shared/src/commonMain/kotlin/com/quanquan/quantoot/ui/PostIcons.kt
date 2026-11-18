@@ -54,6 +54,18 @@ internal object PostIcons {
             lineTo(12f, 17f)
         }
     }.build()
+    val Parent = ImageVector.Builder("Parent", 24.dp, 24.dp, 24f, 24f, autoMirror = true).apply {
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 1.8f,
+            strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(20f, 18f)
+            verticalLineTo(14f)
+            curveTo(20f, 10.7f, 17.3f, 8f, 14f, 8f)
+            horizontalLineTo(4f)
+            moveTo(9f, 3f)
+            lineTo(4f, 8f)
+            lineTo(9f, 13f)
+        }
+    }.build()
     val Replies = ImageVector.Builder("Replies", 24.dp, 24.dp, 24f, 24f).apply {
         path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 1.8f,
             strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
@@ -97,6 +109,16 @@ internal object PostIcons {
             lineTo(18f, 21f)
             lineTo(12f, 17f)
             lineTo(6f, 21f)
+            close()
+        }
+    }.build()
+    val Bookmarked = ImageVector.Builder("Bookmarked", 24.dp, 24.dp, 24f, 24f).apply {
+        path(fill = SolidColor(Color.Black)) {
+            moveTo(5f, 3f)
+            lineTo(19f, 3f)
+            lineTo(19f, 22f)
+            lineTo(12f, 17.5f)
+            lineTo(5f, 22f)
             close()
         }
     }.build()

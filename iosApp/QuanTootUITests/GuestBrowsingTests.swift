@@ -25,7 +25,7 @@ final class GuestBrowsingTests: XCTestCase {
             }
             XCTAssertTrue(row.exists && row.isHittable)
             row.tap()
-            let title = app.staticTexts[label].firstMatch
+            let title = app.screenHeading(label)
             XCTAssertTrue(title.waitForExistence(timeout: 10))
             XCTAssertLessThan(title.frame.minY, app.frame.height * 0.2)
             XCTAssertFalse(app.buttons["Settings"].exists)
@@ -44,8 +44,8 @@ final class GuestBrowsingTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["-app_locale", "en"]
         app.launch()
-        let field = app.descendants(matching: .any)
-            .matching(NSPredicate(format: "label == %@", "Instance domain")).firstMatch
+        let field = app.textViews
+            .matching(NSPredicate(format: "label BEGINSWITH %@", "Instance domain")).firstMatch
         guard field.waitForExistence(timeout: 10) else {
             throw XCTSkip("Run the guest setup test on a simulator without an existing instance.")
         }
@@ -57,5 +57,11 @@ final class GuestBrowsingTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Home"].firstMatch.waitForExistence(timeout: 10))
         let account = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "@")).firstMatch
         XCTAssertTrue(account.waitForExistence(timeout: 25))
+        app.buttons["New post"].tap()
+        XCTAssertTrue(browse.waitForExistence(timeout: 5))
+        browse.tap()
+        let local = app.buttons["Local"].firstMatch
+        XCTAssertTrue(local.waitForExistence(timeout: 10))
+        XCTAssertTrue(local.isSelected)
     }
 }

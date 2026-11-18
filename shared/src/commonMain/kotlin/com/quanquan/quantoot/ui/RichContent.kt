@@ -77,14 +77,14 @@ internal fun EmojiText(
     )
 }
 
-internal fun relativeTimestamp(value: String, now: Instant, chinese: Boolean = false): String {
+internal fun relativeTimestamp(value: String, now: Instant, strings: Strings): String {
     val time = runCatching { Instant.parse(value) }.getOrNull() ?: return value
     val seconds = (now - time).inWholeSeconds.coerceAtLeast(0)
     return when {
-        seconds < 60 -> if (chinese) "刚刚" else "just now"
-        seconds < 3600 -> if (chinese) "${seconds / 60}分钟前" else "${seconds / 60}m ago"
-        seconds < 86400 -> if (chinese) "${seconds / 3600}小时前" else "${seconds / 3600}h ago"
-        seconds < 604800 -> if (chinese) "${seconds / 86400}天前" else "${seconds / 86400}d ago"
+        seconds < 60 -> strings.text("mastodon_time_now")
+        seconds < 3600 -> strings.text("mastodon_time_minutes_ago", "n" to (seconds / 60).toString())
+        seconds < 86400 -> strings.text("mastodon_time_hours_ago", "n" to (seconds / 3600).toString())
+        seconds < 604800 -> strings.text("mastodon_time_days_ago", "n" to (seconds / 86400).toString())
         else -> value.take(10)
     }
 }
@@ -98,7 +98,7 @@ internal fun RelativeTimestamp(value: String): String {
             now = Clock.System.now()
         }
     }
-    return relativeTimestamp(value, now, LocalStrings.current.locale.startsWith("zh"))
+    return relativeTimestamp(value, now, LocalStrings.current)
 }
 
 @Composable

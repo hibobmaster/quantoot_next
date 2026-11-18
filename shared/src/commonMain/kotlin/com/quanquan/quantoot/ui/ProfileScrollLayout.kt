@@ -4,19 +4,24 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.BringIntoViewSpec
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.scrollableArea
-import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.key
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Rect
@@ -34,6 +39,7 @@ import androidx.compose.ui.semantics.getScrollViewportLength
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.verticalScrollAxisRange
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
@@ -44,7 +50,6 @@ internal fun ProfileScrollLayout(
     state: ProfileScrollState,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(),
-    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     onSelect: (ProfileSelection) -> Unit,
     header: @Composable () -> Unit,
     body: ProfileBodyScope.(ProfileSelection) -> Unit,
@@ -74,7 +79,6 @@ internal fun ProfileScrollLayout(
                         state = state.bodyState,
                         userScrollEnabled = false,
                         contentPadding = contentPadding,
-                        verticalArrangement = verticalArrangement,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         ProfileBodyScope(this, state, childBringIntoView).body(state.selection)
@@ -100,17 +104,32 @@ internal fun ProfileScrollLayout(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProfileCategoryRow(selection: ProfileSelection, onSelect: (ProfileSelection) -> Unit) {
-    val strings = LocalStrings.current
-    ScrollableTabRow(selection.category.ordinal, edgePadding = 0.dp, modifier = Modifier.testTag("profile:categories")) {
+    PrimaryScrollableTabRow(
+        selectedTabIndex = selection.category.ordinal,
+        modifier = Modifier.testTag("profile:categories"),
+        edgePadding = 0.dp,
+        minTabWidth = 68.dp,
+        containerColor = MaterialTheme.colorScheme.surface,
+        divider = { HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant) },
+    ) {
         ProfileCategory.entries.forEach { category ->
+            val active = selection.category == category
             Tab(
-                selected = selection.category == category,
+                selected = active,
                 onClick = { onSelect(selection.copy(category = category)) },
-                text = { Text(strings.text(category.titleKey)) },
                 modifier = Modifier.testTag("profile:category:${category.name}"),
-            )
+                selectedContentColor = MaterialTheme.colorScheme.onSurface,
+                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            ) {
+                Box(Modifier.heightIn(min = 48.dp).padding(horizontal = 12.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center) {
+                    Text(tr(category.titleKey), style = MaterialTheme.typography.labelLarge, softWrap = false,
+                        fontWeight = if (active) FontWeight.Bold else FontWeight.Medium)
+                }
+            }
         }
     }
 }

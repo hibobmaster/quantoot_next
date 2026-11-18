@@ -29,7 +29,7 @@ internal fun PostActionSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        containerColor = MaterialTheme.colorScheme.surface,
     ) {
         Column(
             Modifier.fillMaxWidth().heightIn(max = 640.dp).verticalScroll(rememberScrollState())
@@ -41,6 +41,10 @@ internal fun PostActionSheet(
             PostActionRow(tr("mastodon_reply_to", "name" to "@${status.account.acct}"), PostIcons.Replies) {
                 choose { ui.requireLogin { ui.navigate(Screen.Compose(reply = status)) } }
             }
+            if (status.visibility == "public" || status.visibility == "unlisted")
+                PostActionRow(tr("mastodon_quote_action"), PostIcons.Quote) {
+                    choose { ui.requireLogin { ui.navigate(Screen.Compose(quote = status)) } }
+                }
             PostActionRow(tr("mastodon_button_share"), Icons.Default.Share) {
                 choose { ui.platform.share(safeWebUrl(status.url.orEmpty()) ?: plainText(status.content)) }
             }
@@ -83,7 +87,7 @@ private fun PostActionRow(
     onClick: () -> Unit,
 ) {
     val color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-    Surface(onClick = onClick, shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+    Surface(onClick = onClick, shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surface) {
         Row(
             Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,

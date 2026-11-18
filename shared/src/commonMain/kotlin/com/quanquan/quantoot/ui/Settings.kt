@@ -10,7 +10,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.SingletonImageLoader
 import coil3.compose.LocalPlatformContext
@@ -35,73 +39,12 @@ fun SettingsScreen(ui: UiContext, state: SessionState, section: SettingsSection?
         LoginPrompt(ui)
         return
     }
-    val scrollState = rememberScrollState()
-    val loader = SingletonImageLoader.get(LocalPlatformContext.current)
     Column(
-        Modifier.fillMaxSize().verticalScroll(scrollState).padding(16.dp),
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 18.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         when (section) {
-            null -> {
-                Choice(tr("settings_language"), state.locale ?: "system", languageOptions()) {
-                    ui.run { ui.store.setLocale(it) }
-                }
-                SettingsRow(
-                    tr("settings_clear_media_cache"),
-                    Icons.Default.Delete,
-                    onClick = {
-                        ui.run {
-                            loader.memoryCache?.clear()
-                            withContext(Dispatchers.Default) { loader.diskCache?.clear() }
-                            ui.message = "Media cache cleared"
-                        }
-                    },
-                )
-                if (ui.me != null) {
-                    SettingsRow(tr(SettingsSection.Privacy.titleKey), Icons.Default.Lock) {
-                        ui.navigate(Screen.Settings(SettingsSection.Privacy))
-                    }
-                    SettingsRow(tr(SettingsSection.PostingDefaults.titleKey), Icons.Default.Settings) {
-                        ui.navigate(Screen.Settings(SettingsSection.PostingDefaults))
-                    }
-                    SettingsRow(tr(SettingsSection.Filters.titleKey), Icons.AutoMirrored.Filled.List) {
-                        ui.navigate(Screen.Settings(SettingsSection.Filters))
-                    }
-                    SettingsRow(tr(SettingsSection.Notifications.titleKey), Icons.Default.Notifications) {
-                        ui.navigate(Screen.Settings(SettingsSection.Notifications))
-                    }
-                }
-                SettingsRow(tr(SettingsSection.Server.titleKey), Icons.Default.Info) {
-                    ui.navigate(Screen.Settings(SettingsSection.Server))
-                }
-                SettingsRow(tr(SettingsSection.PrivacyPolicy.titleKey), Icons.Default.Lock) {
-                    ui.navigate(Screen.Settings(SettingsSection.PrivacyPolicy))
-                }
-                Column(
-                    Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Text("QuanToot", style = MaterialTheme.typography.headlineSmall)
-                    Text(
-                        "0.6.5",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                SettingsRow(tr(SettingsSection.Licenses.titleKey), Icons.AutoMirrored.Filled.List) {
-                    ui.navigate(Screen.Settings(SettingsSection.Licenses))
-                }
-                SettingsRow(
-                    "${tr("settings_developer_support")}: BobMaster",
-                    Icons.Default.AccountCircle,
-                    onClick = {
-                        ui.platform.share("QuanToot support: BobMaster <bobmaster@hibobmaster.com>")
-                    }
-                )
-                SettingsRow(tr("settings_feedback"), Icons.Default.Email) {
-                    ui.open("https://quanquan.space/")
-                }
-            }
+            null -> SettingsIndex(ui, state)
             SettingsSection.Privacy,
             SettingsSection.PostingDefaults -> AccountDefaults(ui, section == SettingsSection.Privacy)
             SettingsSection.Filters -> FiltersSettings(ui)
@@ -129,31 +72,109 @@ fun SettingsScreen(ui: UiContext, state: SessionState, section: SettingsSection?
 }
 
 @Composable
-private fun SettingsRow(label: String, icon: ImageVector, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
-        Row(
-            Modifier.padding(horizontal = 16.dp, vertical = 18.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.primary)
-            Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-            Icon(
-                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+private fun SettingsIndex(ui: UiContext, state: SessionState) {
+    var choosingLanguage by remember { mutableStateOf(false) }
+    val loader = SingletonImageLoader.get(LocalPlatformContext.current)
+    val cacheCleared = tr("settings_media_cache_cleared")
+    val languages = languageOptions()
+    val locale = state.locale ?: "system"
+    SettingsGroup(tr("settings_app_preferences")) {
+        SettingsRow(
+            label = tr("settings_language"),
+            icon = PostIcons.Public,
+            detail = languages.firstOrNull { it.first == locale }?.second ?: locale,
+            onClick = { choosingLanguage = true },
+        )
+        SettingsRow(tr("settings_clear_media_cache"), Icons.Default.Delete, showChevron = false) {
+            ui.run {
+                loader.memoryCache?.clear()
+                withContext(Dispatchers.Default) { loader.diskCache?.clear() }
+                ui.message = cacheCleared
+            }
         }
+    }
+    if (ui.me != null) {
+        SettingsGroup(tr("mastodon_account_settings")) {
+            listOf(
+                SettingsSection.Privacy to Icons.Default.Lock,
+                SettingsSection.PostingDefaults to Icons.Default.Edit,
+                SettingsSection.Filters to Icons.AutoMirrored.Filled.List,
+                SettingsSection.Notifications to Icons.Default.Notifications,
+            ).forEach { (section, icon) ->
+                SettingsRow(tr(section.titleKey), icon) { ui.navigate(Screen.Settings(section)) }
+            }
+        }
+    }
+    SettingsGroup(tr("settings_about")) {
+        SettingsRow(tr(SettingsSection.Server.titleKey), PostIcons.Public, detail = state.instance) {
+            ui.navigate(Screen.Settings(SettingsSection.Server))
+        }
+        SettingsRow(tr(SettingsSection.PrivacyPolicy.titleKey), Icons.Default.Lock) {
+            ui.navigate(Screen.Settings(SettingsSection.PrivacyPolicy))
+        }
+        SettingsRow(tr(SettingsSection.Licenses.titleKey), Icons.AutoMirrored.Filled.List) {
+            ui.navigate(Screen.Settings(SettingsSection.Licenses))
+        }
+        SettingsRow(tr("settings_developer_support"), Icons.Default.AccountCircle, detail = "BobMaster", showChevron = false) {
+            ui.platform.share("QuanToot support: BobMaster <bobmaster@hibobmaster.com>")
+        }
+        SettingsRow(tr("settings_feedback"), Icons.Default.Email, showChevron = false) {
+            ui.open("https://quanquan.space/")
+        }
+    }
+    Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        BrandMark(Modifier.size(28.dp))
+        Text(tr("settings_version_label", "version" to "0.6.5"), style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+    if (choosingLanguage) ChoiceSheet(
+        tr("settings_language"), locale, languages,
+        onChange = { ui.run { ui.store.setLocale(it) } },
+        onDismiss = { choosingLanguage = false },
+    )
+}
+
+@Composable
+private fun SettingsGroup(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Column {
+        Text(title, Modifier.padding(top = 6.dp, bottom = 8.dp).semantics { heading() },
+            style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
+        content()
     }
 }
 
 @Composable
+private fun SettingsRow(
+    label: String,
+    icon: ImageVector,
+    detail: String? = null,
+    showChevron: Boolean = true,
+    onClick: () -> Unit,
+) {
+    Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = Color.Transparent) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(horizontal = 3.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(icon, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(label, style = MaterialTheme.typography.bodyLarge)
+                if (!detail.isNullOrBlank()) Text(detail, style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (showChevron) Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+    HorizontalDivider(Modifier.padding(start = 37.dp), color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
+}
+
+@Composable
 private fun AccountDefaults(ui: UiContext, privacy: Boolean) {
+    val settingsSaved = tr("mastodon_settings_saved")
     var settings by remember { mutableStateOf<AccountSettings?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var attempt by remember { mutableIntStateOf(0) }
@@ -206,7 +227,7 @@ private fun AccountDefaults(ui: UiContext, privacy: Boolean) {
             ui.run {
                 try {
                     ui.store.updateAccount(ui.api.updateAccountSettings(value))
-                    ui.message = "Settings saved"
+                    ui.message = settingsSaved
                 } finally {
                     busy = false
                 }
@@ -220,6 +241,7 @@ private fun AccountDefaults(ui: UiContext, privacy: Boolean) {
 
 @Composable
 private fun NotificationSettings(ui: UiContext) {
+    val settingsSaved = tr("mastodon_settings_saved")
     var policy by remember { mutableStateOf<NotificationPolicy?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var attempt by remember { mutableIntStateOf(0) }
@@ -262,7 +284,7 @@ private fun NotificationSettings(ui: UiContext) {
             ui.run {
                 try {
                     policy = ui.api.updateNotificationPolicy(value)
-                    ui.message = "Settings saved"
+                    ui.message = settingsSaved
                 } finally {
                     busy = false
                 }

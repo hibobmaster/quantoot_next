@@ -2,12 +2,17 @@ package com.quanquan.quantoot.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.quanquan.quantoot.data.ApiException
 import com.quanquan.quantoot.model.*
@@ -54,6 +59,7 @@ fun ThreadScreen(ui: UiContext, id: String, focusReplyId: String? = null) {
     val root = thread.root
     val ancestors = thread.ancestors
     val descendants = thread.descendants
+    val indentStep = if (LocalDensity.current.fontScale > 1.3f) 0.dp else 8.dp
     Column(Modifier.fillMaxSize()) {
         ErrorNotice(thread.error, thread::refresh)
         PullToRefreshBox(
@@ -64,51 +70,56 @@ fun ThreadScreen(ui: UiContext, id: String, focusReplyId: String? = null) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
-                contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(bottom = 12.dp),
             ) {
                 items(ancestors, key = { "ancestor:${it.id}" }) { StatusCard(ui, it) }
                 item(key = "focal:$id") {
                     when {
-                        root != null -> StatusCard(ui, root, highlighted = highlightFocus && focusReplyId == null)
-                        thread.rootUnavailable -> Empty("This post is no longer available.")
+                        root != null -> StatusCard(
+                            ui, root, highlighted = highlightFocus && focusReplyId == null,
+                            presentation = StatusPresentation.Focal,
+                            onViewReplies = { scope.launch { listState.animateScrollToItem(thread.ancestors.size + 1) } },
+                        )
+                        thread.rootUnavailable -> Empty(tr("mastodon_post_gone"))
                         thread.busy -> Loading()
                     }
                 }
                 item(key = "replies") {
                     Text(
                         tr("mastodon_replies"),
-                        Modifier.padding(horizontal = 22.dp, vertical = 12.dp).semantics { heading() },
-                        style = MaterialTheme.typography.titleLarge,
+                        Modifier.padding(horizontal = 16.dp, vertical = 14.dp).semantics { heading() },
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
                 items(descendants, key = { "reply:${it.id}" }) { status ->
-                    val depth = thread.depth(status.id)
-                    Column(Modifier.padding(start = ((depth - 1).coerceIn(0, 3) * 12).dp)) {
-                        if (depth > 1) {
-                            val parent = descendants.firstOrNull { it.id == status.inReplyToId }
-                            if (parent != null)
-                                Text(
-                                    tr("mastodon_reply_to", "name" to "@${parent.account.acct}"),
-                                    Modifier.padding(start = 22.dp, bottom = 4.dp),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                        }
+                    val levels = (thread.depth(status.id) - 1).coerceIn(0, 3)
+                    Box(Modifier.padding(start = indentStep * levels)) {
                         StatusCard(ui, status, highlighted = highlightFocus && status.id == focusReplyId)
                     }
                 }
                 if (thread.loaded && descendants.isEmpty() && thread.error == null)
-                    item(key = "empty-replies") { Empty("No replies yet.") }
+                    item(key = "empty-replies") { Empty(tr("mastodon_empty_replies")) }
             }
         }
-        Surface(color = MaterialTheme.colorScheme.surfaceContainerLow) {
-            Button(
+        HorizontalDivider(thickness = Dp.Hairline, color = MaterialTheme.colorScheme.outlineVariant)
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            AccountAvatar(ui.me, 36.dp)
+            FilledTonalButton(
                 onClick = { root?.let { ui.requireLogin { ui.navigate(Screen.Compose(reply = it)) } } },
                 enabled = root != null,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                ),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             ) {
-                Text(tr("mastodon_button_reply"))
+                Text(tr("mastodon_button_reply"), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                Icon(Icons.Default.Edit, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

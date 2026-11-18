@@ -7,6 +7,19 @@ class Strings(val locale: String, val systemLanguage: String) {
         selected.startsWith("zh", ignoreCase = true) -> chinese
         else -> english
     }
+    private val countUnits = when {
+        catalog === english -> listOf(1_000_000_000 to "B", 1_000_000 to "M", 1_000 to "K")
+        catalog === traditional -> listOf(100_000_000 to "億", 10_000 to "萬")
+        else -> listOf(100_000_000 to "亿", 10_000 to "万")
+    }
+
+    internal fun compactCount(count: Int): String {
+        val (unit, suffix) = countUnits.firstOrNull { count >= it.first } ?: return count.toString()
+        val whole = count / unit
+        val tenths = count % unit / (unit / 10)
+        return if (whole < 10 && tenths > 0) "$whole.$tenths$suffix" else "$whole$suffix"
+    }
+
     fun text(key: String, vararg args: Pair<String, String>): String {
         var value = catalog[key] ?: english[key] ?: key
         args.forEach { (name, replacement) -> value = value.replace("{$name}", replacement) }
@@ -115,6 +128,16 @@ private fun english0(): Map<String, String> = mapOf(
     "mastodon_instance_title" to "Choose your Mastodon server",
     "mastodon_instance_description" to "Enter the Mastodon instance you want to use. You can browse public posts first or continue to log in.",
     "mastodon_instance_label" to "Instance domain",
+    "mastodon_more_post_actions" to "More post actions",
+    "mastodon_boost_count" to "Boost, {count} boosts",
+    "mastodon_undo_boost_count" to "Undo boost, {count} boosts",
+    "mastodon_favorite_count" to "Favorite, {count} favorites",
+    "mastodon_undo_favorite_count" to "Remove favorite, {count} favorites",
+    "mastodon_save_bookmark" to "Bookmark",
+    "mastodon_remove_bookmark" to "Remove bookmark",
+    "mastodon_quote_action" to "Quote post",
+    "mastodon_post_gone" to "This post is no longer available.",
+    "mastodon_empty_replies" to "No replies yet.",
 )
 
 private fun english1(): Map<String, String> = mapOf(
@@ -192,7 +215,7 @@ private fun english1(): Map<String, String> = mapOf(
     "mastodon_discard_draft" to "Discard draft?",
     "mastodon_discard" to "Discard",
     "mastodon_cancel" to "Cancel",
-    "mastodon_what_is_on_your_mind" to "Type or paste what's on your mind",
+    "mastodon_what_is_on_your_mind" to "What’s on your mind?",
     "mastodon_button_reply" to "Reply",
     "mastodon_button_reblog" to "Boost",
     "mastodon_button_favorite" to "Favorite",
@@ -227,6 +250,13 @@ private fun english1(): Map<String, String> = mapOf(
     "mastodon_profile_remove_image" to "Remove image",
     "mastodon_profile_avatar" to "Profile picture",
     "mastodon_profile_header" to "Header image",
+    "mastodon_post_options" to "Post options",
+    "mastodon_cw_short" to "CW",
+    "mastodon_compose_character_count" to "{count} of {limit} characters",
+    "mastodon_poll_hide_totals" to "Hide results until the poll ends",
+    "mastodon_remove_poll_option" to "Remove option {n}",
+    "mastodon_one_hour" to "1 hour",
+    "mastodon_one_day" to "1 day",
 )
 
 private fun english2(): Map<String, String> = mapOf(
@@ -320,9 +350,22 @@ private fun english2(): Map<String, String> = mapOf(
     "mastodon_settings_notify_favourites" to "Favorites",
     "mastodon_settings_notify_followers" to "New followers",
     "mastodon_settings_notify_polls" to "Polls",
+    "settings_app_preferences" to "App preferences",
+    "settings_current_server" to "Current server",
+    "profile_automated_account" to "Automated account",
 )
 
 private fun english3(): Map<String, String> = mapOf(
+    "discovery_login_title" to "Log in to search",
+    "discovery_login_message" to "This server limits search to signed-in accounts. You can browse its public timelines from Home.",
+    "mastodon_conversation" to "Conversation",
+    "discovery_clear" to "Clear search",
+    "discovery_people" to "People",
+    "discovery_trending_topics" to "Trending topics",
+    "discovery_trending_posts" to "Trending posts",
+    "discovery_timelines" to "Public timelines",
+    "discovery_more" to "More results",
+    "discovery_no_matches" to "No results for “{query}”",
     "mastodon_settings_notify_posts" to "New posts",
     "mastodon_settings_notify_quotes" to "Quotes",
     "mastodon_settings_server_about_tab" to "About",
@@ -447,6 +490,16 @@ private fun chinese0(): Map<String, String> = mapOf(
     "mastodon_instance_title" to "选择 Mastodon 服务器",
     "mastodon_instance_description" to "输入你想使用的 Mastodon 实例域名。你可以先浏览公开内容，也可以继续登录。",
     "mastodon_instance_label" to "实例域名",
+    "mastodon_more_post_actions" to "更多嘟文操作",
+    "mastodon_boost_count" to "转嘟，共 {count} 次转嘟",
+    "mastodon_undo_boost_count" to "撤销转嘟，共 {count} 次转嘟",
+    "mastodon_favorite_count" to "收藏，共 {count} 次收藏",
+    "mastodon_undo_favorite_count" to "取消收藏，共 {count} 次收藏",
+    "mastodon_save_bookmark" to "添加书签",
+    "mastodon_remove_bookmark" to "移除书签",
+    "mastodon_quote_action" to "引用嘟文",
+    "mastodon_post_gone" to "这条嘟文已无法查看。",
+    "mastodon_empty_replies" to "还没有回复。",
 )
 
 private fun chinese1(): Map<String, String> = mapOf(
@@ -559,6 +612,13 @@ private fun chinese1(): Map<String, String> = mapOf(
     "mastodon_profile_remove_image" to "移除图片",
     "mastodon_profile_avatar" to "头像",
     "mastodon_profile_header" to "封面图片",
+    "mastodon_post_options" to "发帖选项",
+    "mastodon_cw_short" to "预警",
+    "mastodon_compose_character_count" to "已使用 {count} 个字符，上限 {limit}",
+    "mastodon_poll_hide_totals" to "投票结束前隐藏结果",
+    "mastodon_remove_poll_option" to "移除选项 {n}",
+    "mastodon_one_hour" to "1 小时",
+    "mastodon_one_day" to "1 天",
 )
 
 private fun chinese2(): Map<String, String> = mapOf(
@@ -652,9 +712,22 @@ private fun chinese2(): Map<String, String> = mapOf(
     "mastodon_settings_notify_favourites" to "收藏",
     "mastodon_settings_notify_followers" to "新关注者",
     "mastodon_settings_notify_polls" to "投票",
+    "settings_app_preferences" to "应用偏好",
+    "settings_current_server" to "当前服务器",
+    "profile_automated_account" to "自动化账号",
 )
 
 private fun chinese3(): Map<String, String> = mapOf(
+    "discovery_login_title" to "登录后搜索",
+    "discovery_login_message" to "此服务器仅向已登录的用户开放搜索。你可以从主页浏览公共时间线。",
+    "mastodon_conversation" to "对话",
+    "discovery_clear" to "清除搜索",
+    "discovery_people" to "用户",
+    "discovery_trending_topics" to "热门话题",
+    "discovery_trending_posts" to "热门嘟文",
+    "discovery_timelines" to "公共时间线",
+    "discovery_more" to "更多结果",
+    "discovery_no_matches" to "没有找到与「{query}」相关的结果",
     "mastodon_settings_notify_posts" to "新嘟文",
     "mastodon_settings_notify_quotes" to "引用",
     "mastodon_settings_server_about_tab" to "关于",
@@ -779,6 +852,16 @@ private fun traditional0(): Map<String, String> = mapOf(
     "mastodon_instance_title" to "選擇 Mastodon 伺服器",
     "mastodon_instance_description" to "輸入你想使用的 Mastodon 實例網域。你可以先瀏覽公開內容，也可以繼續登入。",
     "mastodon_instance_label" to "實例網域",
+    "mastodon_more_post_actions" to "更多嘟文動作",
+    "mastodon_boost_count" to "轉嘟，共 {count} 次轉嘟",
+    "mastodon_undo_boost_count" to "取消轉嘟，共 {count} 次轉嘟",
+    "mastodon_favorite_count" to "加入最愛，共 {count} 個最愛",
+    "mastodon_undo_favorite_count" to "移除最愛，共 {count} 個最愛",
+    "mastodon_save_bookmark" to "加入書籤",
+    "mastodon_remove_bookmark" to "移除書籤",
+    "mastodon_quote_action" to "引用嘟文",
+    "mastodon_post_gone" to "這則嘟文已無法查看。",
+    "mastodon_empty_replies" to "還沒有回覆。",
 )
 
 private fun traditional1(): Map<String, String> = mapOf(
@@ -891,6 +974,13 @@ private fun traditional1(): Map<String, String> = mapOf(
     "mastodon_profile_remove_image" to "移除圖片",
     "mastodon_profile_avatar" to "大頭貼照",
     "mastodon_profile_header" to "封面圖片",
+    "mastodon_post_options" to "發文選項",
+    "mastodon_cw_short" to "警語",
+    "mastodon_compose_character_count" to "已使用 {count} 個字元，上限 {limit}",
+    "mastodon_poll_hide_totals" to "投票結束前隱藏結果",
+    "mastodon_remove_poll_option" to "移除選項 {n}",
+    "mastodon_one_hour" to "1 小時",
+    "mastodon_one_day" to "1 天",
 )
 
 private fun traditional2(): Map<String, String> = mapOf(
@@ -984,9 +1074,22 @@ private fun traditional2(): Map<String, String> = mapOf(
     "mastodon_settings_notify_favourites" to "收藏",
     "mastodon_settings_notify_followers" to "新追蹤者",
     "mastodon_settings_notify_polls" to "投票",
+    "settings_app_preferences" to "應用程式偏好設定",
+    "settings_current_server" to "目前的伺服器",
+    "profile_automated_account" to "自動化帳號",
 )
 
 private fun traditional3(): Map<String, String> = mapOf(
+    "discovery_login_title" to "登入後搜尋",
+    "discovery_login_message" to "此伺服器僅向已登入的使用者開放搜尋。你可以從首頁瀏覽公開時間軸。",
+    "mastodon_conversation" to "對話",
+    "discovery_clear" to "清除搜尋",
+    "discovery_people" to "使用者",
+    "discovery_trending_topics" to "熱門話題",
+    "discovery_trending_posts" to "熱門嘟文",
+    "discovery_timelines" to "公開時間軸",
+    "discovery_more" to "更多結果",
+    "discovery_no_matches" to "沒有找到與「{query}」相關的結果",
     "mastodon_settings_notify_posts" to "新貼文",
     "mastodon_settings_notify_quotes" to "引用",
     "mastodon_settings_server_about_tab" to "關於",

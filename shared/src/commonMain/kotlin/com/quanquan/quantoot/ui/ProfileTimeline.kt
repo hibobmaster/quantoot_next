@@ -75,7 +75,6 @@ internal fun ProfileTimeline(
             state,
             modifier = Modifier.fillMaxSize().testTag("profile:viewport"),
             contentPadding = PaddingValues(bottom = 88.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
             onSelect = onSelect,
             header = header,
         ) { selection ->
@@ -129,7 +128,7 @@ private data class ProfileFeed(val pager: FeedPager<Status>, val viewport: Profi
 @Composable
 private fun ProfileActivityFilters(selection: ProfileSelection, onSelect: (ProfileSelection) -> Unit) {
     Row(
-        Modifier.padding(horizontal = 16.dp).horizontalScroll(rememberScrollState()),
+        Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         FilterChip(

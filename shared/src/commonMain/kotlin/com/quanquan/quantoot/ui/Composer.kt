@@ -2,18 +2,25 @@ package com.quanquan.quantoot.ui
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import androidx.compose.ui.unit.sp
 import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
 import kotlinx.coroutines.*
@@ -143,37 +150,74 @@ class ComposerDraft(private val route: Screen.Compose, me: Account?) {
             ) || attachmentEdits() != cleanAttachments
 }
 
+private enum class ComposerPanel { Emoji, Visibility, Language, Options, QuotePolicy }
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
+    val title = tr(when {
+        route.edit != null -> "mastodon_edit_post"
+        route.reply != null -> "mastodon_button_reply"
+        else -> "mastodon_new_post"
+    })
     if (route.edit?.poll != null) {
-        Column(
-            Modifier.fillMaxSize().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(tr("mastodon_edit_poll_in_browser"))
-            Button(onClick = { ui.open(route.edit.url) }, enabled = safeWebUrl(route.edit.url.orEmpty()) != null) {
-                Text(tr("mastodon_open_in_browser"))
+        Column(Modifier.fillMaxSize()) {
+            ComposerHeader(title, ui::requestBack)
+            Column(
+                Modifier.verticalScroll(rememberScrollState()).padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(tr("mastodon_edit_poll_in_browser"))
+                Button(onClick = { ui.open(route.edit.url) }, enabled = safeWebUrl(route.edit.url.orEmpty()) != null) {
+                    Text(tr("mastodon_open_in_browser"))
+                }
             }
-            TextButton(onClick = ui.back) { Text(tr("mastodon_close")) }
         }
         return
     }
     val key = "${route.edit?.id ?: "new"}:${route.reply?.id.orEmpty()}:${route.quote?.id.orEmpty()}"
     val draft = remember(key) { ui.drafts.getOrPut(key) { ComposerDraft(route, ui.me) } }
-    var busy by remember { mutableStateOf(false) }
+    var publishing by remember { mutableStateOf(false) }
+    var uploading by remember { mutableStateOf(false) }
     var limit by remember { mutableIntStateOf(500) }
     var error by remember { mutableStateOf<String?>(null) }
     var discard by remember { mutableStateOf(false) }
-    var emojis by remember { mutableStateOf<List<CustomEmoji>>(emptyList()) }
-    var showEmoji by remember { mutableStateOf(false) }
-    var emojisLoading by remember { mutableStateOf(false) }
-    var emojisLoaded by remember { mutableStateOf(false) }
+    var panel by remember { mutableStateOf<ComposerPanel?>(null) }
+    var emojis by remember { mutableStateOf<List<CustomEmoji>?>(null) }
+    var emojiError by remember { mutableStateOf<String?>(null) }
+    var emojiAttempt by remember { mutableIntStateOf(0) }
     var suggestions by remember { mutableStateOf<List<Tag>>(emptyList()) }
     var showWarning by remember(draft) { mutableStateOf(draft.spoiler.isNotBlank()) }
+    var previousWarning by remember(draft) { mutableStateOf("") }
     var editingAlt by remember { mutableStateOf<MediaAttachment?>(null) }
     var alt by remember { mutableStateOf("") }
-    val scope = rememberCoroutineScope()
+    var savingAlt by remember { mutableStateOf(false) }
+    var altError by remember { mutableStateOf<String?>(null) }
     val keyboard = LocalSoftwareKeyboardController.current
+    val scope = rememberCoroutineScope()
+    val unknownError = tr("mastodon_unknown_error")
+    val bodyFocus = remember { FocusRequester() }
+    val warningFocus = remember { FocusRequester() }
+    val pollFocus = remember { FocusRequester() }
+    var requestedFocus by remember { mutableStateOf(bodyFocus) }
+    LaunchedEffect(requestedFocus) { requestedFocus.requestFocus() }
+
+    fun openPanel(next: ComposerPanel) {
+        keyboard?.hide()
+        panel = next
+    }
+    LaunchedEffect(ui.api, panel, emojiAttempt) {
+        if (panel == ComposerPanel.Emoji && emojis == null) {
+            emojiError = null
+            try {
+                emojis = ui.api.emojis()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                emojiError = e.message ?: unknownError
+            }
+        }
+    }
     val hashtag = remember(draft.textInput) { hashtagAtCaret(draft.textInput) }
     LaunchedEffect(ui.api, hashtag?.query, hashtag?.start) {
         suggestions = emptyList()
@@ -190,7 +234,15 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
         }
     }
     DisposableEffect(ui, draft) {
-        ui.beforeBack = { if (draft.dirty) discard = true else ui.back() }
+        ui.beforeBack = {
+            if (!publishing) {
+                if (draft.dirty || uploading) discard = true
+                else {
+                    ui.drafts.remove(key)
+                    ui.back()
+                }
+            }
+        }
         onDispose { ui.beforeBack = null }
     }
     LaunchedEffect(ui.api, draft) {
@@ -200,14 +252,19 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            error = e.message
+            error = e.message ?: unknownError
         }
     }
     val count = draft.text.codePointCount() + draft.spoiler.codePointCount()
+    val canPublish = !publishing && !uploading && count <= limit &&
+        (draft.text.isNotBlank() || draft.attachments.isNotEmpty()) &&
+        (!draft.pollEnabled || draft.options.all { it.isNotBlank() })
+
     fun publish() {
-        if (busy) return
-        busy = true
+        if (!canPublish || publishing) return
+        publishing = true
         error = null
+        keyboard?.hide()
         scope.launch {
             try {
                 val payload = draft.payload()
@@ -217,334 +274,253 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                error = e.message
+                error = e.message ?: unknownError
             } finally {
-                busy = false
+                publishing = false
             }
         }
     }
-    Column(
-        Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        ErrorNotice(error) { error = null }
-        route.reply?.let {
-            Text(tr("mastodon_reply_to", "name" to it.account.name))
-            Text(plainText(it.content).take(240), style = MaterialTheme.typography.bodySmall)
+
+    fun attachMedia() {
+        if (uploading || publishing || draft.pollEnabled || draft.attachments.size >= 4) return
+        uploading = true
+        error = null
+        scope.launch {
+            try {
+                val files = ui.platform.pickMedia(4 - draft.attachments.size)
+                for (file in files) {
+                    val uploaded = ui.api.upload(file)
+                    draft.attachments = draft.attachments + uploaded
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                error = e.message ?: unknownError
+            } finally {
+                uploading = false
+            }
         }
-        route.quote?.let {
-            Text("❞ @${it.account.acct}")
-            Text(plainText(it.content).take(240), style = MaterialTheme.typography.bodySmall)
+    }
+
+    val languageOptions = composerLanguages(ui.platform.languageTag, draft.language)
+    val languageLabel = languageOptions.first { it.first == draft.language }.second
+    val visibilityLabel = tr(PostVisibility.from(draft.visibility).labelKey)
+    val quotePolicies = if (route.edit == null) quoteOptions()
+        else listOf("" to tr("mastodon_keep_current_setting")) + quoteOptions()
+    val quoteLabel = quotePolicies.firstOrNull { it.first == draft.quotePolicy }?.second ?: draft.quotePolicy
+
+    Column(Modifier.fillMaxSize().imePadding()) {
+        ComposerHeader(title, ui::requestBack, closeEnabled = !publishing) {
+            Button(
+                onClick = ::publish,
+                enabled = canPublish,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            ) {
+                if (publishing) {
+                    CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(6.dp))
+                }
+                Text(tr(if (route.edit == null) "mastodon_publish" else "mastodon_save_changes"))
+            }
         }
-        Toggle(tr("mastodon_content_warning"), showWarning) {
-            showWarning = it
-            if (!it) draft.spoiler = ""
+        error?.let { message ->
+            Surface(color = MaterialTheme.colorScheme.errorContainer) {
+                Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(message, Modifier.weight(1f).padding(vertical = 6.dp), maxLines = 3, overflow = TextOverflow.Ellipsis)
+                    IconButton(onClick = { error = null }) { Icon(Icons.Default.Close, tr("mastodon_close")) }
+                }
+            }
         }
-        if (showWarning) OutlinedTextField(
+        Column(
+            Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            route.reply?.let { ComposerContext(it, tr("mastodon_reply_to", "name" to it.account.name)) }
+            ui.me?.let { account ->
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    AccountAvatar(account, 44.dp)
+                    Column(Modifier.weight(1f)) {
+                        EmojiText(account.name, account.emojis, style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                        val handle = account.acct.let { if ('@' in it) it else "$it@${ui.api.instance}" }
+                        Text("@$handle", style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+            }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), itemVerticalAlignment = Alignment.CenterVertically) {
+                if (route.edit == null) {
+                    ComposerChoice(tr("mastodon_visibility"), visibilityLabel, visibilityLabel, enabled = !publishing,
+                        icon = composerVisibilityIcon(draft.visibility), onClick = { openPanel(ComposerPanel.Visibility) })
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Icon(composerVisibilityIcon(draft.visibility), null, Modifier.size(16.dp))
+                        Text(visibilityLabel, style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+                ComposerChoice(tr("mastodon_post_language"), languageLabel,
+                    if (draft.language.isBlank()) tr("settings_language") else draft.language.uppercase(),
+                    enabled = !publishing, onClick = { openPanel(ComposerPanel.Language) })
+                if (route.edit != null) ComposerChoice(tr("mastodon_compose_quote_policy"), quoteLabel,
+                    tr("mastodon_compose_quote_policy"), enabled = !publishing,
+                    onClick = { openPanel(ComposerPanel.QuotePolicy) })
+            }
+            if (route.edit != null) Text(tr("mastodon_visibility_fixed"), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (showWarning) OutlinedTextField(
                 draft.spoiler,
                 { draft.spoiler = it },
                 label = { Text(tr("mastodon_content_warning")) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().focusRequester(warningFocus),
                 shape = MaterialTheme.shapes.medium,
-                enabled = !busy,
+                enabled = !publishing,
             )
-        OutlinedTextField(
-            draft.textInput,
-            { draft.textInput = it },
-            label = { Text(tr("mastodon_content")) },
-            placeholder = { Text(tr("mastodon_what_is_on_your_mind")) },
-            modifier = Modifier.fillMaxWidth(),
-            minLines = 6,
-            shape = MaterialTheme.shapes.medium,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-            ),
-            enabled = !busy,
-            isError = count > limit,
-        )
-        if (suggestions.isNotEmpty() && hashtag != null) {
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Column {
-                    suggestions.forEach { tag ->
-                        TextButton(
-                            onClick = { draft.textInput = completeHashtag(draft.textInput, hashtag, tag.name) },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { Text("#${tag.name}") }
-                    }
-                }
-            }
-        }
-        Text(
-            "$count / $limit",
-            color =
-                if (count > limit) MaterialTheme.colorScheme.error
-                else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        draft.attachments.forEach { media ->
-            Card {
-                Column(Modifier.padding(12.dp)) {
-                    AsyncImage(
-                        safeWebUrl(media.previewUrl ?: media.url.orEmpty()),
-                        media.description,
-                        Modifier.fillMaxWidth().height(120.dp),
-                        contentScale = ContentScale.Crop,
-                    )
-                    Text(media.description.orEmpty())
-                    Row {
-                        TextButton(
-                            onClick = {
-                                editingAlt = media
-                                alt = media.description.orEmpty()
-                            },
-                            enabled = !busy,
-                        ) {
-                            Text(tr("mastodon_add_alt_text"))
-                        }
-                        TextButton(
-                            onClick = {
-                                draft.attachments =
-                                    draft.attachments.filterNot { it.id == media.id }
-                            },
-                            enabled = !busy,
-                        ) {
-                            Text(tr("mastodon_remove_attachment"))
-                        }
-                    }
-                }
-            }
-        }
-        Row(Modifier.horizontalScroll(rememberScrollState())) {
-            FilledTonalButton(
-                onClick = {
-                    busy = true
-                    scope.launch {
-                        try {
-                            val files = ui.platform.pickMedia(4 - draft.attachments.size)
-                            for (file in files) {
-                                val uploaded = ui.api.upload(file)
-                                draft.attachments = draft.attachments + uploaded
-                            }
-                        } catch (e: CancellationException) {
-                            throw e
-                        } catch (e: Exception) {
-                            error = e.message
-                        } finally {
-                            busy = false
-                        }
+            val bodyStyle = MaterialTheme.typography.titleLarge.copy(
+                fontWeight = FontWeight.Normal, fontSize = 21.sp, lineHeight = 30.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            val contentLabel = tr("mastodon_content")
+            BasicTextField(
+                value = draft.textInput,
+                onValueChange = { draft.textInput = it },
+                modifier = Modifier.fillMaxWidth().focusRequester(bodyFocus).semantics { contentDescription = contentLabel },
+                minLines = 3,
+                textStyle = bodyStyle,
+                enabled = !publishing,
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                decorationBox = { input ->
+                    Box {
+                        if (draft.text.isEmpty()) Text(tr("mastodon_what_is_on_your_mind"), style = bodyStyle,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        input()
                     }
                 },
-                enabled = !busy && !draft.pollEnabled && draft.attachments.size < 4,
-            ) {
-                Icon(Icons.Default.Add, null, Modifier.size(20.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(tr("mastodon_add_media"))
-            }
-            Spacer(Modifier.width(8.dp))
-            OutlinedButton(
-                onClick = {
-                    keyboard?.hide()
-                    showEmoji = true
-                    if (!emojisLoaded && !emojisLoading) {
-                        emojisLoading = true
-                        scope.launch {
-                            try {
-                                emojis = ui.api.emojis()
-                                emojisLoaded = true
-                            } catch (e: CancellationException) { throw e }
-                            catch (e: Exception) { error = e.message }
-                            finally { emojisLoading = false }
-                        }
-                    }
-                }
-            ) {
-                Icon(Icons.Default.Face, null, Modifier.size(20.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(tr("mastodon_emoji"))
-            }
-        }
-        Toggle(tr("mastodon_sensitive_content"), draft.sensitive, draft::chooseSensitive)
-        if (draft.attachments.isEmpty())
-            Toggle(tr("mastodon_poll"), draft.pollEnabled) { draft.pollEnabled = it }
-        if (draft.pollEnabled) {
-            draft.options.forEachIndexed { i, option ->
-                Row {
-                    OutlinedTextField(
-                        option,
-                        { value ->
-                            draft.options =
-                                draft.options.mapIndexed { index, old ->
-                                    if (index == i) value else old
-                                }
-                        },
-                        label = {
-                            Text(tr("mastodon_poll_option_hint", "n" to (i + 1).toString()))
-                        },
-                        modifier = Modifier.weight(1f),
-                    )
-                    if (draft.options.size > 2)
-                        TextButton(
-                            onClick = {
-                                draft.options =
-                                    draft.options.filterIndexed { index, _ -> i != index }
-                            }
-                        ) {
-                            Text("−")
-                        }
+            )
+            if (count > limit) Text(tr("mastodon_char_limit_exceeded"), style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.error)
+            if (suggestions.isNotEmpty() && hashtag != null) FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                suggestions.forEach { tag ->
+                    TextButton(enabled = !publishing, onClick = {
+                        draft.textInput = completeHashtag(draft.textInput, hashtag, tag.name)
+                    }) { Text("#${tag.name}") }
                 }
             }
-            if (draft.options.size < 4)
-                TextButton(onClick = { draft.options = draft.options + "" }) {
-                    Text(tr("mastodon_add_poll_option"))
+            route.quote?.let { ComposerContext(it, tr("mastodon_quoted_post") + " · @${it.account.acct}") }
+            if (draft.pollEnabled) PollEditor(draft, pollFocus, !publishing)
+            draft.attachments.forEach { media ->
+                DraftAttachment(media, enabled = !publishing, onEdit = {
+                    alt = media.description.orEmpty()
+                    altError = null
+                    editingAlt = media
+                }, onRemove = { draft.attachments = draft.attachments.filterNot { it.id == media.id } })
+            }
+            if (uploading) Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                Text(tr("mastodon_uploading"), style = MaterialTheme.typography.labelLarge)
+            }
+        }
+        ComposerToolbar(
+            count = count, limit = limit, enabled = !publishing,
+            canAttach = !uploading && !draft.pollEnabled && draft.attachments.size < 4,
+            canPoll = !uploading && draft.attachments.isEmpty(),
+            showWarning = showWarning, showPoll = draft.pollEnabled,
+            onAttach = ::attachMedia, onEmoji = { openPanel(ComposerPanel.Emoji) },
+            onWarning = { checked ->
+                if (checked) draft.spoiler = previousWarning else {
+                    previousWarning = draft.spoiler
+                    draft.spoiler = ""
                 }
-            Toggle(tr("mastodon_compose_poll_multiple_choice"), draft.multiple) {
-                draft.multiple = it
-            }
-            Toggle("Hide totals until poll closes", draft.hideTotals) { draft.hideTotals = it }
-            Choice(
-                tr("mastodon_poll_length"),
-                draft.duration.toString(),
-                listOf(
-                    "300" to "5 min",
-                    "1800" to "30 min",
-                    "3600" to "1 hour",
-                    "21600" to "6 hours",
-                    "86400" to "1 day",
-                    "259200" to "3 days",
-                    "604800" to "7 days",
-                ),
-            ) {
-                draft.duration = it.toInt()
-            }
-        }
-        if (route.edit == null) {
-            Choice(tr("mastodon_visibility"), draft.visibility, visibilityOptions()) {
-                draft.chooseVisibility(it)
-            }
-        } else {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                shape = MaterialTheme.shapes.medium,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            ) {
-                Column(
-                    Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Text(
-                        tr("mastodon_visibility"),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        tr(PostVisibility.from(draft.visibility).labelKey),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Text(
-                        tr("mastodon_visibility_fixed"),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        }
-        val systemLanguage = ui.platform.languageTag.substringBefore('-').lowercase()
-        val languages = listOf("" to tr("mastodon_language_default")) +
-            postLanguages.filter { it.first == systemLanguage }.map {
-                it.first to "${tr("settings_language_system")} (${it.second})"
-            } + postLanguages.filterNot { it.first == systemLanguage }
-        Choice(tr("mastodon_post_language"), draft.language,
-            if (draft.language.isNotBlank() && languages.none { it.first == draft.language })
-                languages + (draft.language to draft.language)
-            else languages,
-        ) { draft.chooseLanguage(it) }
-        val quotePolicies = if (route.edit != null)
-            listOf("" to tr("mastodon_keep_current_setting")) + quoteOptions()
-        else quoteOptions()
-        Choice(tr("mastodon_compose_quote_policy"), draft.quotePolicy, quotePolicies) {
-            draft.chooseQuotePolicy(it)
-        }
-        Row(Modifier.fillMaxWidth()) {
-            Button(
-                onClick = ::publish,
-                modifier = Modifier.weight(1f).heightIn(min = 52.dp),
-                enabled =
-                    !busy &&
-                        count <= limit &&
-                        (draft.text.isNotBlank() || draft.attachments.isNotEmpty()) &&
-                        (!draft.pollEnabled || draft.options.all { it.isNotBlank() }),
-            ) {
-                Text(tr(if (route.edit == null) "mastodon_publish" else "mastodon_save_changes"))
-            }
-            TextButton(
-                onClick = { if (draft.dirty) discard = true else ui.back() },
-                enabled = !busy,
-            ) {
-                Text(tr("mastodon_cancel"))
-            }
-        }
-        if (busy) Loading()
-    }
-    if (showEmoji) EmojiPickerSheet(
-        emojis,
-        emojisLoading,
-        onSelect = { draft.textInput = insertAtSelection(draft.textInput, it) },
-        onDismiss = { showEmoji = false },
-    )
-    if (discard)
-        AlertDialog(
-            onDismissRequest = { discard = false },
-            title = { Text(tr("mastodon_discard_draft")) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        ui.drafts.remove(key)
-                        discard = false
-                        ui.back()
-                    }
-                ) {
-                    Text(tr("mastodon_discard"))
-                }
+                showWarning = checked
+                requestedFocus = if (checked) warningFocus else bodyFocus
             },
-            dismissButton = {
-                TextButton(onClick = { discard = false }) { Text(tr("mastodon_cancel")) }
+            onPoll = { checked ->
+                draft.pollEnabled = checked
+                requestedFocus = if (checked) pollFocus else bodyFocus
             },
+            onOptions = { openPanel(ComposerPanel.Options) },
         )
+    }
+    val dismissPanel = { panel = null }
+    when (panel) {
+        null -> Unit
+        ComposerPanel.Emoji -> EmojiPickerSheet(
+            emojis.orEmpty(), loading = emojis == null && emojiError == null,
+            error = emojiError, onRetry = { emojiAttempt++ },
+            onSelect = { draft.textInput = insertAtSelection(draft.textInput, it) }, onDismiss = dismissPanel,
+        )
+        ComposerPanel.Visibility -> ChoiceSheet(tr("mastodon_visibility"), draft.visibility, visibilityOptions(),
+            draft::chooseVisibility, dismissPanel)
+        ComposerPanel.Language -> ChoiceSheet(tr("mastodon_post_language"), draft.language, languageOptions,
+            draft::chooseLanguage, dismissPanel)
+        ComposerPanel.QuotePolicy -> ChoiceSheet(tr("mastodon_compose_quote_policy"), draft.quotePolicy, quotePolicies,
+            draft::chooseQuotePolicy, dismissPanel)
+        ComposerPanel.Options -> ModalBottomSheet(
+            onDismissRequest = dismissPanel, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)
+                .padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(tr("mastodon_post_options"), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+                    IconButton(onClick = dismissPanel) { Icon(Icons.Default.Close, tr("mastodon_close")) }
+                }
+                Toggle(tr("mastodon_sensitive_content"), draft.sensitive, draft::chooseSensitive)
+                Choice(tr("mastodon_compose_quote_policy"), draft.quotePolicy, quotePolicies, draft::chooseQuotePolicy)
+            }
+        }
+    }
+    if (discard) AlertDialog(
+        onDismissRequest = { discard = false },
+        title = { Text(tr("mastodon_discard_draft")) },
+        confirmButton = {
+            TextButton(onClick = {
+                ui.drafts.remove(key)
+                discard = false
+                ui.back()
+            }) { Text(tr("mastodon_discard"), color = MaterialTheme.colorScheme.error) }
+        },
+        dismissButton = { TextButton(onClick = { discard = false }) { Text(tr("mastodon_cancel")) } },
+    )
     editingAlt?.let { media ->
         AlertDialog(
-            onDismissRequest = { editingAlt = null },
+            onDismissRequest = { if (!savingAlt) editingAlt = null },
             title = { Text(tr("mastodon_edit_description")) },
             text = {
-                OutlinedTextField(
-                    alt,
-                    { alt = it },
-                    label = { Text(tr("mastodon_description_hint")) },
-                    minLines = 3,
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        ui.run {
-                            val updated = ui.api.updateMedia(media.id, alt)
-                            draft.attachments =
-                                draft.attachments.map { if (it.id == media.id) updated else it }
-                            editingAlt = null
-                        }
-                    }
-                ) {
-                    Text(tr("mastodon_save"))
+                Column {
+                    OutlinedTextField(alt, { alt = it }, label = { Text(tr("mastodon_description_hint")) },
+                        enabled = !savingAlt, minLines = 3)
+                    ErrorNotice(altError)
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { editingAlt = null }) { Text(tr("mastodon_cancel")) }
+            confirmButton = {
+                TextButton(enabled = !savingAlt, onClick = {
+                    if (savingAlt) return@TextButton
+                    savingAlt = true
+                    altError = null
+                    scope.launch {
+                        try {
+                            val updated = ui.api.updateMedia(media.id, alt)
+                            draft.attachments = draft.attachments.map { if (it.id == media.id) updated else it }
+                            editingAlt = null
+                        } catch (e: CancellationException) { throw e }
+                        catch (e: Exception) { altError = e.message ?: unknownError }
+                        finally { savingAlt = false }
+                    }
+                }) { Text(tr("mastodon_save")) }
             },
+            dismissButton = { TextButton(enabled = !savingAlt, onClick = { editingAlt = null }) { Text(tr("mastodon_cancel")) } },
         )
     }
+}
+
+@Composable
+private fun composerLanguages(languageTag: String, selected: String): List<Pair<String, String>> {
+    val systemLanguage = languageTag.substringBefore('-').lowercase()
+    val options = listOf("" to tr("mastodon_language_default")) +
+        postLanguages.filter { it.first == systemLanguage }.map {
+            it.first to "${tr("settings_language_system")} (${it.second})"
+        } + postLanguages.filterNot { it.first == systemLanguage }
+    return if (options.any { it.first == selected }) options else options + (selected to selected)
 }
 
 private fun String.codePointCount(): Int = count { it !in '\uDC00'..'\uDFFF' }

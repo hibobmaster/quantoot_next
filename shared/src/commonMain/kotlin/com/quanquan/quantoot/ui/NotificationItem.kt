@@ -1,6 +1,6 @@
 package com.quanquan.quantoot.ui
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -8,21 +8,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import com.quanquan.quantoot.data.plainText
-import com.quanquan.quantoot.data.safeWebUrl
 import com.quanquan.quantoot.model.Account
 import com.quanquan.quantoot.model.Notification
 import com.quanquan.quantoot.model.Status
@@ -75,135 +77,148 @@ internal fun NotificationItem(
     val label = if (interaction && actors.othersCount > 0)
         tr("mastodon_notification_others", "count" to actors.othersCount.toString(), "action" to action)
     else action
-    val inset = if (LocalDensity.current.fontScale > 1.3f) 16.dp else 48.dp
+    val largeType = LocalDensity.current.fontScale > 1.3f
+    val inset = if (largeType) 16.dp else 68.dp
+    val colors = MaterialTheme.colorScheme
+    val status = notification.status
     fun openEvent() {
-        val status = notification.status
         if (kind != NotificationKind.FollowRequest && status != null) ui.navigate(Screen.Thread(status.id))
         else ui.navigate(Screen.Profile(notification.account.id))
     }
-    Surface(color = MaterialTheme.colorScheme.surface) {
-        Column(Modifier.fillMaxWidth()) {
-            if (interaction && actors.othersCount > 0) {
-                FlowRow(
-                    Modifier.padding(start = inset, end = 16.dp, top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    itemVerticalAlignment = Alignment.CenterVertically,
-                ) {
-                    actors.visible.forEach { account -> NotificationAvatar(ui, account) }
-                    if (actors.overflowCount > 0) Text("+${actors.overflowCount}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
+    if (kind == NotificationKind.Mention && status != null) {
+        Column {
             Row(
-                Modifier.fillMaxWidth().clickable(onClick = ::openEvent)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                Modifier.fillMaxWidth().clickable(role = Role.Button) { ui.navigate(Screen.Profile(notification.account.id)) }
+                    .heightIn(min = 44.dp).padding(start = inset, end = 16.dp, top = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                val icon = when (kind) {
-                    NotificationKind.Mention -> PostIcons.Replies
-                    NotificationKind.Favourite -> Icons.Default.Star
-                    NotificationKind.Reblog -> PostIcons.Boost
-                    NotificationKind.Follow, NotificationKind.FollowRequest -> Icons.Default.Person
-                    NotificationKind.Poll -> PostIcons.Poll
-                    NotificationKind.Update -> Icons.Default.Edit
-                    NotificationKind.Unknown -> Icons.Default.Notifications
+                Icon(PostIcons.Replies, null, Modifier.size(16.dp), tint = colors.onSurfaceVariant)
+                Box(Modifier.weight(1f)) {
+                    EmojiText("${notification.account.name} $action", notification.account.emojis,
+                        style = MaterialTheme.typography.labelMedium.copy(color = colors.onSurfaceVariant), maxLines = 2)
                 }
-                val tint = when (kind) {
-                    NotificationKind.Favourite -> MaterialTheme.colorScheme.tertiary
-                    NotificationKind.Reblog, NotificationKind.Follow,
-                    NotificationKind.FollowRequest, NotificationKind.Update -> MaterialTheme.colorScheme.primary
-                    NotificationKind.Poll -> MaterialTheme.colorScheme.secondary
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                }
-                Icon(icon, null, Modifier.size(20.dp), tint = tint)
-                Column(Modifier.weight(1f)) {
-                    Box(Modifier.clickable { ui.navigate(Screen.Profile(notification.account.id)) }
-                        .heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically)) {
-                        EmojiText(notification.account.name, notification.account.emojis,
-                            style = MaterialTheme.typography.titleSmall)
-                    }
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        itemVerticalAlignment = Alignment.CenterVertically) {
-                        Text(label, style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(RelativeTimestamp(notification.createdAt),
-                            Modifier.semantics { contentDescription = notification.createdAt },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-                if (!interaction || actors.othersCount == 0) NotificationAvatar(ui, notification.account)
+                NotificationTime(notification)
             }
-            when (kind) {
-                NotificationKind.Mention -> notification.status?.let { StatusCard(ui, it) }
-                NotificationKind.Favourite, NotificationKind.Reblog -> notification.status?.let {
-                    InteractionStatusPreview(ui, it, Modifier.padding(start = inset, end = 16.dp, bottom = 12.dp))
-                }
-                NotificationKind.FollowRequest -> FlowRow(
-                    Modifier.fillMaxWidth().padding(start = inset, end = 16.dp, bottom = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    maxItemsInEachRow = if (LocalDensity.current.fontScale > 1.3f) 1 else 2,
-                ) {
-                    Button(onClick = { onFollowRequest(true) }, enabled = !handling,
-                        modifier = Modifier.weight(1f).heightIn(min = 48.dp)
-                            .testTag("approve-follow-request-${notification.id}")) {
-                        if (handling) {
-                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                            Spacer(Modifier.width(8.dp))
-                        }
-                        Text(tr("mastodon_follow_request_approve"))
-                    }
-                    OutlinedButton(onClick = { onFollowRequest(false) }, enabled = !handling,
-                        modifier = Modifier.weight(1f).heightIn(min = 48.dp)
-                            .testTag("reject-follow-request-${notification.id}")) {
-                        Text(tr("mastodon_follow_request_reject"))
-                    }
-                }
-                else -> Unit
-            }
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            StatusCard(ui, status)
         }
+        return
+    }
+    val symbol = when (kind) {
+        NotificationKind.Mention -> PostIcons.Replies
+        NotificationKind.Favourite -> Icons.Default.Favorite
+        NotificationKind.Reblog -> PostIcons.Boost
+        NotificationKind.Follow, NotificationKind.FollowRequest -> Icons.Default.Person
+        NotificationKind.Poll -> PostIcons.Poll
+        NotificationKind.Update -> Icons.Default.Edit
+        NotificationKind.Unknown -> Icons.Default.Notifications
+    }
+    Column(Modifier.fillMaxWidth().background(colors.surface)) {
+        Row(
+            Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = ::openEvent)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Box(
+                Modifier.size(46.dp).clickable(role = Role.Button) { ui.navigate(Screen.Profile(notification.account.id)) }
+                    .semantics { contentDescription = notification.account.name },
+            ) {
+                AccountAvatar(notification.account, 40.dp)
+                Box(
+                    Modifier.align(Alignment.BottomEnd).size(20.dp).background(colors.surface, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(symbol, null, Modifier.size(15.dp),
+                        tint = if (kind == NotificationKind.Favourite) colors.primary else colors.onSurface)
+                }
+            }
+            Column(Modifier.weight(1f)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        Modifier.weight(1f).clickable(role = Role.Button) { ui.navigate(Screen.Profile(notification.account.id)) }
+                            .padding(end = 8.dp),
+                    ) {
+                        EmojiText(notification.account.name, notification.account.emojis,
+                            style = MaterialTheme.typography.titleSmall, maxLines = 2)
+                    }
+                    if (!largeType) NotificationTime(notification)
+                }
+                Text(label, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
+                if (largeType) NotificationTime(notification)
+                if (interaction && actors.othersCount > 0) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        itemVerticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        actors.visible.drop(1).forEach { account ->
+                            Box(
+                                Modifier.size(44.dp).clickable(role = Role.Button) { ui.navigate(Screen.Profile(account.id)) }
+                                    .semantics { contentDescription = account.name },
+                                contentAlignment = Alignment.Center,
+                            ) { AccountAvatar(account, 30.dp) }
+                        }
+                        if (actors.overflowCount > 0) Text("+${actors.overflowCount}",
+                            style = MaterialTheme.typography.labelMedium, color = colors.onSurfaceVariant)
+                    }
+                }
+            }
+        }
+        if ((interaction || kind == NotificationKind.Update || kind == NotificationKind.Poll) && status != null) {
+            InteractionStatusPreview(ui, status, Modifier.padding(start = inset, end = 16.dp, bottom = 14.dp))
+        }
+        if (kind == NotificationKind.FollowRequest) {
+            FlowRow(
+                Modifier.fillMaxWidth().padding(start = inset, end = 16.dp, bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                maxItemsInEachRow = if (largeType) 1 else 2,
+            ) {
+                Button(onClick = { onFollowRequest(true) }, enabled = !handling,
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp).testTag("approve-follow-request-${notification.id}")) {
+                    if (handling) {
+                        CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(8.dp))
+                    }
+                    Text(tr("mastodon_follow_request_approve"))
+                }
+                OutlinedButton(onClick = { onFollowRequest(false) }, enabled = !handling,
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp).testTag("reject-follow-request-${notification.id}")) {
+                    Text(tr("mastodon_follow_request_reject"))
+                }
+            }
+        }
+        HorizontalDivider(thickness = Dp.Hairline, color = colors.outlineVariant)
     }
 }
 
 @Composable
-private fun NotificationAvatar(ui: UiContext, account: Account) {
-    Box(Modifier.size(48.dp).clickable { ui.navigate(Screen.Profile(account.id)) }
-        .semantics { contentDescription = account.name }, contentAlignment = Alignment.Center) {
-        AsyncImage(safeWebUrl(account.avatarStatic.ifBlank { account.avatar }), null,
-            Modifier.size(32.dp).clip(CircleShape), contentScale = ContentScale.Crop)
-    }
+private fun NotificationTime(notification: Notification) {
+    Text(RelativeTimestamp(notification.createdAt),
+        Modifier.widthIn(max = 128.dp).semantics { contentDescription = notification.createdAt },
+        maxLines = 1, overflow = TextOverflow.Ellipsis,
+        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
 private fun InteractionStatusPreview(ui: UiContext, entry: Status, modifier: Modifier) {
     val status = ui.statuses.project(entry)?.original ?: return
-    Surface(
-        onClick = { ui.navigate(Screen.Thread(status.id)) },
-        modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shape = MaterialTheme.shapes.medium,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    ) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AsyncImage(safeWebUrl(status.account.avatarStatic.ifBlank { status.account.avatar }), null,
-                    Modifier.size(24.dp).clip(CircleShape), contentScale = ContentScale.Crop)
-                Column(Modifier.weight(1f)) {
-                    EmojiText(status.account.name, status.account.emojis, style = MaterialTheme.typography.labelLarge, maxLines = 1)
-                    Text("@${status.account.acct}", style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+    val colors = MaterialTheme.colorScheme
+    Column(
+        modifier.fillMaxWidth().clickable(role = Role.Button) { ui.navigate(Screen.Thread(status.id)) }
+            .drawBehind {
+                val stroke = 2.dp.toPx()
+                val x = if (layoutDirection == LayoutDirection.Ltr) stroke / 2 else size.width - stroke / 2
+                drawLine(colors.outlineVariant, Offset(x, 0f), Offset(x, size.height), stroke)
             }
-            val preview = interactionPreviewText(status)
-            if (preview.isNotBlank()) EmojiText(preview, status.emojis,
-                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant), maxLines = 4)
-            if (status.spoilerText.isNotBlank()) Text(tr("mastodon_content_warning"),
-                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+            .heightIn(min = 48.dp).padding(horizontal = 12.dp, vertical = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically),
+    ) {
+        EmojiText(status.account.name, status.account.emojis, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+        val preview = interactionPreviewText(status)
+        if (preview.isNotBlank()) EmojiText(preview, status.emojis,
+            style = MaterialTheme.typography.bodyMedium.copy(color = colors.onSurfaceVariant), maxLines = 3)
+        if (status.spoilerText.isNotBlank()) Text(tr("mastodon_content_warning"),
+            style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant)
     }
 }

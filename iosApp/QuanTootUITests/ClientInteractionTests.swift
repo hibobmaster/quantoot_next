@@ -203,7 +203,7 @@ final class ClientInteractionTests: XCTestCase {
         }
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: stable, object: nil)], timeout: 5), .completed)
         app.buttons["Accounts"].firstMatch.tap()
-        XCTAssertTrue(app.staticTexts["Accounts"].firstMatch.waitForExistence(timeout: 15))
+        XCTAssertTrue(app.screenHeading("Accounts").waitForExistence(timeout: 15))
         app.buttons["Close"].firstMatch.tap()
     }
 

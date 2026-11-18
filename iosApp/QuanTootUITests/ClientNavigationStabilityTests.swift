@@ -159,12 +159,12 @@ final class ClientNavigationStabilityTests: XCTestCase {
         }
         XCTAssertTrue(server.exists && server.isHittable)
         server.tap()
-        let title = app.staticTexts["关于此服务器"].firstMatch
+        let title = app.screenHeading("关于此服务器")
         XCTAssertTrue(title.waitForExistence(timeout: 10))
         XCTAssertLessThan(title.frame.minY, app.frame.height * 0.2)
         XCTAssertFalse(app.buttons["设置"].exists)
         app.buttons["账号"].firstMatch.tap()
-        XCTAssertTrue(app.staticTexts["账号"].firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.screenHeading("账号").waitForExistence(timeout: 10))
         app.buttons["关闭"].firstMatch.tap()
         XCTAssertTrue(title.waitForExistence(timeout: 10))
         XCTAssertLessThan(title.frame.minY, app.frame.height * 0.2)
@@ -205,5 +205,14 @@ final class ClientNavigationStabilityTests: XCTestCase {
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
+    }
+}
+
+@MainActor
+extension XCUIApplication {
+    func screenHeading(_ title: String) -> XCUIElement {
+        descendants(matching: .any).matching(
+            NSPredicate(format: "identifier == %@ AND label == %@", "screen-title", title)
+        ).firstMatch
     }
 }

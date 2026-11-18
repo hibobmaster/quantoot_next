@@ -16,6 +16,7 @@ fun HtmlContent(
     emojis: List<CustomEmoji> = emptyList(),
     mentions: List<Mention> = emptyList(),
     tags: List<Tag> = emptyList(),
+    style: TextStyle = MaterialTheme.typography.bodyLarge,
 ) {
     val color = MaterialTheme.colorScheme.primary
     val shortcodes = emojis.map { it.shortcode }.toSet()
@@ -67,12 +68,13 @@ fun HtmlContent(
             val end = content.text.indexOfLast { !it.isWhitespace() }
             if (start < 0) AnnotatedString("") else content.subSequence(start, end + 1)
         }
+    if (annotated.isEmpty()) return
     SelectionContainer {
         Text(
             annotated,
             modifier,
             inlineContent = inline,
-            style = MaterialTheme.typography.bodyLarge,
+            style = style,
         )
     }
 }

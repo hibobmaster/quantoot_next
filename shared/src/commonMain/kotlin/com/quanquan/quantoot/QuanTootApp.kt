@@ -1,11 +1,16 @@
 package com.quanquan.quantoot
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,10 +22,9 @@ import androidx.compose.ui.unit.dp
 import com.quanquan.quantoot.auth.*
 import com.quanquan.quantoot.model.*
 import com.quanquan.quantoot.platform.PlatformServices
-import com.quanquan.quantoot.resources.*
 import com.quanquan.quantoot.ui.*
 import kotlinx.coroutines.*
-import org.jetbrains.compose.resources.painterResource
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 @Composable
 fun QuanTootApp(platform: PlatformServices) {
@@ -38,21 +42,21 @@ fun QuanTootApp(platform: PlatformServices) {
                     Modifier.fillMaxSize().safeDrawingPadding(),
                     contentAlignment = Alignment.TopCenter,
                 ) {
-                    Box(Modifier.widthIn(max = 760.dp).fillMaxSize()) {
+                    Box(Modifier.widthIn(max = 900.dp).fillMaxSize()) {
                         when {
                             !state.restored -> Loading()
                             state.locale == null ->
                                 Column {
                                     ErrorNotice(state.error) { scope.launch { store.restore() } }
-                                    Box(Modifier.weight(1f)) {
+                                    Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
                                         LanguageChooser { scope.launch { store.setLocale(it) } }
                                     }
                                 }
-                            state.instance == null -> InstanceScreen(store, state, platform)
+                            state.instance == null -> InstanceScreen(store, state)
                             else ->
                                 key(state.activeKey, state.instance, state.authorizationRevision) {
                                     val api = remember { store.client() }
-                                    if (api == null) InstanceScreen(store, state, platform)
+                                    if (api == null) InstanceScreen(store, state)
                                     else {
                                         DisposableEffect(api) { onDispose { api.close() } }
                                         AppShell(api, store, state, platform)
@@ -69,35 +73,37 @@ fun QuanTootApp(platform: PlatformServices) {
 @Composable
 private fun LanguageChooser(select: (String) -> Unit) {
     var language by remember { mutableStateOf("system") }
-    BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-        Column(
-            Modifier.widthIn(max = 480.dp).fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .heightIn(min = maxHeight)
-                .padding(horizontal = 24.dp, vertical = 32.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Image(painterResource(Res.drawable.quantoot_logo), "QuanToot", Modifier.size(96.dp))
-            Spacer(Modifier.height(24.dp))
-            Text(
-                tr("onboarding_language_title"),
-                style = MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                tr("onboarding_language_description"),
-                Modifier.padding(top = 12.dp, bottom = 28.dp),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            Choice(tr("settings_language"), language, languageOptions()) { language = it }
-            Button(
-                onClick = { select(language) },
-                modifier = Modifier.padding(top = 20.dp).fillMaxWidth().heightIn(min = 52.dp),
-            ) {
+    val deviceLanguage = LocalStrings.current.systemLanguage
+    CompositionLocalProvider(LocalStrings provides remember(language, deviceLanguage) { Strings(language, deviceLanguage) }) {
+        Column(Modifier.widthIn(max = 480.dp).fillMaxSize().padding(horizontal = 24.dp)) {
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(top = 28.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                    BrandMark(Modifier.size(52.dp))
+                    Wordmark()
+                }
+                Spacer(Modifier.height(44.dp))
+                Text(tr("onboarding_language_title"), style = MaterialTheme.typography.headlineLarge)
+                Text(tr("onboarding_language_description"), Modifier.padding(top = 8.dp, bottom = 24.dp),
+                    style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Column(Modifier.selectableGroup()) {
+                    languageOptions().forEach { (value, name) ->
+                        Row(
+                            Modifier.fillMaxWidth().selectable(language == value, role = Role.RadioButton,
+                                onClick = { language = value }).heightIn(min = 57.dp).padding(horizontal = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(name, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                            RadioButton(selected = language == value, onClick = null)
+                        }
+                        HorizontalDivider(thickness = Dp.Hairline)
+                    }
+                }
+            }
+            Button(onClick = { select(language) }, modifier = Modifier.fillMaxWidth()
+                .padding(vertical = 16.dp).heightIn(min = 52.dp)) {
                 Text(tr("onboarding_continue"))
+                Spacer(Modifier.width(10.dp))
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, null, Modifier.size(18.dp))
             }
         }
     }
@@ -111,7 +117,8 @@ private fun AppShell(
     state: SessionState,
     platform: PlatformServices,
 ) {
-    var tab by remember { mutableIntStateOf(0) }
+    var tab by remember { mutableStateOf(MainTab.Home) }
+    val homeReselected = remember { MutableSharedFlow<Unit>(extraBufferCapacity = 1) }
     var homeTimeline by remember { mutableStateOf(HomeTimeline.initial(state.activeSession != null)) }
     val routes = remember { mutableStateListOf<Screen>() }
     val scope = rememberCoroutineScope()
@@ -144,7 +151,7 @@ private fun AppShell(
             ui.run { unread = api.unreadCount() }
             try {
                 api.events(StreamSource.User).collect { event ->
-                    if (event is StreamEvent.Notify) unread++
+                    if (event is StreamEvent.Notify && (tab != MainTab.Notifications || routes.isNotEmpty())) unread++
                     ui.ingest(event)
                 }
             } catch (e: CancellationException) {
@@ -155,133 +162,68 @@ private fun AppShell(
         }
     }
     BackHandler(enabled = routes.isNotEmpty()) { ui.requestBack() }
-    val labels =
-        listOf(
-            tr("mastodon_home"),
-            tr("mastodon_explore"),
-            tr("mastodon_notifications"),
-            tr("mastodon_profile"),
-        )
-    val icons =
-        listOf(
-            Icons.Default.Home,
-            Icons.Default.Search,
-            Icons.Default.Notifications,
-            Icons.Default.Person,
-        )
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        if (routes.isEmpty()) labels[tab]
-                        else
-                            when (val screen = routes.last()) {
-                                is Screen.Feed -> screen.title
-                                is Screen.Thread -> tr("mastodon_posts")
-                                is Screen.Profile -> tr("mastodon_profile")
-                                is Screen.People ->
-                                    tr(
-                                        if (screen.following) "mastodon_following_count"
-                                        else "mastodon_followers_count_label"
-                                    )
-                                is Screen.Compose ->
-                                    tr(
-                                        if (screen.edit == null) "mastodon_new_post"
-                                        else "mastodon_edit_post"
-                                    )
-                                is Screen.Settings -> tr(screen.section?.titleKey ?: "settings_title")
-                                Screen.Accounts -> tr("mastodon_accounts")
-                                Screen.Instance -> tr("mastodon_choose_instance")
-                                Screen.EditProfile -> tr("mastodon_edit_profile")
-                            }
-                    )
+    val discovery = remember(ui) { DiscoveryState(ui) }
+    val route = routes.lastOrNull()
+    val snackbar = remember { SnackbarHostState() }
+    val message = ui.message
+    LaunchedEffect(message) {
+        if (message != null) {
+            snackbar.showSnackbar(message, withDismissAction = true, duration = SnackbarDuration.Short)
+            if (ui.message == message) ui.message = null
+        }
+    }
+    val select: (MainTab) -> Unit = { next ->
+        if (routes.isEmpty() && tab == MainTab.Home && next == tab) homeReselected.tryEmit(Unit)
+        routes.clear()
+        tab = next
+        if (next == MainTab.Notifications) unread = 0
+    }
+    val compose: () -> Unit = { ui.requireLogin { ui.navigate(Screen.Compose()) } }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val rail = maxWidth >= 840.dp && route !is Screen.Compose && route != Screen.EditProfile
+        Row(Modifier.fillMaxSize()) {
+            if (rail) DestinationRail(tab, unread, select, compose)
+            Scaffold(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentWindowInsets = WindowInsets(0),
+                snackbarHost = { SnackbarHost(snackbar) },
+                topBar = { if (route !is Screen.Compose) ShellHeader(ui, tab, route, rail) },
+                bottomBar = { if (!rail && route == null) DestinationBar(tab, unread, select) },
+                floatingActionButton = {
+                    if (!rail && ((route == null && tab != MainTab.Explore) || route is Screen.Feed || route is Screen.Profile))
+                        NewPostButton(compose)
                 },
-                navigationIcon = {
-                    if (routes.isNotEmpty())
-                        IconButton(onClick = ui::requestBack) {
-                            Icon(Icons.Default.ArrowBack, tr("mastodon_close"))
-                        }
-                },
-                actions = {
-                    if (routes.lastOrNull() !is Screen.Compose)
-                        IconButton(onClick = { ui.navigate(Screen.Accounts) }) {
-                            Icon(Icons.Default.Person, tr("mastodon_accounts"))
-                        }
-                    if (routes.lastOrNull() !is Screen.Compose && routes.lastOrNull() !is Screen.Settings)
-                        IconButton(onClick = { ui.navigate(Screen.Settings()) }) {
-                            Icon(Icons.Default.Settings, tr("settings_title"))
-                        }
-                },
-            )
-        },
-        bottomBar = {
-            if (routes.isEmpty())
-                NavigationBar {
-                    labels.forEachIndexed { i, label ->
-                        NavigationBarItem(
-                            selected = tab == i,
-                            onClick = {
-                                tab = i
-                                if (i == 2) unread = 0
-                            },
-                            icon = {
-                                BadgedBox(
-                                    badge = {
-                                        if (i == 2 && unread > 0) Badge { Text(unread.toString()) }
-                                    }
-                                ) {
-                                    Icon(icons[i], label)
+            ) { padding ->
+                Column(Modifier.fillMaxSize().padding(padding)) {
+                    if (route != Screen.Instance) ErrorNotice(state.error) { store.clearError() }
+                    ErrorNotice(ui.error, ui::retry)
+                    Box(Modifier.weight(1f)) {
+                        key(route, if (route == null) tab else null) {
+                            when (route) {
+                                is Screen.Feed -> FeedScreen(ui, route.source)
+                                is Screen.Thread -> ThreadScreen(ui, route.id, route.focusReplyId)
+                                is Screen.Profile -> ProfileScreen(ui, route.id)
+                                is Screen.People -> PeopleScreen(ui, route.id, route.following)
+                                is Screen.Compose -> ComposerScreen(ui, route)
+                                is Screen.Settings -> SettingsScreen(ui, state, route.section)
+                                Screen.Accounts -> AccountsScreen(ui, state)
+                                Screen.Instance -> InstanceScreen(store, state, showHeading = false) {
+                                    routes.clear()
+                                    homeTimeline = HomeTimeline.Local
+                                    tab = MainTab.Home
                                 }
-                            },
-                            label = { Text(label) },
-                        )
-                    }
-                }
-        },
-        floatingActionButton = {
-            if (routes.isEmpty() || routes.lastOrNull() is Screen.Feed || routes.lastOrNull() is Screen.Profile)
-                FloatingActionButton(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    onClick = { ui.requireLogin { ui.navigate(Screen.Compose()) } },
-                ) {
-                    Icon(Icons.Default.Add, tr("mastodon_new_post"))
-                }
-        },
-    ) { padding ->
-        Column(Modifier.padding(padding).fillMaxSize()) {
-            ErrorNotice(state.error) { store.clearError() }
-            ErrorNotice(ui.error, ui::retry)
-            ui.message?.let { text ->
-                Surface(color = MaterialTheme.colorScheme.primaryContainer) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(text, Modifier.weight(1f).padding(12.dp))
-                        TextButton(onClick = { ui.message = null }) { Text(tr("mastodon_close")) }
-                    }
-                }
-            }
-            Box(Modifier.weight(1f)) {
-                val route = routes.lastOrNull()
-                key(route, if (route == null) tab else -1) {
-                    when (route) {
-                        is Screen.Feed -> FeedScreen(ui, route.source)
-                        is Screen.Thread -> ThreadScreen(ui, route.id, route.focusReplyId)
-                        is Screen.Profile -> ProfileScreen(ui, route.id)
-                        is Screen.People -> PeopleScreen(ui, route.id, route.following)
-                        is Screen.Compose -> ComposerScreen(ui, route)
-                        is Screen.Settings -> SettingsScreen(ui, state, route.section)
-                        Screen.Accounts -> AccountsScreen(ui, state)
-                        Screen.Instance -> InstanceScreen(store, state, platform)
-                        Screen.EditProfile -> EditProfileScreen(ui)
-                        null ->
-                            when (tab) {
-                                0 -> HomeScreen(ui, homeTimeline) { homeTimeline = it }
-                                1 -> DiscoveryScreen(ui)
-                                2 -> if (ui.me != null) NotificationsScreen(ui) else LoginPrompt(ui)
-                                else -> ui.me?.let { ProfileScreen(ui, it.id) } ?: LoginPrompt(ui)
+                                Screen.EditProfile -> EditProfileScreen(ui)
+                                null -> when (tab) {
+                                    MainTab.Home -> HomeScreen(ui, homeTimeline, homeReselected) { homeTimeline = it }
+                                    MainTab.Explore -> DiscoveryScreen(ui, discovery)
+                                    MainTab.Notifications -> if (ui.me != null) NotificationsScreen(ui)
+                                        else LoginPrompt(ui, "mastodon_notifications_login_title", "mastodon_notifications_login_message", Icons.Default.Notifications)
+                                    MainTab.Profile -> ui.me?.let { ProfileScreen(ui, it.id) }
+                                        ?: LoginPrompt(ui, "mastodon_profile_login_title", "mastodon_profile_login_message", Icons.Default.Person)
+                                }
                             }
+                        }
                     }
                 }
             }
@@ -290,9 +232,26 @@ private fun AppShell(
 }
 
 @Composable
-fun LoginPrompt(ui: UiContext) {
-    Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text(tr("mastodon_login_required_message"))
-        Button(onClick = { ui.navigate(Screen.Instance) }) { Text(tr("mastodon_login")) }
+fun LoginPrompt(
+    ui: UiContext,
+    titleKey: String = "mastodon_login_title_activity",
+    messageKey: String = "mastodon_login_required_message",
+    icon: ImageVector = Icons.Default.Person,
+) {
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 32.dp, vertical = 36.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Surface(shape = androidx.compose.foundation.shape.CircleShape, color = MaterialTheme.colorScheme.surfaceContainer) {
+            Icon(icon, null, Modifier.padding(16.dp).size(28.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Text(tr(titleKey), Modifier.padding(top = 18.dp), style = MaterialTheme.typography.headlineSmall,
+            textAlign = TextAlign.Center)
+        Text(tr(messageKey), Modifier.widthIn(max = 360.dp).padding(top = 8.dp), style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        Button(onClick = { ui.navigate(Screen.Instance) }, modifier = Modifier.padding(top = 20.dp)) {
+            Text(tr("mastodon_login"))
+        }
     }
 }

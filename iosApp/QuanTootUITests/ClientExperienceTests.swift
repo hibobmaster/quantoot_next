@@ -75,7 +75,8 @@ final class ClientExperienceTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["-app_locale", "en"]
         app.launch()
-        search("https://pari.cafe/notes/atntpq6r0z3x18hr", in: app)
+        let query = "https://pari.cafe/notes/atntpq6r0z3x18hr"
+        search(query, in: app)
         let replies = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "View replies")).firstMatch
         XCTAssertTrue(replies.waitForExistence(timeout: 25))
         replies.tap()
@@ -83,6 +84,13 @@ final class ClientExperienceTests: XCTestCase {
         if !author.waitForExistence(timeout: 5) { app.swipeUp() }
         XCTAssertTrue(author.waitForExistence(timeout: 20))
         capture("Existing public conversation reply", app)
+        app.buttons["Close"].firstMatch.tap()
+        let field = app.textViews.matching(NSPredicate(format: "label BEGINSWITH %@", "Search ")).firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertEqual(field.value as? String, query)
+        XCTAssertTrue(replies.isHittable)
+        app.buttons["Clear search"].firstMatch.tap()
+        XCTAssertFalse(app.buttons["Clear search"].firstMatch.exists)
     }
 
     @MainActor
@@ -109,6 +117,10 @@ final class ClientExperienceTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.buttons["New post"].waitForExistence(timeout: 15))
         app.buttons["New post"].tap()
+        let publish = app.buttons["Publish"].firstMatch
+        XCTAssertTrue(publish.waitForExistence(timeout: 5))
+        XCTAssertFalse(publish.isEnabled)
+        capture("Empty writing canvas", app)
         let emoji = app.buttons["Emoji"]
         XCTAssertTrue(emoji.waitForExistence(timeout: 5))
         emoji.tap()
@@ -124,6 +136,8 @@ final class ClientExperienceTests: XCTestCase {
         XCTAssertTrue(defaultOption.waitForExistence(timeout: 5))
         capture("Post language choices", app)
         defaultOption.tap()
+        XCTAssertTrue(publish.isEnabled && publish.isHittable)
+        capture("Writing canvas with an unsent draft", app)
         app.buttons["Close"].firstMatch.tap()
         let discard = app.buttons["Discard"]
         XCTAssertTrue(discard.waitForExistence(timeout: 5))
