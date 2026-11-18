@@ -237,6 +237,43 @@ final class ClientExperienceTests: XCTestCase {
     }
 
     @MainActor
+    func testFederatedHashtagOpensTheNativeTimeline() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-app_locale", "en"]
+        app.launch()
+        search("https://mastodon.social/@Gargron/117634749643899696", in: app)
+        let text = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Shenanigans #Plushtodon")).firstMatch
+        XCTAssertTrue(text.waitForExistence(timeout: 20))
+        text.coordinate(withNormalizedOffset: CGVector(dx: 0.77, dy: 0.5)).tap()
+        XCTAssertTrue(app.screenHeading("#plushtodon").waitForExistence(timeout: 10))
+        let posts = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "View replies"))
+        XCTAssertTrue(posts.firstMatch.waitForExistence(timeout: 20))
+        capture("Native hashtag timeline", app)
+        app.buttons["Close"].firstMatch.tap()
+        XCTAssertTrue(text.isHittable)
+    }
+
+    @MainActor
+    func testGalleryShowsDescriptionWithoutAnAltButton() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-app_locale", "en"]
+        app.launch()
+        search("https://m.qqs.tw/@bobmaster/117247628423335722", in: app)
+        let preview = app.buttons["media-preview-117247626533796224"].firstMatch
+        XCTAssertTrue(preview.waitForExistence(timeout: 20))
+        XCTAssertFalse(app.buttons["ALT"].exists)
+        preview.tap()
+        let caption = app.staticTexts["moon-gomoku online multiplayers demo"]
+        XCTAssertTrue(caption.waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["ALT"].exists)
+        XCTAssertEqual(caption.frame.midX, app.frame.midX, accuracy: 2)
+        XCTAssertGreaterThan(caption.frame.minY, app.frame.height * 0.8)
+        capture("Centered gallery description", app)
+    }
+
+    @MainActor
     func testGalleryPreservesBothAttachmentsAndZoomControls() throws {
         continueAfterFailure = false
         let app = XCUIApplication()

@@ -3,9 +3,7 @@ package com.quanquan.quantoot.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PlayArrow
@@ -63,7 +61,6 @@ fun MediaAttachments(ui: UiContext, attachments: List<MediaAttachment>, sensitiv
     if (attachments.isEmpty()) return
     var revealed by remember(attachments.map { it.id }, sensitive) { mutableStateOf(!sensitive) }
     var gallery by remember { mutableStateOf<GalleryRequest?>(null) }
-    var alt by remember { mutableStateOf<String?>(null) }
     val spacing = 6.dp
     BoxWithConstraints(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))) {
         val width = maxWidth
@@ -80,7 +77,6 @@ fun MediaAttachments(ui: UiContext, attachments: List<MediaAttachment>, sensitiv
                     (width / mediaPreviewAspectRatio(attachments.first())).coerceIn(160.dp, 420.dp)
                 ),
                 onOpen = { open(0) },
-                onAlt = { alt = it },
             )
             3 -> Row(
                 Modifier.fillMaxWidth().height((width * 0.75f).coerceAtMost(420.dp)),
@@ -88,13 +84,13 @@ fun MediaAttachments(ui: UiContext, attachments: List<MediaAttachment>, sensitiv
             ) {
                 MediaPreview(
                     attachments[0], revealed, Modifier.weight(1f).fillMaxHeight(),
-                    onOpen = { open(0) }, onAlt = { alt = it },
+                    onOpen = { open(0) },
                 )
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(spacing)) {
                     for (index in 1..2) {
                         MediaPreview(
                             attachments[index], revealed, Modifier.weight(1f).fillMaxWidth(),
-                            onOpen = { open(index) }, onAlt = { alt = it },
+                            onOpen = { open(index) },
                         )
                     }
                 }
@@ -108,7 +104,7 @@ fun MediaAttachments(ui: UiContext, attachments: List<MediaAttachment>, sensitiv
                         indices.forEach { index ->
                             MediaPreview(
                                 attachments[index], revealed, Modifier.weight(1f).fillMaxHeight(),
-                                onOpen = { open(index) }, onAlt = { alt = it },
+                                onOpen = { open(index) },
                             )
                         }
                         repeat(columns - indices.size) { Spacer(Modifier.weight(1f)) }
@@ -140,18 +136,6 @@ fun MediaAttachments(ui: UiContext, attachments: List<MediaAttachment>, sensitiv
     gallery?.let { request ->
         MediaGallery(ui, request.attachments, request.index) { gallery = null }
     }
-    alt?.let { description ->
-        AlertDialog(
-            onDismissRequest = { alt = null },
-            title = { Text("ALT") },
-            text = {
-                Text(description, Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState()))
-            },
-            confirmButton = {
-                TextButton(onClick = { alt = null }) { Text(tr("mastodon_close")) }
-            },
-        )
-    }
 }
 
 @Composable
@@ -160,7 +144,6 @@ private fun MediaPreview(
     revealed: Boolean,
     modifier: Modifier,
     onOpen: () -> Unit,
-    onAlt: (String) -> Unit,
 ) {
     val preview = mediaPreviewUrl(media)
     var loading by remember(preview) { mutableStateOf(preview != null) }
@@ -222,16 +205,6 @@ private fun MediaPreview(
                         color = Color.White,
                         style = MaterialTheme.typography.labelSmall,
                     )
-                }
-            }
-            media.description?.takeIf { it.isNotBlank() }?.let { description ->
-                Surface(
-                    onClick = { onAlt(description) },
-                    modifier = Modifier.align(Alignment.BottomStart).padding(8.dp),
-                    color = Color.Black.copy(alpha = 0.7f),
-                    shape = RoundedCornerShape(6.dp),
-                ) {
-                    Text("ALT", Modifier.padding(horizontal = 8.dp, vertical = 5.dp), color = Color.White)
                 }
             }
         }

@@ -30,6 +30,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -154,7 +155,6 @@ fun MediaGallery(
     val url = mediaOriginalUrl(media)
     val scope = rememberCoroutineScope()
     val strings = LocalStrings.current
-    var showAlt by remember(pager.currentPage) { mutableStateOf(false) }
     val saveState = remember(items) { GallerySaveState() }
     fun save(target: GallerySaveTarget) {
         scope.launch {
@@ -256,23 +256,18 @@ fun MediaGallery(
                     enabled = pager.currentPage < items.size - 1,
                     colors = whiteControls,
                 ) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, tr("mastodon_next_media")) }
-                if (!media.description.isNullOrBlank()) {
-                    TextButton(
-                        onClick = { showAlt = !showAlt },
-                        colors = whiteText,
-                        modifier = Modifier.widthIn(min = 48.dp),
-                        contentPadding = PaddingValues(horizontal = 6.dp),
-                    ) { Text("ALT", softWrap = false, maxLines = 1) }
-                }
             }
-            if (showAlt) {
-                Text(
-                    media.description.orEmpty(),
-                    Modifier.fillMaxWidth().heightIn(max = 180.dp)
-                        .verticalScroll(rememberScrollState()).padding(16.dp),
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+            if (!media.description.isNullOrBlank()) {
+                key(pager.currentPage) {
+                    Text(
+                        media.description,
+                        Modifier.fillMaxWidth().heightIn(max = 120.dp)
+                            .verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
         }
     }
@@ -290,7 +285,7 @@ private fun GalleryPage(
     var playbackFailed by remember(url, active) { mutableStateOf(false) }
     Box(Modifier.fillMaxSize().clipToBounds(), contentAlignment = Alignment.Center) {
         when {
-            media.type == "image" && url != null -> GalleryImage(media, url, image, active, onDismiss)
+            media.type == "image" && url != null -> GalleryImage(url, image, active, onDismiss)
             media.type in listOf("video", "gifv", "audio") && url != null && !playbackFailed -> {
                 if (active) NativeVideoPlayer(
                     url,
@@ -310,7 +305,6 @@ private fun GalleryPage(
 
 @Composable
 private fun GalleryImage(
-    media: MediaAttachment,
     url: String,
     image: GalleryImageState,
     active: Boolean,
@@ -391,7 +385,7 @@ private fun GalleryImage(
     ) {
         AsyncImage(
             url,
-            media.description?.takeIf { it.isNotBlank() } ?: mediaTypeLabel(media.type),
+            mediaTypeLabel("image"),
             Modifier.fillMaxSize().graphicsLayer {
                 scaleX = image.scale
                 scaleY = image.scale

@@ -29,31 +29,29 @@ fun HtmlContent(
                         .replace(html, "")
                 fun fragment(value: String) =
                     plainText("\uE000$value\uE001").removePrefix("\uE000").removeSuffix("\uE001")
-                val links =
-                    Regex(
-                        "<a\\b[^>]*href\\s*=\\s*[\"']([^\"']*)[\"'][^>]*>([\\s\\S]*?)</a>",
-                        RegexOption.IGNORE_CASE,
-                    )
+                val links = Regex("""<a(?=\s)((?:[^'">]|"[^"]*"|'[^']*')*)>([\s\S]*?)</a\s*>""", RegexOption.IGNORE_CASE)
                 var cursor = 0
                 for (match in links.findAll(source)) {
                     appendEmojiText(
                         fragment(source.substring(cursor, match.range.first)),
                         shortcodes,
                     )
-                    val href = safeWebUrl(match.groupValues[1].replace("&amp;", "&"))
+                    val attributes = anchorAttributes(match.groupValues[1])
+                    val href = attributes["href"]?.replace("&amp;", "&")
                     val label = plainText(match.groupValues[2])
-                    if (href == null) appendEmojiText(label, shortcodes)
+                    val markedHashtag = attributes["class"].hasLinkToken("hashtag") || attributes["rel"].hasLinkToken("tag")
+                    val target = href?.let { contentTarget(it, mentions, tags, label, markedHashtag) }
+                    if (href == null || target == null) appendEmojiText(label, shortcodes)
                     else
                         withLink(
                             LinkAnnotation.Url(
                                 href,
                                 TextLinkStyles(SpanStyle(color = color)),
                                 LinkInteractionListener {
-                                    when (val target = contentTarget(href, mentions, tags)) {
+                                    when (target) {
                                         is ContentTarget.Profile -> ui.navigate(Screen.Profile(target.id))
                                         is ContentTarget.Hashtag -> ui.navigate(Screen.Feed(Timeline.Hashtag(target.tag), "#${target.tag}"))
                                         is ContentTarget.External -> ui.open(target.url)
-                                        null -> Unit
                                     }
                                 },
                             )
@@ -78,4 +76,7 @@ fun HtmlContent(
         )
     }
 }
+
+private fun String?.hasLinkToken(token: String): Boolean =
+    this?.split(Regex("\\s+"))?.any { it.equals(token, ignoreCase = true) } == true
 
