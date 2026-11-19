@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { generateReleaseNotes, versionTag } from './release-notes.mjs';
 
 const {
   FORGEJO_API_URL: apiUrl,
@@ -8,11 +9,12 @@ const {
   FORGEJO_REF: ref,
   FORGEJO_REF_NAME: tag,
   FORGEJO_REPOSITORY: repository,
+  FORGEJO_SERVER_URL: serverUrl,
   FORGEJO_TOKEN: token,
 } = process.env;
 
-const version = /^v(\d+\.\d+\.\d+(?:-[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)*)?)$/.exec(tag)?.[1];
-if (!version || event !== 'push' || ref !== `refs/tags/${tag}` || !apiUrl || !repository || !token) {
+const version = versionTag.exec(tag)?.[1];
+if (!version || event !== 'push' || ref !== `refs/tags/${tag}` || !apiUrl || !serverUrl || !repository || !token) {
   throw new Error('Expected a Forgejo Actions version tag push');
 }
 
@@ -32,6 +34,7 @@ if (manifest !== files.get(checksum).toString('utf8')) {
 }
 const fingerprint = sha256(files.get(checksum));
 const releaseMarker = `<!-- quantoot-android-manifest: ${fingerprint} -->`;
+const defaultNotes = () => generateReleaseNotes(tag, `${serverUrl.replace(/\/$/, '')}/${repository}`);
 
 async function api(method, path, { json, body, missingOk = false } = {}) {
   const response = await fetch(repoApi + path, {
@@ -56,7 +59,10 @@ async function verifyTag() {
 await verifyTag();
 const release = await api('GET', `/releases/tags/${encodeURIComponent(tag)}`, { missingOk: true })
   ?? await api('POST', '/releases', {
-    json: { tag_name: tag, name: tag, body: releaseMarker, draft: true, prerelease: version.includes('-') },
+    json: {
+      tag_name: tag, name: tag, body: `${defaultNotes()}\n\n${releaseMarker}`,
+      draft: true, prerelease: version.includes('-'),
+    },
   });
 const releasePath = `/releases/${release.id}`;
 const assetsPath = `${releasePath}/assets`;
@@ -85,8 +91,9 @@ function missingFiles(assets, recordedFingerprint) {
 // The Actions token can list private release assets but cannot download them.
 // Record the verified manifest before writing assets so a retry can resume safely.
 const missingAssets = missingFiles(await api('GET', assetsPath), previousFingerprint);
-if (!previousFingerprint) {
-  const body = notes ? `${notes}\n\n${releaseMarker}` : releaseMarker;
+const notesWithoutMarker = notes.replace(releaseMarker, '').trim();
+if (!previousFingerprint || !notesWithoutMarker) {
+  const body = `${notesWithoutMarker ? notes : defaultNotes()}\n\n${releaseMarker}`;
   await api('PATCH', releasePath, { json: { body } });
 }
 
