@@ -1,80 +1,172 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-page="privacy">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f8f5ed">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f2e9">
   <meta name="description" content="How QuanToot handles app data, Mastodon account data, media, and support messages." data-translate="content" data-zh-hans="了解 QuanToot 如何处理应用数据、Mastodon 账号数据、媒体和反馈邮件。" data-zh-hant="了解 QuanToot 如何處理應用程式資料、Mastodon 帳號資料、媒體和支援郵件。">
+  <meta property="og:title" content="Privacy policy · QuanToot">
+  <meta property="og:description" content="How QuanToot handles app data, Mastodon account data, media, and support messages.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://quantoot.qqs.tw/privacy/">
+  <meta property="og:image" content="https://quantoot.qqs.tw/assets/quantoot.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Privacy policy · QuanToot">
+  <meta name="twitter:description" content="How QuanToot handles app data, Mastodon account data, media, and support messages.">
   <link rel="canonical" href="https://quantoot.qqs.tw/privacy/">
-  <link rel="icon" href="/assets/quantoot.png" type="image/png"><link rel="stylesheet" href="/assets/site.css">
-  <script defer src="/assets/site.js"></script><title data-zh-hans="隐私政策 · QuanToot" data-zh-hant="隱私權政策 · QuanToot">Privacy policy · QuanToot</title>
+  <link rel="icon" href="/assets/quantoot.png" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/quantoot.png">
+  <link rel="stylesheet" href="/assets/site.css">
+  <script src="/assets/site.js" defer></script>
+  <title data-zh-hans="隐私政策 · QuanToot" data-zh-hant="隱私權政策 · QuanToot">Privacy policy · QuanToot</title>
 </head>
 <body>
+  <div class="scroll-progress" data-scroll-progress aria-hidden="true"></div>
   <a class="skip" href="#main" data-zh-hans="跳到正文" data-zh-hant="跳至主要內容">Skip to content</a>
-  <header class="top"><div class="wrap nav">
-    <a class="brand" href="/"><img src="/assets/quantoot.png" width="38" height="38" alt="">QuanToot</a>
-    <nav aria-label="Main navigation" data-translate="aria-label" data-zh-hans="主导航" data-zh-hant="主要導覽">
-      <a href="/support/" data-zh-hans="支持" data-zh-hant="支援">Support</a>
-      <select class="locale" data-select-language aria-label="Language" data-translate="aria-label" data-zh-hans="语言" data-zh-hant="語言" hidden>
-        <option value="en" lang="en">English</option>
-        <option value="zh-Hans" lang="zh-Hans">简体中文</option>
-        <option value="zh-Hant" lang="zh-Hant">繁體中文</option>
-      </select>
+  <header class="site-header" data-site-header>
+    <div class="wrap">
+      <div class="nav-shell">
+        <a class="brand" href="/" aria-label="QuanToot">
+          <img class="brand-icon" src="/assets/quantoot.png" width="34" height="34" alt="">
+          <span>QuanToot</span>
+        </a>
+        <nav class="nav-links" aria-label="Main navigation" data-translate="aria-label" data-zh-hans="主导航" data-zh-hant="主要導覽">
+          <a href="/#experience" data-zh-hans="体验" data-zh-hant="體驗">Experience</a>
+          <a href="/#screens" data-zh-hans="多屏" data-zh-hant="多螢幕">Screens</a>
+          <a href="/#details" data-zh-hans="细节" data-zh-hant="細節">Details</a>
+          <a href="/privacy/" aria-current="page" data-zh-hans="隐私" data-zh-hant="隱私">Privacy</a>
+          <a href="/support/" data-zh-hans="支持" data-zh-hant="支援">Support</a>
+        </nav>
+        <div class="nav-controls">
+          <button class="control-pill theme-btn" type="button" data-site-theme-toggle aria-pressed="false" aria-label="Toggle color theme" data-translate="aria-label" data-zh-hans="切换深浅主题" data-zh-hant="切換深淺主題" hidden>
+            <svg data-icon-moon viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.8 12.2A6.2 6.2 0 0 1 7.8 4.2a6.2 6.2 0 1 0 8 8Z"/></svg><svg data-icon-sun viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" aria-hidden="true" hidden><circle cx="10" cy="10" r="3.4"/><path d="M10 2.5v1.8M10 15.7v1.8M2.5 10h1.8M15.7 10h1.8M4.7 4.7l1.3 1.3M14 14l1.3 1.3M15.3 4.7 14 6M6 14l-1.3 1.3"/></svg>
+          </button>
+          <div class="lang-picker" data-lang-picker hidden>
+            <button class="control-pill lang-trigger" type="button" data-lang-trigger aria-haspopup="menu" aria-expanded="false" aria-controls="lang-menu" aria-label="Language" data-translate="aria-label" data-zh-hans="语言" data-zh-hant="語言">
+              <span class="lang-globe"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.2"/><path d="M3.2 10h13.6M10 2.8a10.5 10.5 0 0 1 0 14.4M10 2.8a10.5 10.5 0 0 0 0 14.4"/></svg></span>
+              <span class="lang-current" data-lang-current>English</span>
+              <svg class="lang-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5.5 7.75 4.5 4.5 4.5-4.5"/></svg>
+            </button>
+            <div id="lang-menu" class="lang-menu" role="menu" data-lang-menu aria-label="Choose language" data-translate="aria-label" data-zh-hans="选择语言" data-zh-hant="選擇語言" hidden>
+              <button class="lang-option" type="button" role="menuitemradio" data-lang-option="en" lang="en" aria-checked="true">
+                <span class="lang-option-label"><span>English</span><small class="lang-code">EN</small></span>
+                <span class="lang-check"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.5 10.5 3.6 3.6 7.4-8.2"/></svg></span>
+              </button>
+              <button class="lang-option" type="button" role="menuitemradio" data-lang-option="zh-Hans" lang="zh-Hans" aria-checked="false">
+                <span class="lang-option-label"><span>简体中文</span><small class="lang-code">简</small></span>
+                <span class="lang-check"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.5 10.5 3.6 3.6 7.4-8.2"/></svg></span>
+              </button>
+              <button class="lang-option" type="button" role="menuitemradio" data-lang-option="zh-Hant" lang="zh-Hant" aria-checked="false">
+                <span class="lang-option-label"><span>繁體中文</span><small class="lang-code">繁</small></span>
+                <span class="lang-check"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.5 10.5 3.6 3.6 7.4-8.2"/></svg></span>
+              </button>
+            </div>
+          </div>
+          <a class="nav-download-link" href="/#android" data-zh-hans="获取应用" data-zh-hant="取得應用">Get QuanToot</a>
+          <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu" data-translate="aria-label" data-zh-hans="打开菜单" data-zh-hant="開啟選單">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M3.5 6.5h13M3.5 13.5h13"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <nav id="mobile-nav" class="mobile-drawer" data-mobile-drawer aria-label="Mobile navigation" hidden>
+      <a href="/#experience" data-zh-hans="阅读体验" data-zh-hant="閱讀體驗">The reading experience</a>
+      <a href="/#screens" data-zh-hans="手机、折叠屏与平板" data-zh-hant="手機、摺疊螢幕與平板">Phones, foldables &amp; iPad</a>
+      <a href="/#details" data-zh-hans="细腻之处" data-zh-hant="細膩之處">Crafted details</a>
+      <a href="/#android" data-zh-hans="下载 Android 与 iOS 版" data-zh-hant="下載 Android 與 iOS 版">Download for Android &amp; iOS</a>
+      <a href="/privacy/" data-zh-hans="隐私政策" data-zh-hant="隱私權政策">Privacy policy</a>
+      <a href="/support/" data-zh-hans="支持与安全" data-zh-hant="支援與安全">Support &amp; safety</a>
     </nav>
-  </div></header>
-  <main class="document" id="main">
-    <p class="eyebrow">QuanToot</p>
-    <h1 data-zh-hans="隐私政策" data-zh-hant="隱私權政策">Privacy policy</h1>
-    <p data-zh-hans="更新日期：2026 年 11 月 19 日" data-zh-hant="更新日期為 2026 年 11 月 19 日">Updated November 19, 2026</p>
-    <section lang="en" data-language="en">
-      <p class="document-intro">QuanToot is an independent Mastodon client developed by BobMaster. This policy covers the iOS and Android apps and this website.</p>
-      <h2>Data on your device</h2>
-      <p>QuanToot stores your selected server, app preferences, and cached timelines and media on the device. Your Mastodon session and access token are stored with OS-provided secure storage. The app has no advertising, analytics, or tracking SDKs. QuanToot does not operate a social network or collect this local app data on a developer backend.</p>
-      <h2>Servers, content, and downloads</h2>
-      <p>QuanToot communicates with the Mastodon server you select. That operator may process your IP address, account data, posts, media, interactions, and activity according to its policies. Media hosts and linked sites may receive normal connection information when content is loaded. On Android, the optional update check requests release information and packages from the Forgejo host.</p>
-      <h2>Photos and media</h2>
-      <p>The app uses the system picker for media you select to attach or upload. A chosen item is sent to your server when you upload it. If you explicitly save a file to the photo library, QuanToot requests the access needed for that action.</p>
-      <h2>Your choices and retention</h2>
-      <p>Use <strong>Accounts → Remove account</strong> to remove a saved session, its token, and its cached timelines and notifications. Clear cached media in app settings. Removing the app clears its app container; iOS Keychain items can outlive an uninstall, so remove saved accounts before uninstalling if you want to clear their credentials. For permanent account deletion and server-held data, use <strong>Settings → Delete Mastodon account</strong> or contact your instance. <a href="/support/#account">Account deletion instructions</a>.</p>
-      <h2>Website and support email</h2>
-      <p>This site uses session storage for its language selector and contains no analytics scripts. Its hosting provider may process routine request information needed to deliver pages and protect the service. When you email support, BobMaster receives your email address, message, and any information you choose to include, and keeps it as needed to respond or handle follow-up. You can request deletion by email.</p>
-      <h2>Contact</h2>
-      <p>BobMaster · <a href="mailto:bobmaster@hibobmaster.com">bobmaster@hibobmaster.com</a></p>
-    </section>
-    <section lang="zh-Hans" data-language="zh-Hans" hidden>
-      <p class="document-intro">QuanToot 是 BobMaster 开发的独立 Mastodon 客户端。本政策适用于 iOS、Android 应用和此网站。</p>
-      <h2>保存在设备上的数据</h2>
-      <p>QuanToot 会在设备上保存所选实例、应用偏好、时间线和媒体缓存。Mastodon 登录会话和访问令牌由系统安全存储保护。应用不包含广告、分析或追踪 SDK，开发者未运营社交网络或收集这些本地应用数据的后端。</p>
-      <h2>实例、内容与下载</h2>
-      <p>应用直接与所选的 Mastodon 实例通信。实例运营者可能按其政策处理你的 IP 地址、账号资料、帖子、媒体、互动和活动记录。加载远程媒体或访问链接时，相关网站可能收到常规连接信息。在 Android 上主动检查更新时，应用会向 Forgejo 请求版本信息或安装包。</p>
-      <h2>照片和媒体</h2>
-      <p>应用通过系统选择器读取你明确选择的媒体。上传时，所选文件会发送给你的实例。主动保存文件到照片图库时，应用会按需请求相应权限。</p>
-      <h2>数据清理与账号删除</h2>
-      <p>可在<strong>账号 → 移除账号</strong>删除保存的会话和令牌，在应用设置中清理媒体缓存。卸载应用会清除应用容器，但 iOS 钥匙串数据可能在卸载后保留，如需删除登录凭据，请先在应用中移除账号。要永久删除账号及实例持有的数据，请使用<strong>设置 → 删除 Mastodon 账号</strong>或联系实例运营者。<a href="/support/#account">查看删除步骤</a>。</p>
-      <h2>网站与反馈邮件</h2>
-      <p>网站使用会话存储记住语言选择，不加载分析脚本。托管服务可能处理提供页面和保护服务所需的常规请求数据。你主动发邮件时，BobMaster 会收到你的邮箱地址、邮件内容和附件，仅按处理反馈和后续沟通所需保留。你可通过邮件申请删除。</p>
-      <h2>联系开发者</h2>
-      <p>BobMaster · <a href="mailto:bobmaster@hibobmaster.com">bobmaster@hibobmaster.com</a></p>
-    </section>
-    <section lang="zh-Hant" data-language="zh-Hant" hidden>
-      <p class="document-intro">QuanToot 是 BobMaster 開發的獨立 Mastodon 用戶端。本政策適用於 iOS、Android 應用程式和本網站。</p>
-      <h2>儲存在裝置上的資料</h2>
-      <p>QuanToot 會在裝置上儲存所選站台、應用程式偏好，以及時間軸和媒體快取。Mastodon 登入工作階段和存取權杖由作業系統提供的安全儲存機制保護。應用程式不含廣告、分析或追蹤 SDK。QuanToot 未營運社群網路，開發者也未架設後端收集這些本機資料。</p>
-      <h2>站台、內容與下載</h2>
-      <p>QuanToot 會與你選擇的 Mastodon 站台通訊。站台營運者可能依其政策處理你的 IP 位址、帳號資料、貼文、媒體、互動和活動紀錄。載入遠端媒體或開啟連結時，相關網站可能會收到一般連線資訊。你在 Android 上主動檢查更新時，應用程式會向 Forgejo 請求版本資訊或安裝套件。</p>
-      <h2>照片與媒體</h2>
-      <p>附加或上傳媒體時，應用程式會透過系統選擇器讀取你選取的項目。你上傳時，所選檔案會傳送至你的站台。你主動將檔案儲存到照片圖庫時，QuanToot 會請求所需權限。</p>
-      <h2>資料清除與帳號刪除</h2>
-      <p>使用<strong>帳號 → 移除帳號</strong>可移除已儲存的登入工作階段、權杖及該帳號的時間軸與通知快取。你也可以在應用程式設定中清除媒體快取。解除安裝會清除應用程式容器，但 iOS 鑰匙圈項目可能保留。若要清除登入憑證，請先在應用程式內移除帳號。若要永久刪除帳號及站台保有的資料，請使用<strong>設定 → 刪除 Mastodon 帳號</strong>或聯絡站台營運者。<a href="/support/#account">查看帳號刪除步驟</a>。</p>
-      <h2>網站與支援郵件</h2>
-      <p>本網站會在瀏覽器的工作階段儲存空間記住所選語言，並且不載入分析指令碼。代管業者可能會處理提供頁面及保護服務所需的一般請求資訊。你寄信尋求支援時，BobMaster 會收到你的電子郵件地址、信件內容和你提供的資料，並依回覆及後續處理所需保留。你可以透過電子郵件提出刪除申請。</p>
-      <h2>聯絡開發者</h2>
-      <p>BobMaster · <a href="mailto:bobmaster@hibobmaster.com">bobmaster@hibobmaster.com</a></p>
-    </section>
+  </header>
+  
+  <main class="doc-main" id="main">
+    <header class="doc-header">
+      <p class="kicker"><span class="kicker-rule" aria-hidden="true"></span><span>QuanToot</span></p>
+      <h1 data-zh-hans="隐私政策" data-zh-hant="隱私權政策">Privacy policy</h1>
+      <p class="doc-meta" data-zh-hans="更新日期：2026 年 11 月 19 日" data-zh-hant="更新日期：2026 年 11 月 19 日">Updated November 19, 2026</p>
+    </header>
+    <div class="doc-body">
+      <section lang="en" data-language="en">
+        <p class="doc-intro">QuanToot is an independent Mastodon client developed by BobMaster. This policy covers the iOS and Android apps and this website.</p>
+        <h2>Data on your device</h2>
+        <p>QuanToot stores your selected server, app preferences, and cached timelines and media on the device. Your Mastodon session and access token are stored with OS-provided secure storage. The app has no advertising, analytics, or tracking SDKs. QuanToot does not operate a social network or collect this local app data on a developer backend.</p>
+        <h2>Servers, content, and downloads</h2>
+        <p>QuanToot communicates with the Mastodon server you select. That operator may process your IP address, account data, posts, media, interactions, and activity according to its policies. Media hosts and linked sites may receive normal connection information when content is loaded. On Android, the optional update check requests release information and packages from the Forgejo host.</p>
+        <h2>Photos and media</h2>
+        <p>The app uses the system picker for media you select to attach or upload. A chosen item is sent to your server when you upload it. If you explicitly save a file to the photo library, QuanToot requests the access needed for that action.</p>
+        <h2>Your choices and retention</h2>
+        <p>Use <strong>Accounts → Remove account</strong> to remove a saved session, its token, and its cached timelines and notifications. Clear cached media in app settings. Removing the app clears its app container; iOS Keychain items can outlive an uninstall, so remove saved accounts before uninstalling if you want to clear their credentials. For permanent account deletion and server-held data, use <strong>Settings → Delete Mastodon account</strong> or contact your instance. <a href="/support/#account">Account deletion instructions</a>.</p>
+        <h2>Website and support email</h2>
+        <p>This site uses session storage for its language selector and contains no analytics scripts. Its hosting provider may process routine request information needed to deliver pages and protect the service. When you email support, BobMaster receives your email address, message, and any information you choose to include, and keeps it as needed to respond or handle follow-up. You can request deletion by email.</p>
+        <h2>Contact</h2>
+        <p>BobMaster · <a href="mailto:bobmaster@hibobmaster.com">bobmaster@hibobmaster.com</a></p>
+      </section>
+      <section lang="zh-Hans" data-language="zh-Hans" hidden>
+        <p class="doc-intro">QuanToot 是 BobMaster 开发的独立 Mastodon 客户端。本政策适用于 iOS、Android 应用和此网站。</p>
+        <h2>保存在设备上的数据</h2>
+        <p>QuanToot 会在设备上保存所选实例、应用偏好、时间线和媒体缓存。Mastodon 登录会话和访问令牌由系统安全存储保护。应用不包含广告、分析或追踪 SDK，开发者未运营社交网络或收集这些本地应用数据的后端。</p>
+        <h2>实例、内容与下载</h2>
+        <p>应用直接与所选的 Mastodon 实例通信。实例运营者可能按其政策处理你的 IP 地址、账号资料、帖子、媒体、互动和活动记录。加载远程媒体或访问链接时，相关网站可能收到常规连接信息。在 Android 上主动检查更新时，应用会向 Forgejo 请求版本信息或安装包。</p>
+        <h2>照片和媒体</h2>
+        <p>应用通过系统选择器读取你明确选择的媒体。上传时，所选文件会发送给你的实例。主动保存文件到照片图库时，应用会按需请求相应权限。</p>
+        <h2>数据清理与账号删除</h2>
+        <p>可在<strong>账号 → 移除账号</strong>删除保存的会话和令牌，在应用设置中清理媒体缓存。卸载应用会清除应用容器，但 iOS 钥匙串数据可能在卸载后保留，如需删除登录凭据，请先在应用中移除账号。要永久删除账号及实例持有的数据，请使用<strong>设置 → 删除 Mastodon 账号</strong>或联系实例运营者。<a href="/support/#account">查看删除步骤</a>。</p>
+        <h2>网站与反馈邮件</h2>
+        <p>网站使用会话存储记住语言选择，不加载分析脚本。托管服务可能处理提供页面和保护服务所需的常规请求数据。你主动发邮件时，BobMaster 会收到你的邮箱地址、邮件内容和附件，仅按处理反馈和后续沟通所需保留。你可通过邮件申请删除。</p>
+        <h2>联系开发者</h2>
+        <p>BobMaster · <a href="mailto:bobmaster@hibobmaster.com">bobmaster@hibobmaster.com</a></p>
+      </section>
+      <section lang="zh-Hant" data-language="zh-Hant" hidden>
+        <p class="doc-intro">QuanToot 是 BobMaster 開發的獨立 Mastodon 用戶端。本政策適用於 iOS、Android 應用程式和本網站。</p>
+        <h2>儲存在裝置上的資料</h2>
+        <p>QuanToot 會在裝置上儲存所選站台、應用程式偏好，以及時間軸和媒體快取。Mastodon 登入工作階段和存取權杖由作業系統提供的安全儲存機制保護。應用程式不含廣告、分析或追蹤 SDK。QuanToot 未營運社群網路，開發者也未架設後端收集這些本機資料。</p>
+        <h2>站台、內容與下載</h2>
+        <p>QuanToot 會與你選擇的 Mastodon 站台通訊。站台營運者可能依其政策處理你的 IP 位址、帳號資料、貼文、媒體、互動和活動紀錄。載入遠端媒體或開啟連結時，相關網站可能會收到一般連線資訊。你在 Android 上主動檢查更新時，應用程式會向 Forgejo 請求版本資訊或安裝套件。</p>
+        <h2>照片與媒體</h2>
+        <p>附加或上傳媒體時，應用程式會透過系統選擇器讀取你選取的項目。你上傳時，所選檔案會傳送至你的站台。你主動將檔案儲存到照片圖庫時，QuanToot 會請求所需權限。</p>
+        <h2>資料清除與帳號刪除</h2>
+        <p>使用<strong>帳號 → 移除帳號</strong>可移除已儲存的登入工作階段、權杖及該帳號的時間軸與通知快取。你也可以在應用程式設定中清除媒體快取。解除安裝會清除應用程式容器，但 iOS 鑰匙圈項目可能保留。若要清除登入憑證，請先在應用程式內移除帳號。若要永久刪除帳號及站台保有的資料，請使用<strong>設定 → 刪除 Mastodon 帳號</strong>或聯絡站台營運者。<a href="/support/#account">查看帳號刪除步驟</a>。</p>
+        <h2>網站與支援郵件</h2>
+        <p>本網站會在瀏覽器的工作階段儲存空間記住所選語言，並且不載入分析指令碼。代管業者可能會處理提供頁面及保護服務所需的一般請求資訊。你寄信尋求支援時，BobMaster 會收到你的電子郵件地址、信件內容和你提供的資料，並依回覆及後續處理所需保留。你可以透過電子郵件提出刪除申請。</p>
+        <h2>聯絡開發者</h2>
+        <p>BobMaster · <a href="mailto:bobmaster@hibobmaster.com">bobmaster@hibobmaster.com</a></p>
+      </section>
+    </div>
   </main>
-  <footer class="footer"><div class="wrap foot">
-    <a class="brand" href="/"><img src="/assets/quantoot.png" width="32" height="32" alt="">QuanToot</a>
-    <div><a href="/support/" data-zh-hans="支持" data-zh-hant="支援">Support</a><a href="https://git.qqs.tw/bobmaster/quantoot_next" data-zh-hans="源代码" data-zh-hant="原始碼">Source</a></div>
-    <small data-zh-hans="由 BobMaster 开发" data-zh-hant="由 BobMaster 開發">Made by BobMaster</small>
-  </div></footer>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="/">
+            <img class="brand-icon" src="/assets/quantoot.png" width="32" height="32" alt="">
+            <span>QuanToot</span>
+          </a>
+          <p data-zh-hans="适用于 iPhone、iPad、Android 与折叠屏的独立 Mastodon 客户端。天生克制安静——无广告、无追踪，也不在你和你的实例之间多留一道中间层。" data-zh-hant="適用於 iPhone、iPad、Android 與摺疊螢幕的獨立 Mastodon 用戶端。天生克制安靜——無廣告、無追蹤，也不在你與站台之間多留一道中間層。">An independent Mastodon client for iPhone, iPad, Android, and foldables. Quiet by design — with no ads, no analytics, and nothing between you and your server.</p>
+        </div>
+        <div class="footer-col">
+          <h3 data-zh-hans="浏览" data-zh-hant="瀏覽">Explore</h3>
+          <ul>
+            <li><a href="/#experience" data-zh-hans="阅读与书写" data-zh-hant="閱讀與書寫">Reading &amp; writing</a></li>
+            <li><a href="/#screens" data-zh-hans="多端舒展" data-zh-hant="多螢幕舒展">Every screen</a></li>
+            <li><a href="/#details" data-zh-hans="细腻之处" data-zh-hant="細膩之處">Crafted details</a></li>
+            <li><a href="/#android" data-zh-hans="下载获取" data-zh-hant="下載取得">Downloads</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3 data-zh-hans="信任与支持" data-zh-hant="信任與支援">Trust &amp; help</h3>
+          <ul>
+            <li><a href="/privacy/" data-zh-hans="隐私政策" data-zh-hant="隱私權政策">Privacy policy</a></li>
+            <li><a href="/support/" data-zh-hans="支持与安全" data-zh-hant="支援與安全">Support &amp; safety</a></li>
+            <li><a href="https://git.qqs.tw/bobmaster/quantoot_next" data-zh-hans="源代码仓库" data-zh-hant="原始碼儲存庫">Source repository</a></li>
+            <li><a href="https://git.qqs.tw/bobmaster/quantoot_next/releases" data-zh-hans="所有发行版本" data-zh-hant="所有發行版本">Release archive</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span data-zh-hans="由 BobMaster 倾心打造 · 独立 Mastodon 客户端" data-zh-hant="由 BobMaster 傾心打造 · 獨立 Mastodon 用戶端">Crafted by BobMaster · Independent Mastodon client</span>
+        <span><a href="mailto:bobmaster@hibobmaster.com">bobmaster@hibobmaster.com</a></span>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>

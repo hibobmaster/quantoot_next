@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node build.mjs",
     "check": "node verify.mjs",
+    "dev": "wrangler pages dev dist --port 4173",
     "deploy": "wrangler pages deploy dist --project-name quantoot --branch main"
   },
   "devDependencies": {

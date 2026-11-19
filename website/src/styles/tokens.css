@@ -1,0 +1,126 @@
+/* QuanToot Studio Design System Tokens */
+:root {
+  color-scheme: light;
+
+  /* Warm Linen Paper & Archival Ink */
+  --bg: #f6f2e9;
+  --bg-elevated: #fdfbf6;
+  --bg-subtle: #eee9dd;
+  --bg-muted: #e5dfd1;
+  --bg-card: #fcf9f2;
+
+  --ink: #171b18;
+  --ink-secondary: #3b423c;
+  --ink-muted: #5b635b;
+  --ink-faint: #7b8279;
+
+  /* Signature Palette — Vermilion Terracotta & Deep Forest Pine */
+  --vermilion: #b74029;
+  --vermilion-hover: #96301c;
+  --vermilion-soft: #ffe5db;
+  --vermilion-ink: #722411;
+  --vermilion-tint: rgba(183, 64, 41, 0.085);
+
+  --pine: #1e4239;
+  --pine-deep: #122923;
+  --pine-mid: #2c5a4e;
+  --pine-soft: #e2ebe7;
+  --pine-ink: #f6f2e7;
+
+  /* Hairlines, Glass & Architectural Shadows */
+  --line: rgba(23, 27, 24, 0.095);
+  --line-strong: rgba(23, 27, 24, 0.18);
+  --glass-bg: rgba(246, 242, 233, 0.78);
+  --shadow-sm: 0 2px 12px rgba(18, 24, 20, 0.045);
+  --shadow-md: 0 20px 48px -18px rgba(18, 26, 22, 0.13), 0 2px 10px rgba(18, 26, 22, 0.04);
+  --shadow-lg: 0 40px 96px -24px rgba(12, 24, 20, 0.28), 0 12px 32px -12px rgba(12, 24, 20, 0.12);
+  --shadow-hardware: 0 42px 92px -18px rgba(6, 16, 13, 0.62), 0 0 0 1px rgba(255, 251, 242, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+
+  /* Editorial Typography */
+  --font-serif: "New York", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Songti SC", "Noto Serif CJK SC", "STSong", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "PingFang SC", "PingFang TC", "Hiragino Sans GB", "Noto Sans CJK SC", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  /* Geometry & Rhythm */
+  --pad: clamp(1.25rem, 4.5vw, 4rem);
+  --max-w: 82rem;
+  --radius-sm: 0.65rem;
+  --radius-md: 1.1rem;
+  --radius-lg: 1.65rem;
+  --radius-xl: 2.25rem;
+  --radius-pill: 999px;
+
+  /* Motion Choreography */
+  --ease-out: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 180ms;
+  --dur-med: 420ms;
+  --dur-slow: 840ms;
+}
+
+/* Site-Wide Nocturne Theme */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #111311;
+  --bg-elevated: #181a17;
+  --bg-subtle: #1d201c;
+  --bg-muted: #252823;
+  --bg-card: #191b18;
+
+  --ink: #f3f1eb;
+  --ink-secondary: #cacbc3;
+  --ink-muted: #9da097;
+  --ink-faint: #757870;
+
+  --vermilion: #ff9c82;
+  --vermilion-hover: #ffb6a2;
+  --vermilion-soft: #4e2921;
+  --vermilion-ink: #ffd7cb;
+  --vermilion-tint: rgba(255, 156, 130, 0.12);
+
+  --pine: #19372f;
+  --pine-deep: #0f241e;
+  --pine-mid: #285246;
+  --pine-soft: #1a2d28;
+  --pine-ink: #f5f2e6;
+
+  --line: rgba(243, 241, 235, 0.095);
+  --line-strong: rgba(243, 241, 235, 0.2);
+  --glass-bg: rgba(17, 19, 17, 0.8);
+  --shadow-sm: 0 2px 14px rgba(0, 0, 0, 0.34);
+  --shadow-md: 0 22px 52px -16px rgba(0, 0, 0, 0.56);
+  --shadow-lg: 0 42px 96px -20px rgba(0, 0, 0, 0.76);
+}
+
+/* Faithful In-App Surfaces (Day & Night) */
+.app-surface-day {
+  --app-bg: #fdfcfa;
+  --app-surface: #fdfcfa;
+  --app-container-low: #f5f4f0;
+  --app-container: #efeee9;
+  --app-container-high: #e7e6e0;
+  --app-ink: #1a1b19;
+  --app-muted: #62645f;
+  --app-primary: #b74029;
+  --app-on-primary: #ffffff;
+  --app-primary-container: #ffe4da;
+  --app-on-primary-container: #772713;
+  --app-outline: #deded7;
+}
+
+.app-surface-night {
+  --app-bg: #121311;
+  --app-surface: #121311;
+  --app-container-low: #1b1c19;
+  --app-container: #242521;
+  --app-container-high: #2b2c28;
+  --app-ink: #f2f1ed;
+  --app-muted: #a5a7a0;
+  --app-primary: #ff9c82;
+  --app-on-primary: #48170b;
+  --app-primary-container: #512b23;
+  --app-on-primary-container: #ffd5c8;
+  --app-outline: #363732;
+}

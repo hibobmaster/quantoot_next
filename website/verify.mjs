@@ -16,7 +16,11 @@ for (const [route, heading] of pages) {
   if (!html.includes(canonical) || !html.includes(heading)) {
     throw new Error(`Missing heading or canonical URL on ${route}`);
   }
+  if (/\sstyle="/i.test(html) || /<style\b/i.test(html) || /\son[a-z]+="/i.test(html)) {
+    throw new Error(`CSP violation: inline style or event handler found on ${route}`);
+  }
   for (const [, ref] of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
+    if (ref.startsWith("mailto:") || ref.startsWith("#")) continue;
     const target = new URL(ref, origin + route);
     if (target.origin !== origin) continue;
     const filename = resolve(output, `.${decodeURIComponent(target.pathname)}`);
@@ -27,5 +31,15 @@ for (const [route, heading] of pages) {
     if (info.isDirectory()) await access(resolve(filename, "index.html"));
   }
 }
+
+const css = await readFile(resolve(output, "assets/site.css"), "utf8");
+const js = await readFile(resolve(output, "assets/site.js"), "utf8");
+if (!css.trim() || !js.trim()) {
+  throw new Error("Compiled CSS or JS bundle is empty");
+}
+if (/url\(\s*["']?data:/i.test(css)) {
+  throw new Error("CSP violation: data: URI found in CSS under img-src 'self'");
+}
+
 await access(resolve(output, "_headers"));
-console.log("Homepage, privacy policy, support and their local links passed.");
+console.log("Homepage, privacy policy, support, CSP checks, and local links passed.");

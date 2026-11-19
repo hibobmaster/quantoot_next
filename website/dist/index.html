@@ -3,135 +3,946 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f7f4ec">
-  <meta name="description" content="QuanToot is an independent Mastodon client for iOS and Android. Choose your server and read the social web at your pace." data-translate="content" data-zh-hans="QuanToot 是独立的 Mastodon 客户端，适用于 iOS 和 Android。选择自己的实例，按自己的节奏浏览。" data-zh-hant="QuanToot 是獨立的 Mastodon 用戶端，適用於 iOS 和 Android。選擇自己的站台，按自己的步調瀏覽。">
+  <meta name="theme-color" content="#f6f2e9">
+  <meta name="description" content="QuanToot is an independent Mastodon client for iPhone, iPad, Android, and foldables. Choose your server and read the social web at your pace." data-translate="content" data-zh-hans="QuanToot 是独立的 Mastodon 客户端，适用于 iPhone、iPad、Android 与折叠屏。选择自己的实例，按自己的节奏浏览。" data-zh-hant="QuanToot 是獨立的 Mastodon 用戶端，適用於 iPhone、iPad、Android 與摺疊螢幕。選擇自己的站台，按自己的步調瀏覽。">
   <meta property="og:title" content="QuanToot — The social web, at your pace">
-  <meta property="og:description" content="An independent Mastodon client for iOS and Android.">
+  <meta property="og:description" content="An independent Mastodon client for iPhone, iPad, Android, and foldables. Quiet by design — zero ads, zero tracking.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://quantoot.qqs.tw/">
+  <meta property="og:image" content="https://quantoot.qqs.tw/assets/quantoot.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="QuanToot — The social web, at your pace">
+  <meta name="twitter:description" content="An independent Mastodon client for iPhone, iPad, Android, and foldables. Quiet by design — zero ads, zero tracking.">
   <link rel="canonical" href="https://quantoot.qqs.tw/">
   <link rel="icon" href="/assets/quantoot.png" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/quantoot.png">
   <link rel="stylesheet" href="/assets/site.css">
   <script src="/assets/site.js" defer></script>
   <title data-zh-hans="QuanToot · 开放社交，自在一点" data-zh-hant="QuanToot · 開放社交，自在一點">QuanToot — The social web, at your pace</title>
 </head>
 <body>
+  <div class="scroll-progress" data-scroll-progress aria-hidden="true"></div>
   <a class="skip" href="#main" data-zh-hans="跳到正文" data-zh-hant="跳至主要內容">Skip to content</a>
-  <header class="top">
-    <div class="wrap nav">
-      <a class="brand" href="/" aria-label="QuanToot"><img src="/assets/quantoot.png" width="38" height="38" alt="">QuanToot</a>
-      <nav aria-label="Main navigation" data-translate="aria-label" data-zh-hans="主导航" data-zh-hant="主要導覽">
-        <a href="#features" data-zh-hans="功能" data-zh-hant="功能">Features</a>
-        <a href="/support/" data-zh-hans="支持" data-zh-hant="支援">Support</a>
-        <select class="locale" data-select-language aria-label="Language" data-translate="aria-label" data-zh-hans="语言" data-zh-hant="語言" hidden>
-          <option value="en" lang="en">English</option>
-          <option value="zh-Hans" lang="zh-Hans">简体中文</option>
-          <option value="zh-Hant" lang="zh-Hant">繁體中文</option>
-        </select>
-      </nav>
+  <header class="site-header" data-site-header>
+    <div class="wrap">
+      <div class="nav-shell">
+        <a class="brand" href="/" aria-label="QuanToot">
+          <img class="brand-icon" src="/assets/quantoot.png" width="34" height="34" alt="">
+          <span>QuanToot</span>
+        </a>
+        <nav class="nav-links" aria-label="Main navigation" data-translate="aria-label" data-zh-hans="主导航" data-zh-hant="主要導覽">
+          <a href="#experience" data-zh-hans="体验" data-zh-hant="體驗">Experience</a>
+          <a href="#screens" data-zh-hans="多屏" data-zh-hant="多螢幕">Screens</a>
+          <a href="#details" data-zh-hans="细节" data-zh-hant="細節">Details</a>
+          <a href="/privacy/" data-zh-hans="隐私" data-zh-hant="隱私">Privacy</a>
+          <a href="/support/" data-zh-hans="支持" data-zh-hant="支援">Support</a>
+        </nav>
+        <div class="nav-controls">
+          <button class="control-pill theme-btn" type="button" data-site-theme-toggle aria-pressed="false" aria-label="Toggle color theme" data-translate="aria-label" data-zh-hans="切换深浅主题" data-zh-hant="切換深淺主題" hidden>
+            <svg data-icon-moon viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.8 12.2A6.2 6.2 0 0 1 7.8 4.2a6.2 6.2 0 1 0 8 8Z"/></svg><svg data-icon-sun viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" aria-hidden="true" hidden><circle cx="10" cy="10" r="3.4"/><path d="M10 2.5v1.8M10 15.7v1.8M2.5 10h1.8M15.7 10h1.8M4.7 4.7l1.3 1.3M14 14l1.3 1.3M15.3 4.7 14 6M6 14l-1.3 1.3"/></svg>
+          </button>
+          <div class="lang-picker" data-lang-picker hidden>
+            <button class="control-pill lang-trigger" type="button" data-lang-trigger aria-haspopup="menu" aria-expanded="false" aria-controls="lang-menu" aria-label="Language" data-translate="aria-label" data-zh-hans="语言" data-zh-hant="語言">
+              <span class="lang-globe"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.2"/><path d="M3.2 10h13.6M10 2.8a10.5 10.5 0 0 1 0 14.4M10 2.8a10.5 10.5 0 0 0 0 14.4"/></svg></span>
+              <span class="lang-current" data-lang-current>English</span>
+              <svg class="lang-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5.5 7.75 4.5 4.5 4.5-4.5"/></svg>
+            </button>
+            <div id="lang-menu" class="lang-menu" role="menu" data-lang-menu aria-label="Choose language" data-translate="aria-label" data-zh-hans="选择语言" data-zh-hant="選擇語言" hidden>
+              <button class="lang-option" type="button" role="menuitemradio" data-lang-option="en" lang="en" aria-checked="true">
+                <span class="lang-option-label"><span>English</span><small class="lang-code">EN</small></span>
+                <span class="lang-check"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.5 10.5 3.6 3.6 7.4-8.2"/></svg></span>
+              </button>
+              <button class="lang-option" type="button" role="menuitemradio" data-lang-option="zh-Hans" lang="zh-Hans" aria-checked="false">
+                <span class="lang-option-label"><span>简体中文</span><small class="lang-code">简</small></span>
+                <span class="lang-check"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.5 10.5 3.6 3.6 7.4-8.2"/></svg></span>
+              </button>
+              <button class="lang-option" type="button" role="menuitemradio" data-lang-option="zh-Hant" lang="zh-Hant" aria-checked="false">
+                <span class="lang-option-label"><span>繁體中文</span><small class="lang-code">繁</small></span>
+                <span class="lang-check"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.5 10.5 3.6 3.6 7.4-8.2"/></svg></span>
+              </button>
+            </div>
+          </div>
+          <a class="nav-download-link" href="#android" data-zh-hans="获取应用" data-zh-hant="取得應用">Get QuanToot</a>
+          <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu" data-translate="aria-label" data-zh-hans="打开菜单" data-zh-hant="開啟選單">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M3.5 6.5h13M3.5 13.5h13"/></svg>
+          </button>
+        </div>
+      </div>
     </div>
+    <nav id="mobile-nav" class="mobile-drawer" data-mobile-drawer aria-label="Mobile navigation" hidden>
+      <a href="#experience" data-zh-hans="阅读体验" data-zh-hant="閱讀體驗">The reading experience</a>
+      <a href="#screens" data-zh-hans="手机、折叠屏与平板" data-zh-hant="手機、摺疊螢幕與平板">Phones, foldables &amp; iPad</a>
+      <a href="#details" data-zh-hans="细腻之处" data-zh-hant="細膩之處">Crafted details</a>
+      <a href="#android" data-zh-hans="下载 Android 与 iOS 版" data-zh-hant="下載 Android 與 iOS 版">Download for Android &amp; iOS</a>
+      <a href="/privacy/" data-zh-hans="隐私政策" data-zh-hant="隱私權政策">Privacy policy</a>
+      <a href="/support/" data-zh-hans="支持与安全" data-zh-hant="支援與安全">Support &amp; safety</a>
+    </nav>
   </header>
+  
   <main id="main">
-    <section class="wrap hero">
-      <div class="hero-copy">
-        <p class="eyebrow" data-zh-hans="独立 Mastodon 客户端" data-zh-hant="獨立 Mastodon 用戶端">An independent Mastodon client</p>
-        <h1><span data-zh-hans="开放社交，" data-zh-hant="開放社交，">The social web,</span><em data-zh-hans="自在一点。" data-zh-hant="自在一點。">at your pace.</em></h1>
-        <p class="intro" data-zh-hans="选择自己的实例，关注你喜欢的人。用 QuanToot 阅读长帖、探索话题，也给日常发现留一点空间。" data-zh-hant="選擇自己的站台，追蹤你喜歡的人。用 QuanToot 閱讀長文、探索話題，也給日常發現留一點空間。">Choose your server, follow good people, and make room for the things you came to read.</p>
-        <div class="actions">
-          <a class="button primary" href="#android" data-zh-hans="下载 Android 版" data-zh-hant="下載 Android 版">Download for Android</a>
-          <a class="button secondary" href="#ios" data-zh-hans="了解 iOS 版" data-zh-hant="了解 iOS 版">QuanToot for iOS</a>
-        </div>
-        <p class="platforms" data-zh-hans="Android 8.0 或更高版本 · 支持 iPhone 和 iPad" data-zh-hant="Android 8.0 或更新版本 · 支援 iPhone 和 iPad">Android 8.0 or later · Built for iPhone and iPad</p>
-      </div>
-      <figure class="showcase" aria-label="Illustrative preview of the QuanToot timeline" data-translate="aria-label" data-zh-hans="QuanToot 时间线演示" data-zh-hant="QuanToot 時間軸預覽">
-        <div class="showcase-caption"><span data-zh-hans="时间线演示" data-zh-hant="時間軸預覽">TIMELINE PREVIEW</span></div>
-        <div class="phone" aria-hidden="true">
-          <div class="phone-screen">
-            <div class="phone-status"><span>9:41</span><i></i><span>▰</span></div>
-            <div class="app-heading"><img src="/assets/quantoot.png" alt=""><div><strong>QuanToot</strong><small>m.qqs.tw</small></div><span>⚙</span></div>
-            <div class="app-tabs"><b data-zh-hans="首页" data-zh-hant="首頁">Home</b><span data-zh-hans="本地" data-zh-hant="本地">Local</span><span data-zh-hans="联邦" data-zh-hant="聯邦">Federated</span></div>
-            <div class="app-post"><div class="avatar">L</div><div class="post-copy">
-              <div class="post-by"><strong>Lina</strong><time data-zh-hans="2 小时" data-zh-hant="2 小時">2h</time></div><small>@lina@studio.example</small>
-              <p data-zh-hans="雾沿着山坡落下，湖边只剩脚步声。" data-zh-hant="霧沿著山坡落下，湖邊只剩腳步聲。">Morning field notes. The lake was quiet enough to hear the mist move.</p>
-              <img class="post-photo" src="/assets/lake.jpg" width="800" height="450" alt="">
-              <div class="post-actions"><span>◯ 3</span><span>⇄</span><span>♡ 18</span><span>♧</span></div>
-            </div></div>
-            <div class="app-post second-post"><div class="avatar second">A</div><div class="post-copy">
-              <div class="post-by"><strong>Amir</strong><time data-zh-hans="4 小时" data-zh-hant="4 小時">4h</time></div><small>@amir@journal.example</small>
-              <p data-zh-hans="今天的发现：从来没注意过街角那家独立书店。" data-zh-hant="今天的發現是街角那家以前沒留意過的獨立書店。">Today’s small discovery: an independent bookstore around the corner.</p>
-            </div></div>
-            <div class="app-dock"><span><i>⌂</i><small data-zh-hans="首页" data-zh-hant="首頁">Home</small></span><span><i>⌕</i><small data-zh-hans="探索" data-zh-hant="探索">Explore</small></span><span><i>◌</i><small data-zh-hans="通知" data-zh-hant="通知">Notifications</small></span><span><i>♙</i><small data-zh-hans="个人资料" data-zh-hant="個人資料">Profile</small></span></div>
+    <!-- 1. Monumental Editorial Hero & Sculptural 3-Device Triptych -->
+    <section class="hero-section" data-hero>
+      <div class="wrap">
+        <div class="hero-masthead">
+          <div class="hero-emblem-row">
+            <span class="hero-emblem-ring"><img src="/assets/quantoot.png" width="40" height="40" alt=""></span>
+            <p class="hero-kicker" data-zh-hans="独立的 Mastodon 客户端" data-zh-hant="獨立的 Mastodon 用戶端">An independent Mastodon client</p>
+          </div>
+          <h1 class="hero-title">
+            <span class="hero-line"><span data-zh-hans="开放社交，" data-zh-hant="開放社交，">The social web,</span></span>
+            <span class="hero-line"><em data-zh-hans="自在一点。" data-zh-hant="自在一點。">at your pace.</em></span>
+          </h1>
+          <p class="hero-intro hero-fade" data-zh-hans="为你珍视的实例与人们，留一间安静、顺手、毫无打扰的阅读与交流空间——原生适配 iPhone、iPad、Android 与折叠屏。" data-zh-hant="為你珍視的站台與人們，留一間安靜、順手、毫無打擾的閱讀與交流空間——原生適配 iPhone、iPad、Android 與摺疊螢幕。">A calm, tactile home for the servers and people you care about — crafted for iPhone, iPad, Android, and foldables.</p>
+          <div class="hero-actions hero-fade">
+            <a class="btn btn-primary" href="#android">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5v9M6.5 9.5 10 13l3.5-3.5M4 15.5h12"/></svg>
+              <span data-zh-hans="下载 Android 版" data-zh-hant="下載 Android 版">Download for Android</span>
+            </a>
+            <a class="btn btn-secondary" href="#experience">
+              <span data-zh-hans="沉浸体验界面" data-zh-hant="沉浸體驗介面">Walk through the app</span>
+              <span class="icon-shift"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 10h11M11 5.5 15.5 10 11 14.5"/></svg></span>
+            </a>
+          </div>
+          <div class="hero-quiet-facts hero-fade">
+            <span><i aria-hidden="true"></i><span data-zh-hans="支持任意 Mastodon 实例" data-zh-hant="支援任意 Mastodon 站台">Choose any Mastodon server</span></span>
+            <span><i aria-hidden="true"></i><span data-zh-hans="支持访客公开浏览" data-zh-hant="支援訪客公開瀏覽">Browse public posts as a guest</span></span>
+            <span><i aria-hidden="true"></i><span data-zh-hans="无广告、无追踪" data-zh-hant="無廣告、無追蹤">No ads or tracking</span></span>
           </div>
         </div>
-      </figure>
-    </section>
-    <div class="wrap facts" aria-label="Product highlights" data-translate="aria-label" data-zh-hans="产品亮点" data-zh-hant="產品特色">
-      <span data-zh-hans="使用你的 Mastodon 账号" data-zh-hant="使用你的 Mastodon 帳號">Use your Mastodon account</span>
-      <span data-zh-hans="支持公开浏览" data-zh-hant="支援公開瀏覽">Browse public posts as a guest</span>
-      <span data-zh-hans="无广告和追踪 SDK" data-zh-hant="無廣告與追蹤 SDK">No ads or tracking SDKs</span>
-    </div>
-    <section id="features" class="wrap features">
-      <div class="section-head">
-        <p class="eyebrow" data-zh-hans="功能" data-zh-hant="功能">The experience</p>
-        <h2 data-zh-hans="按自己的节奏读、写、发现。" data-zh-hant="按自己的步調閱讀、書寫、探索。">A place to read, write, and wander.</h2>
-      </div>
-      <div class="feature-layout">
-        <article class="feature lead-feature">
-          <div class="feature-copy">
-            <h3 data-zh-hans="从你选择的实例出发" data-zh-hant="從你選擇的站台出發">Start on your own server</h3>
-            <p data-zh-hans="已有 Mastodon 账号就可以登录。可在首页、本地和联邦时间线之间切换，也能同时管理多个账号。" data-zh-hant="使用現有的 Mastodon 帳號登入。可在首頁、本地和聯邦時間軸之間切換，也能同時管理多個帳號。">Sign in with an existing Mastodon account. Switch between Home, Local, and Federated timelines, or keep several accounts together on one device.</p>
+
+        <!-- Sculptural 3-Device Triptych Stage -->
+        <figure class="triptych-stage" data-triptych-stage aria-label="Illustrative preview of QuanToot on phones and foldables" data-translate="aria-label" data-zh-hans="QuanToot 手机与折叠屏界面预览" data-zh-hant="QuanToot 手機與摺疊螢幕介面預覽">
+          <svg class="triptych-orbit" viewBox="0 0 800 600" fill="none" aria-hidden="true">
+            <g class="triptych-orbit-spin">
+              <circle cx="400" cy="300" r="190" stroke="#f5f0e2" stroke-opacity="0.32" stroke-width="1"/>
+              <circle cx="400" cy="300" r="270" stroke="#f5f0e2" stroke-opacity="0.2" stroke-dasharray="4 9" stroke-width="1"/>
+              <circle cx="400" cy="300" r="350" stroke="#f5f0e2" stroke-opacity="0.14" stroke-width="1"/>
+              <circle cx="400" cy="30" r="6" fill="#ff9c82" fill-opacity="0.88"/>
+              <circle cx="670" cy="300" r="5" fill="#f5f0e2" fill-opacity="0.72"/>
+              <circle cx="166" cy="435" r="5" fill="#a6d5c5" fill-opacity="0.82"/>
+              <circle cx="590" cy="490" r="4" fill="#ff9c82" fill-opacity="0.65"/>
+            </g>
+          </svg>
+
+          <div class="triptych-meta">
+            <span class="triptych-pill"><span class="triptych-pill-dot" aria-hidden="true"></span><span data-zh-hans="界面预览" data-zh-hant="介面預覽">Illustrative preview</span></span>
+            <span class="triptych-note" data-zh-hans="夜间发帖 · 折叠屏双页阅读 · 合盖外屏侧边悬浮导航" data-zh-hant="夜間發文 · 摺疊螢幕雙頁閱讀 · 合蓋外螢幕側邊懸浮導覽">Night composer · Book-fold spread · Folded Duo side-edge chrome</span>
           </div>
-          <div class="feed-sample" aria-hidden="true">
-            <div class="sample-tabs"><b data-zh-hans="首页" data-zh-hant="首頁">Home</b><span data-zh-hans="本地" data-zh-hant="本地">Local</span><span data-zh-hans="联邦" data-zh-hant="聯邦">Federated</span></div>
-            <p><span class="sample-avatar">M</span><span><strong>Mika</strong><br><small>@mika@studio.example</small></span></p>
-            <div class="sample-lines"><i></i><i></i><i></i></div>
+
+          <div class="triptych-devices" aria-hidden="true">
+            <!-- Left Wing: iPhone Night Composer -->
+            <div class="wing-device wing-left" data-wing-left>
+              <div class="wing-screen app-surface-night">
+                <div class="iphone-status">
+                  <span>9:41</span>
+                  <span class="dynamic-island"></span>
+                  <span>5G</span>
+                </div>
+                <div class="qt-pane-top">
+                  <span data-zh-hans="新帖子" data-zh-hant="新貼文">New post</span>
+                  <span class="wing-publish" data-zh-hans="发布" data-zh-hant="發布">Publish</span>
+                </div>
+                <div class="wing-pad">
+                  <div class="wing-cw" data-zh-hans="内容警告 · 晚间书单" data-zh-hant="內容警告 · 晚間書單">CW · Evening reading</div>
+                  <p class="qt-post-text" data-zh-hans="一天结束时，你更喜欢怎样翻看时间线？" data-zh-hant="一天結束時，你更喜歡怎樣翻看時間軸？">How do you unwind with your timeline at the end of the day?</p>
+                  <div class="wing-poll">
+                    <div class="wing-poll-row"><span class="wing-poll-fill wing-poll-68"></span><span data-zh-hans="热茶配书签" data-zh-hant="熱茶配書籤">Warm tea &amp; bookmarks</span><span>68%</span></div>
+                    <div class="wing-poll-row"><span class="wing-poll-fill wing-poll-32"></span><span data-zh-hans="随手逛逛本站" data-zh-hant="隨手逛逛本地">Quick local catch-up</span><span>32%</span></div>
+                  </div>
+                  <div class="wing-chips">
+                    <span class="wing-chip" data-zh-hans="不公开列出" data-zh-hant="不公開列出">Unlisted</span>
+                    <span class="wing-chip">ALT</span>
+                    <span class="wing-chip">EN</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Centerpiece: Authentic Unfolded Duo (Two-Pane Spread + Right-Edge Vertical Glass Chrome) -->
+            <div class="center-duo" data-center-duo>
+              <div class="duo-screen app-surface-day">
+                <div class="duo-pane">
+                  <div class="duo-pane-heading">
+                    <strong>QuanToot</strong>
+                    <small>mastodon.social</small>
+                  </div>
+                  <div class="qt-tabs">
+                    <span class="qt-tab-item is-active" data-zh-hans="主页" data-zh-hant="首頁">Home</span>
+                    <span class="qt-tab-item" data-zh-hans="本站" data-zh-hant="本地">Local</span>
+                    <span class="qt-tab-item" data-zh-hans="跨站" data-zh-hant="聯邦">Federated</span>
+                  </div>
+                  <article class="qt-post">
+                    <div class="qt-avatar qt-avatar-pine">L</div>
+                    <div class="qt-post-body">
+                      <div class="qt-post-head"><strong>Lina</strong><time data-zh-hans="14 分钟前" data-zh-hant="14 分鐘前">14m</time></div>
+                      <span class="qt-handle">@lina@studio.example</span>
+                      <p class="qt-post-text"><span data-zh-hans="清晨笔记：湖面静得连雾气掠过木栈道的声音都听得见。" data-zh-hant="清晨筆記：湖面靜得連霧氣掠過木棧道的聲音都聽得見。">Morning field notes. The lake was quiet enough to hear the mist drift past the pier. </span><span class="qt-hashtag">#FieldNotes</span></p>
+                      <div class="qt-media-wrap">
+                        <img src="/assets/lake.jpg" width="800" height="450" alt="">
+                        <span class="qt-alt-tag">ALT</span>
+                      </div>
+                      <div class="qt-post-actions">
+                        <span><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 6 4 10l4.5 4M4.5 10h7a4 4 0 0 1 4 4v1"/></svg> 4</span>
+                        <span><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 7.5h10.5l-2.5-2.5M15.5 12.5H5l2.5 2.5"/></svg> 7</span>
+                        <span class="is-liked"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 16.3s-5.8-3.7-5.8-7.8A3.4 3.4 0 0 1 10 6.2a3.4 3.4 0 0 1 5.8 2.3c0 4.1-5.8 7.8-5.8 7.8Z"/></svg> 23</span>
+                        <span><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.8h8a.8.8 0 0 1 .8.8v12l-4.8-3-4.8 3v-12a.8.8 0 0 1 .8-.8Z"/></svg></span>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+
+                <div class="duo-pane duo-pane-right">
+                  <div class="duo-pane-heading">
+                    <strong data-zh-hans="会话详情" data-zh-hant="對話詳情">Conversation</strong>
+                  </div>
+                  <article class="qt-post">
+                    <div class="qt-avatar qt-avatar-warm">A</div>
+                    <div class="qt-post-body">
+                      <div class="qt-post-head"><strong>Amir</strong><time data-zh-hans="1 小时前" data-zh-hant="1 小時前">1h</time></div>
+                      <span class="qt-handle">@amir@journal.example</span>
+                      <p class="qt-post-text" data-zh-hans="当阅读空间真正安静下来，按时间流淌的时间线会呈现出完全不同的质感。" data-zh-hant="當閱讀空間真正安靜下來，按時間流淌的時間軸會呈現出完全不同的質感。">Chronological feeds feel different once the room around them slows down.</p>
+                      <div class="qt-quote-card">
+                        <div class="qt-quote-author"><strong>Mika</strong><span>@mika@notes.example</span></div>
+                        <p data-zh-hans="好的阅读工具，会让你安心读完最后一条，然后从容放下手机。" data-zh-hant="好的閱讀工具，會讓你安心讀完最後一則，然後從容放下手機。">Good reading tools let you reach the bottom of the page and put the phone down.</p>
+                      </div>
+                    </div>
+                  </article>
+                  <article class="qt-post">
+                    <div class="qt-post-body qt-reply-indent">
+                      <div class="qt-post-head"><strong>Sora</strong><time data-zh-hans="22 分钟前" data-zh-hant="22 分鐘前">22m</time></div>
+                      <span class="qt-handle">@sora@tea.example</span>
+                      <p class="qt-post-text" data-zh-hans="在时间线旁并排展开讨论，就像摊开一本纸质杂志一样舒服。" data-zh-hant="在時間軸旁並排展開討論，就像攤開一本紙本雜誌一樣舒服。">Opening a thread beside the timeline feels just like reading a printed journal.</p>
+                    </div>
+                  </article>
+                  <div class="duo-reply-bar">
+                    <span class="duo-reply-avatar"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="6.8" r="3.2"/><path d="M4.2 16.5c.8-2.8 3-4.2 5.8-4.2s5 1.4 5.8 4.2"/></svg></span>
+                    <span class="duo-reply-pill"><span data-zh-hans="回复" data-zh-hant="回覆">Reply</span><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.6 3.9a1.8 1.8 0 0 1 2.5 2.5L7.6 15l-3.4.9.9-3.4 8.5-8.6Z"/></svg></span>
+                  </div>
+                </div>
+
+                <div class="duo-cover-rail duo-unfolded-rail">
+                  <span class="duo-cover-time">9:41</span>
+                  <span class="duo-circle-btn"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="m5.5 5.5 9 9M14.5 5.5l-9 9"/></svg></span>
+                  <span class="duo-circle-btn"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="10" r="1.35"/><circle cx="10" cy="10" r="1.35"/><circle cx="14.5" cy="10" r="1.35"/></svg></span>
+                  <div class="duo-glass-pill duo-glass-pill-bottom">
+                    <span class="duo-pill-icon is-active"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.2 10 3.8l6.5 5.4V16a1 1 0 0 1-1 1h-3.6v-4.4H8.1V17H4.5a1 1 0 0 1-1-1V9.2Z"/></svg></span>
+                    <span class="duo-pill-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg></span>
+                    <span class="duo-pill-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8.5a4.5 4.5 0 1 1 9 0c0 4 1.5 5 1.5 5H4s1.5-1 1.5-5ZM8.5 16a1.7 1.7 0 0 0 3 0"/></svg></span>
+                    <span class="duo-pill-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="6.8" r="3.2"/><path d="M4.2 16.5c.8-2.8 3-4.2 5.8-4.2s5 1.4 5.8 4.2"/></svg></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Wing: Authentic Folded Duo Cover Display with Vertical Side-Edge Glass Pills -->
+            <div class="wing-duo-cover" data-wing-right>
+              <div class="duo-cover-screen app-surface-day">
+                <div class="duo-cover-main">
+                  <div class="duo-cover-title">
+                    <strong>QuanToot</strong>
+                    <small>mastodon.social</small>
+                  </div>
+                  <div class="qt-tabs">
+                    <span class="qt-tab-item is-active" data-zh-hans="主页" data-zh-hant="首頁">Home</span>
+                    <span class="qt-tab-item" data-zh-hans="本站" data-zh-hant="本地">Local</span>
+                    <span class="qt-tab-item" data-zh-hans="跨站" data-zh-hant="聯邦">Federated</span>
+                  </div>
+                  <article class="qt-post">
+                    <div class="qt-avatar qt-avatar-slate">M</div>
+                    <div class="qt-post-body">
+                      <div class="qt-post-head"><strong>Mika</strong><time data-zh-hans="38m" data-zh-hant="38m">38m</time></div>
+                      <span class="qt-handle">@mika@notes.example</span>
+                      <p class="qt-post-text" data-zh-hans="午后阳光书桌，安静的一小时。" data-zh-hant="午後陽光書桌，安靜的一小時。">Sun-lit corner table and an hour of quiet.</p>
+                      <div class="qt-media-wrap">
+                        <img src="/assets/bookshop.jpg" width="960" height="540" alt="">
+                        <span class="qt-alt-tag">ALT</span>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+                <div class="duo-cover-rail">
+                  <span class="duo-cover-cam"></span>
+                  <span class="duo-cover-time">9:41</span>
+                  <div class="duo-glass-pill">
+                    <span class="duo-pill-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.6 3.9a1.8 1.8 0 0 1 2.5 2.5L7.6 15l-3.4.9.9-3.4 8.5-8.6Z"/></svg></span>
+                    <span class="duo-pill-icon"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="10" r="1.35"/><circle cx="10" cy="10" r="1.35"/><circle cx="14.5" cy="10" r="1.35"/></svg></span>
+                  </div>
+                  <div class="duo-glass-pill duo-glass-pill-bottom">
+                    <span class="duo-pill-icon is-active"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.2 10 3.8l6.5 5.4V16a1 1 0 0 1-1 1h-3.6v-4.4H8.1V17H4.5a1 1 0 0 1-1-1V9.2Z"/></svg></span>
+                    <span class="duo-pill-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg></span>
+                    <span class="duo-pill-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8.5a4.5 4.5 0 1 1 9 0c0 4 1.5 5 1.5 5H4s1.5-1 1.5-5ZM8.5 16a1.7 1.7 0 0 0 3 0"/></svg></span>
+                    <span class="duo-pill-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="6.8" r="3.2"/><path d="M4.2 16.5c.8-2.8 3-4.2 5.8-4.2s5 1.4 5.8 4.2"/></svg></span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </article>
-        <article class="feature note-feature">
-          <div class="feature-mark" aria-hidden="true">#</div>
-          <h3 data-zh-hans="顺着话题继续读" data-zh-hant="順著話題繼續讀">Follow a thread of thought</h3>
-          <p data-zh-hans="在应用内打开话题时间线。用书签留住值得回看的帖子，用关键词过滤调整你看到的内容。" data-zh-hant="在應用程式內開啟主題標籤的時間軸。用書籤收藏想再看的貼文，也可用關鍵字篩選看到的內容。">Open hashtag timelines inside the app. Bookmark posts for later and use keyword filters to shape what you see.</p>
-        </article>
-        <article class="feature write-feature">
-          <div class="feature-mark" aria-hidden="true">✎</div>
-          <h3 data-zh-hans="写下值得分享的东西" data-zh-hant="寫下值得分享的內容">Put something into words</h3>
-          <p data-zh-hans="分享照片或视频，为图片补上替代文本，或发个投票。发帖时可以选择内容的可见范围。" data-zh-hant="分享照片或影片、為圖片補上替代文字，或發起投票。發文時可以選擇內容的可見範圍。">Share a photo, add an image description, or start a poll. Choose who can see each post when you publish it.</p>
-        </article>
+        </figure>
       </div>
     </section>
-    <div class="wrap availability">
-      <section id="android" aria-labelledby="android-title" data-android-downloads>
-        <h2 id="android-title" data-zh-hans="Android 下载" data-zh-hant="Android 下載">Download for Android</h2>
-        <p role="status" class="release-status">
-          <span data-release-loading data-zh-hans="正在获取最新正式版…" data-zh-hant="正在取得最新正式版…" hidden>Checking for the latest stable release…</span>
-          <span data-release-ready hidden><span data-zh-hans="最新正式版" data-zh-hant="最新正式版">Latest stable release</span> <strong data-release-version></strong></span>
-          <span data-release-missing data-zh-hans="暂时没有可下载的正式版 APK。" data-zh-hant="目前沒有可下載的正式版 APK。" hidden>There is no stable APK available right now.</span>
-          <span data-release-error data-zh-hans="暂时无法获取最新版本，可在 Forgejo 查看所有版本。" data-zh-hant="暫時無法取得最新版本，可在 Forgejo 查看所有版本。" hidden>Couldn’t load the latest release. You can browse releases on Forgejo.</span>
+
+    <!-- 2. Quiet Editorial Pause -->
+    <section class="editorial-pause" aria-label="Product philosophy">
+      <div class="wrap">
+        <p class="pause-quote" data-reveal>
+          <span data-zh-hans="打开社交应用，本该像" data-zh-hant="打開社群應用，本該像">Social reading should feel like </span><em data-zh-hans="一段不被催促的午后" data-zh-hant="一段不被催促的午後">an unhurried afternoon</em><span data-zh-hans="——选择与你契合的社区，关注值得细读的人，把喧嚣留在门外。" data-zh-hant="——選擇與你契合的社群，追蹤值得細讀的人，把喧囂留在門外。"> — pick the community that feels like home, follow voices worth lingering over, and leave the noise outside.</span>
         </p>
-        <ul class="apk-list" data-release-apks hidden>
-          <li data-abi="arm64-v8a" hidden><a class="button primary apk"><strong>arm64-v8a</strong><span data-zh-hans="适合大多数安卓手机" data-zh-hant="適合大多數 Android 手機">Most Android phones</span></a></li>
-          <li data-abi="armeabi-v7a" hidden><a class="button secondary apk"><strong>armeabi-v7a</strong><span data-zh-hans="32 位 ARM 设备" data-zh-hant="32 位元 ARM 裝置">32-bit ARM devices</span></a></li>
-          <li data-abi="x86_64" hidden><a class="button secondary apk"><strong>x86_64</strong><span data-zh-hans="64 位 x86 设备" data-zh-hant="64 位元 x86 裝置">64-bit x86 devices</span></a></li>
-          <li data-abi="x86" hidden><a class="button secondary apk"><strong>x86</strong><span data-zh-hans="32 位 x86 设备" data-zh-hant="32 位元 x86 裝置">32-bit x86 devices</span></a></li>
-        </ul>
-        <noscript><p>Enable JavaScript to show direct APK downloads, or browse releases on Forgejo below.</p></noscript>
-        <div class="release-links">
-          <a data-release-checksums data-zh-hans="SHA-256 校验值" data-zh-hant="SHA-256 校驗值" hidden>SHA-256 checksums</a>
-          <a href="https://git.qqs.tw/bobmaster/quantoot_next/releases" data-zh-hans="在 Forgejo 查看所有版本" data-zh-hant="在 Forgejo 查看所有版本">All releases on Forgejo</a>
+        <div class="pause-pillars">
+          <div class="pause-pillar" data-reveal>
+            <strong data-zh-hans="从任意实例出发，或先随便逛逛" data-zh-hant="從任意站台出發，或先隨意逛逛">Start with any server — or just browse</strong>
+            <p data-zh-hans="通过所属实例的官方网页授权登录，也支持先以访客身份浏览公开内容。" data-zh-hant="透過所屬站台的官方網頁授權登入，也支援先以訪客身分瀏覽公開內容。">Sign in to your existing Mastodon account through your server’s own browser page, or explore public conversations before signing in.</p>
+          </div>
+          <div class="pause-pillar" data-reveal data-delay="1">
+            <strong data-zh-hans="绝不打断你正在读的那一行" data-zh-hant="絕不打斷你正在讀的那一行">Never lose your place mid-sentence</strong>
+            <p data-zh-hans="每条时间线与每个账号的阅读进度都会被妥善记住；新到达的帖子会安静等候，绝不突然跳屏。" data-zh-hant="每條時間軸與每個帳號的閱讀進度都會妥善記住；新到達的貼文會安靜等候，絕不突然跳動。">Your reading position is remembered across timelines and accounts. Incoming posts wait politely at the top until you invite them in.</p>
+          </div>
+          <div class="pause-pillar" data-reveal data-delay="2">
+            <strong data-zh-hans="白日素纸，入夜沉静" data-zh-hant="白日素紙，入夜沉靜">Daylight paper, midnight calm</strong>
+            <p data-zh-hans="专为长文阅读调校的暖白纸色与温润夜色，搭配清晰的系统字体与完整大字号无障碍适配。" data-zh-hant="專為長文閱讀調校的暖白紙色與溫潤夜色，搭配清晰的系統字體與完整大字體無障礙適配。">Tuned for long-form legibility with warm daytime ivory, gentle dark charcoal, crisp system typography, and full accessibility font scaling.</p>
+          </div>
         </div>
-      </section>
-      <section id="ios" aria-labelledby="ios-title">
-        <h2 id="ios-title" data-zh-hans="QuanToot iOS 版" data-zh-hant="QuanToot iOS 版">QuanToot for iOS</h2>
-        <p data-zh-hans="iPhone 和 iPad 版正在准备提交至 App Store。" data-zh-hant="iPhone 和 iPad 版正在準備提交至 App Store。">The iPhone and iPad app is being prepared for App Store submission.</p>
-        <a class="button secondary" href="/support/" data-zh-hans="获取帮助" data-zh-hant="取得支援">Get support</a>
-      </section>
-    </div>
+      </div>
+    </section>
+
+    <!-- 3. Sticky Scrollytelling Interactive Experience -->
+    <section id="experience" class="story-section">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <p class="kicker"><span class="kicker-rule" aria-hidden="true"></span><span data-zh-hans="阅读与书写体验" data-zh-hant="閱讀與書寫體驗">The reading experience</span></p>
+          <h2><span data-zh-hans="随滚动流转，也可" data-zh-hant="隨捲動流轉，也可">Scroll the story, or </span><em data-zh-hans="亲手点开试试。" data-zh-hant="親手點開試試。">touch the glass.</em></h2>
+          <p class="section-lead" data-zh-hans="右侧设备内的交互完全可点按体验：切换时间线、展开等候的新帖、打开内容警告、参与投票，或点开照片细看 ALT 描述。" data-zh-hant="右側裝置內的互動完全可點按體驗：切換時間軸、展開等候的新貼文、開啟內容警告、參與投票，或點開照片細看 ALT 描述。">Every control inside the preview responds just like the app — switch timelines, reveal waiting posts, fold Content Warnings, vote in a poll, or open photographs full-screen.</p>
+        </div>
+
+        <div class="story-grid">
+          <div class="story-chapters">
+            <button class="story-chapter is-active" type="button" data-story-chapter="timelines" aria-pressed="true">
+              <span class="chapter-num">01</span>
+              <h3 data-zh-hans="懂得等候你的时间线" data-zh-hant="懂得等候你的時間軸">Timelines that wait for you</h3>
+              <p data-zh-hans="在主页、本站与跨站之间从容切换。当你专注翻阅早先的帖子时，新到达的内容会安静聚拢在顶部提示中，等你准备好再展开。" data-zh-hant="在首頁、本地與聯邦之間從容切換。當你專注翻閱早先的貼文時，新到達的內容會安靜聚攏在頂部提示中，等你準備好再展開。">Move smoothly between Home, Local, and Federated streams. While you catch up on earlier posts, new arrivals gather quietly in a single pill — ready whenever you are.</p>
+              <span class="chapter-cue"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v3M10 14v3M3 10h3M14 10h3M5.3 5.3l2.1 2.1M12.6 12.6l2.1 2.1M14.7 5.3l-2.1 2.1M7.4 12.6l-2.1 2.1"/></svg><span data-zh-hans="试试点击“有 1 条新帖子”或“展开内容”" data-zh-hant="試試點選「有 1 則新貼文」或「顯示內容」">Try tapping “1 new post waiting” or “Show post”</span></span>
+            </button>
+
+            <button class="story-chapter" type="button" data-story-chapter="threads" aria-pressed="false">
+              <span class="chapter-num">02</span>
+              <h3 data-zh-hans="脉络舒展的完整对话" data-zh-hant="脈絡舒展的完整對話">Conversations with breathing room</h3>
+              <p data-zh-hans="点开任意帖子即可纵览完整脉络：前文回顾、清晰的焦点卡片与层次分明的缩进回复。引用帖自然内嵌呈现，同时尊重原作者的引用授权。" data-zh-hant="點開任意貼文即可縱覽完整脈絡：前文回顧、清晰的焦點卡片與層次分明的縮排回覆。引用貼文自然內嵌呈現，同時尊重原作者的引用授權。">Open any post to follow its full arc — ancestors above, a clearly framed focal post, and cleanly indented replies below. Embedded quote posts show their context while respecting each author’s quote preferences.</p>
+              <span class="chapter-cue"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v3M10 14v3M3 10h3M14 10h3M5.3 5.3l2.1 2.1M12.6 12.6l2.1 2.1M14.7 5.3l-2.1 2.1M7.4 12.6l-2.1 2.1"/></svg><span data-zh-hans="清晰区分焦点帖、引用与多层回复" data-zh-hant="清晰區分焦點貼文、引用與多層回覆">Clean hierarchy for replies and quotes</span></span>
+            </button>
+
+            <button class="story-chapter" type="button" data-story-chapter="composer" aria-pressed="false">
+              <span class="chapter-num">03</span>
+              <h3 data-zh-hans="从容落笔，细致表达" data-zh-hant="從容落筆，細緻表達">Writing without hurry</h3>
+              <p data-zh-hans="写帖、回复、编辑与引用一气呵成：可见范围、发帖语言、引用权限、内容警告、图片 ALT 描述、实例自定义表情与多选项投票一应俱全，旋转或折叠屏幕也不丢失草稿。" data-zh-hant="發文、回覆、編輯與引用一氣呵成：可見範圍、發文語言、引用權限、內容警告、圖片 ALT 描述、站台自訂表情與多選項投票一應俱全，旋轉或摺疊螢幕也不遺失草稿。">Draft posts, replies, edits, and quotes with every Mastodon tool close at hand: audience visibility, post language, quote policy, Content Warnings, image ALT descriptions, server custom emojis, and multi-option polls. Unsent drafts stay safe even when you resize or fold.</p>
+              <span class="chapter-cue"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v3M10 14v3M3 10h3M14 10h3M5.3 5.3l2.1 2.1M12.6 12.6l2.1 2.1M14.7 5.3l-2.1 2.1M7.4 12.6l-2.1 2.1"/></svg><span data-zh-hans="试试给投票点个选项，或切换可见范围" data-zh-hant="試試為投票點個選項，或切換可見範圍">Try voting in the poll or cycling visibility</span></span>
+            </button>
+
+            <button class="story-chapter" type="button" data-story-chapter="explore" aria-pressed="false">
+              <span class="chapter-num">04</span>
+              <h3 data-zh-hans="让每一帧影像都舒展呈现" data-zh-hant="讓每一幀影像都舒展呈現">Photography, given the frame it deserves</h3>
+              <p data-zh-hans="漫步热门话题，随时搜索感兴趣的人与讨论。轻点照片即进入沉浸式全屏画廊：流畅缩放、顺手下拉关闭、原生视频播放、完整 ALT 说明与原图保存。" data-zh-hant="漫步熱門話題，隨時搜尋感興趣的人與討論。輕點照片即進入沉浸式全螢幕畫廊：流暢縮放、順手下拉關閉、原生影片播放、完整 ALT 說明與原圖儲存。">Wander trending hashtags and search across people and posts. Tap any image to step into a distraction-free full-screen gallery with fluid pinch-to-zoom, swipe-to-dismiss, native video playback, full ALT descriptions, and original-resolution photo saving.</p>
+              <span class="chapter-cue"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v3M10 14v3M3 10h3M14 10h3M5.3 5.3l2.1 2.1M12.6 12.6l2.1 2.1M14.7 5.3l-2.1 2.1M7.4 12.6l-2.1 2.1"/></svg><span data-zh-hans="点击手机内任意照片打开全屏画廊与缩放" data-zh-hant="點選裝置內任意照片開啟全螢幕畫廊與縮放">Tap either photograph inside the phone to inspect full-screen</span></span>
+            </button>
+          </div>
+
+          <!-- Sticky Interactive Device Stage -->
+          <div class="story-sticky-col">
+            <div class="sim-plinth">
+              <div class="sim-toolbar">
+                <span class="sim-mode-tag" data-zh-hans="交互预览 · 虚构示例帖" data-zh-hant="互動預覽 · 虛構範例貼文">Interactive preview · Fictional posts</span>
+                <div class="sim-theme-switch" role="group" aria-label="Preview color scheme">
+                  <button class="sim-theme-btn" type="button" data-preview-theme="day" aria-pressed="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="10" r="3.4"/><path d="M10 2.5v1.8M10 15.7v1.8M2.5 10h1.8M15.7 10h1.8"/></svg><span data-zh-hans="浅色" data-zh-hant="淺色">Day</span></button>
+                  <button class="sim-theme-btn" type="button" data-preview-theme="night" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.8 12.2A6.2 6.2 0 0 1 7.8 4.2a6.2 6.2 0 1 0 8 8Z"/></svg><span data-zh-hans="暗色" data-zh-hant="深色">Night</span></button>
+                </div>
+              </div>
+
+              <div class="sim-phone">
+                <div class="sim-screen app-surface-day" data-sim-screen>
+                  <div class="iphone-status">
+                    <span>9:41</span>
+                    <span class="dynamic-island"></span>
+                    <span>5G</span>
+                  </div>
+                  <div class="qt-app-header">
+                    <img src="/assets/quantoot.png" width="30" height="30" alt="">
+                    <div class="qt-app-title">
+                      <strong>QuanToot</strong>
+                      <small>mastodon.social</small>
+                    </div>
+                    <span class="qt-mini-avatar">L</span>
+                  </div>
+
+                  <div class="sim-screen-body" data-sim-scroll>
+                    <!-- PANEL 1: TIMELINES -->
+                    <div class="sim-panel" data-sim-panel="timelines">
+                      <div class="sim-feed-tabs" role="tablist">
+                        <button class="sim-feed-tab" type="button" role="tab" aria-selected="true" data-feed-tab="home" data-zh-hans="主页" data-zh-hant="首頁">Home</button>
+                        <button class="sim-feed-tab" type="button" role="tab" aria-selected="false" data-feed-tab="local" data-zh-hans="本站" data-zh-hant="本地">Local</button>
+                        <button class="sim-feed-tab" type="button" role="tab" aria-selected="false" data-feed-tab="federated" data-zh-hans="跨站" data-zh-hant="聯邦">Federated</button>
+                      </div>
+
+                      <div data-feed-list="home">
+                        <div class="sim-pending-wrap" data-pending-wrap>
+                          <button class="sim-pending-pill" type="button" data-reveal-pending>
+                            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 15.5V4.5M5.5 9 10 4.5 14.5 9"/></svg>
+                            <span data-zh-hans="有 1 条新帖子" data-zh-hant="有 1 則新貼文">1 new post waiting</span>
+                          </button>
+                        </div>
+
+                        <article class="sim-card" data-pending-post hidden>
+                          <div class="qt-avatar qt-avatar-slate">S</div>
+                          <div class="sim-card-content">
+                            <div class="qt-post-head"><strong>Sora</strong><time data-zh-hans="刚刚" data-zh-hant="剛剛">Just now</time></div>
+                            <span class="qt-handle">@sora@tea.example</span>
+                            <p class="qt-post-text" data-zh-hans="在你阅读时安静抵达，绝不突然顶走你正在看的那一行。" data-zh-hant="在你閱讀時安靜抵達，絕不突然頂走你正在看的那一行。">Arrived gently while you were reading — never jumping your place.</p>
+                          </div>
+                        </article>
+
+                        <article class="sim-card">
+                          <div class="qt-avatar qt-avatar-pine">L</div>
+                          <div class="sim-card-content">
+                            <div class="qt-post-head"><strong>Lina</strong><time data-zh-hans="14 分钟前" data-zh-hant="14 分鐘前">14m</time></div>
+                            <span class="qt-handle">@lina@studio.example</span>
+                            <p class="qt-post-text"><span data-zh-hans="清晨笔记：湖面静得连雾气掠过木栈道的声音都听得见。" data-zh-hant="清晨筆記：湖面靜得連霧氣掠過木棧道的聲音都聽得見。">Morning field notes. The lake was quiet enough to hear the mist drift past the pier. </span><span class="qt-hashtag">#FieldNotes</span></p>
+                            <div class="sim-actions-row">
+                              <button class="sim-action-btn" type="button" data-toggle-action aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 6 4 10l4.5 4M4.5 10h7a4 4 0 0 1 4 4v1"/></svg><span data-count data-base="4">4</span></button>
+                              <button class="sim-action-btn" type="button" data-toggle-action aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 7.5h10.5l-2.5-2.5M15.5 12.5H5l2.5 2.5"/></svg><span data-count data-base="7">7</span></button>
+                              <button class="sim-action-btn" type="button" data-toggle-action aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 16.3s-5.8-3.7-5.8-7.8A3.4 3.4 0 0 1 10 6.2a3.4 3.4 0 0 1 5.8 2.3c0 4.1-5.8 7.8-5.8 7.8Z"/></svg><span data-count data-base="22">22</span></button>
+                              <button class="sim-action-btn" type="button" data-toggle-action aria-pressed="false" aria-label="Bookmark"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.8h8a.8.8 0 0 1 .8.8v12l-4.8-3-4.8 3v-12a.8.8 0 0 1 .8-.8Z"/></svg></button>
+                            </div>
+                          </div>
+                        </article>
+
+                        <article class="sim-card">
+                          <div class="qt-avatar qt-avatar-warm">K</div>
+                          <div class="sim-card-content">
+                            <div class="qt-post-head"><strong>Kenji</strong><time data-zh-hans="52 分钟前" data-zh-hant="52 分鐘前">52m</time></div>
+                            <span class="qt-handle">@kenji@cinema.example</span>
+                            <div class="sim-cw-banner">
+                              <span data-zh-hans="内容警告：电影结局笔记" data-zh-hant="內容警告：電影結局筆記">CW: Film ending notes</span>
+                              <button class="sim-cw-btn" type="button" data-cw-toggle aria-expanded="false" data-zh-hans="展开内容" data-zh-hant="顯示內容">Show post</button>
+                            </div>
+                            <p class="qt-post-text" data-cw-body hidden data-zh-hans="最后五分钟没有一句台词，只有车窗雨声与缓慢的钢琴主题，值得在安静的影厅里看。" data-zh-hant="最後五分鐘沒有一句台詞，只有車窗雨聲與緩慢的鋼琴主題，值得在安靜的影廳裡看。">The final five minutes had zero dialogue — just rain on a train window and a slow piano motif. Worth seeing in a quiet theater.</p>
+                          </div>
+                        </article>
+                      </div>
+
+                      <div data-feed-list="local" hidden>
+                        <article class="sim-card">
+                          <div class="qt-avatar qt-avatar-warm">M</div>
+                          <div class="sim-card-content">
+                            <div class="qt-post-head"><strong>Mika</strong><time data-zh-hans="8 分钟前" data-zh-hant="8 分鐘前">8m</time></div>
+                            <span class="qt-handle">@mika@mastodon.social</span>
+                            <p class="qt-post-text" data-zh-hans="本站时间线问候：这周有哪些独立通讯或书让你眼前一亮？" data-zh-hant="本地時間軸問候：這週有哪些獨立電子報或書讓你眼前一亮？">Local timeline check-in: what independent newsletter or book made your week better?</p>
+                          </div>
+                        </article>
+                        <article class="sim-card">
+                          <div class="qt-avatar qt-avatar-pine">N</div>
+                          <div class="sim-card-content">
+                            <div class="qt-post-head"><strong>Nadia</strong><time data-zh-hans="31 分钟前" data-zh-hant="31 分鐘前">31m</time></div>
+                            <span class="qt-handle">@nadia@mastodon.social</span>
+                            <p class="qt-post-text"><span data-zh-hans="正在为今晚的读书会画一张字体小海报。" data-zh-hant="正在為今晚的讀書會畫一張字體小海報。">Sketching a small typography poster for tonight’s reading group. </span><span class="qt-hashtag">#Typography</span></p>
+                          </div>
+                        </article>
+                      </div>
+
+                      <div data-feed-list="federated" hidden>
+                        <article class="sim-card">
+                          <div class="qt-avatar qt-avatar-slate">R</div>
+                          <div class="sim-card-content">
+                            <div class="qt-post-head"><strong>Ren</strong><time data-zh-hans="4 分钟前" data-zh-hant="4 分鐘前">4m</time></div>
+                            <span class="qt-handle">@ren@craft.town</span>
+                            <p class="qt-post-text" data-zh-hans="跨站分享：今天下午终于修好了一台 1974 年机械相机的快门。" data-zh-hant="跨站分享：今天下午終於修好了一台 1974 年機械相機的快門。">Across the fediverse: finished restoring a 1974 mechanical camera shutter this afternoon.</p>
+                          </div>
+                        </article>
+                      </div>
+                    </div>
+
+                    <!-- PANEL 2: THREADS & QUOTES -->
+                    <div class="sim-panel" data-sim-panel="threads" hidden>
+                      <article class="sim-card is-focal">
+                        <div class="qt-avatar qt-avatar-warm">A</div>
+                        <div class="sim-card-content">
+                          <div class="qt-post-head"><strong>Amir</strong><time data-zh-hans="1 小时前 · 已编辑" data-zh-hant="1 小時前 · 已編輯">1h ago · Edited</time></div>
+                          <span class="qt-handle">@amir@journal.example</span>
+                          <p class="qt-post-text" data-zh-hans="当客户端不再千方百计争夺你的注意力，按时间排序的阅读体验会完全不同。" data-zh-hant="當用戶端不再千方百計爭奪你的注意力，按時間排序的閱讀體驗會完全不同。">Chronological timelines feel different once your client stops fighting for your attention.</p>
+                          <div class="qt-quote-card">
+                            <div class="qt-quote-author"><strong>Mika</strong><span>@mika@notes.example</span></div>
+                            <p data-zh-hans="好的阅读工具，会让你安心读完最后一条，然后从容放下手机。" data-zh-hant="好的閱讀工具，會讓你安心讀完最後一則，然後從容放下手機。">Good reading tools let you reach the bottom of the page and put the phone down.</p>
+                          </div>
+                        </div>
+                      </article>
+                      <article class="sim-card">
+                        <div class="qt-avatar qt-avatar-pine">L</div>
+                        <div class="sim-card-content">
+                          <div class="qt-post-head"><strong>Lina</strong><time data-zh-hans="42 分钟前" data-zh-hant="42 分鐘前">42m</time></div>
+                          <span class="qt-handle">@lina@studio.example</span>
+                          <p class="qt-post-text" data-zh-hans="把长帖加入书签留到晚上配茶细读，彻底取代了无意识刷屏。" data-zh-hant="把長文加入書籤留到晚上配茶細讀，徹底取代了無意識滑手機。">Bookmarking long essays for evening tea has completely replaced aimless scrolling for me.</p>
+                        </div>
+                      </article>
+                      <article class="sim-card is-indented">
+                        <div class="qt-avatar qt-avatar-slate">S</div>
+                        <div class="sim-card-content">
+                          <div class="qt-post-head"><strong>Sora</strong><time data-zh-hans="19 分钟前" data-zh-hant="19 分鐘前">19m</time></div>
+                          <span class="qt-handle">@sora@tea.example</span>
+                          <p class="qt-post-text" data-zh-hans="再加上关键词过滤，暂时不想看的话题也能安静收起。" data-zh-hant="再加上關鍵字篩選，暫時不想看的話題也能安靜收起。">And keyword filters fold away anything I am not ready to read yet.</p>
+                        </div>
+                      </article>
+                    </div>
+
+                    <!-- PANEL 3: COMPOSER & POLL -->
+                    <div class="sim-panel" data-sim-panel="composer" hidden>
+                      <div class="sim-composer">
+                        <div class="sim-composer-top">
+                          <strong data-zh-hans="发布新帖" data-zh-hant="發布新貼文">New post</strong>
+                          <button class="sim-publish-btn" type="button" data-composer-publish data-zh-hans="发布" data-zh-hant="發布">Publish</button>
+                        </div>
+                        <div class="sim-composer-field" data-composer-cw-box hidden data-zh-hans="内容警告：茶与咖啡笔记" data-zh-hant="內容警告：茶與咖啡筆記">Content warning: Coffee &amp; tea notes</div>
+                        <div class="sim-composer-field" data-zh-hans="周末小投票：你通常在一天中的什么时候翻看 Mastodon？" data-zh-hant="週末小投票：你通常在一天中的什麼時候翻看 Mastodon？">Weekend poll — when do you usually catch up on Mastodon?</div>
+                        <div class="sim-poll-card" role="group" aria-label="Interactive sample poll">
+                          <button class="sim-poll-opt" type="button" data-poll-opt data-fill-class="sim-poll-w-62" data-pct="62%" aria-pressed="false">
+                            <span class="sim-poll-fill sim-poll-w-0"></span>
+                            <span data-zh-hans="清晨配咖啡" data-zh-hant="清晨配咖啡">Morning coffee</span>
+                            <span data-poll-pct></span>
+                          </button>
+                          <button class="sim-poll-opt" type="button" data-poll-opt data-fill-class="sim-poll-w-26" data-pct="26%" aria-pressed="false">
+                            <span class="sim-poll-fill sim-poll-w-0"></span>
+                            <span data-zh-hans="夜晚慢读" data-zh-hant="夜晚慢讀">Evening unwind</span>
+                            <span data-poll-pct></span>
+                          </button>
+                          <button class="sim-poll-opt" type="button" data-poll-opt data-fill-class="sim-poll-w-12" data-pct="12%" aria-pressed="false">
+                            <span class="sim-poll-fill sim-poll-w-0"></span>
+                            <span data-zh-hans="午后片刻空闲" data-zh-hant="午後片刻空閒">Quiet afternoon break</span>
+                            <span data-poll-pct></span>
+                          </button>
+                        </div>
+                        <div class="sim-composer-pills">
+                          <button class="sim-chip" type="button" data-composer-visibility>
+                            <span data-visibility-text data-zh-hans="公开" data-zh-hant="公開">Public</span>
+                          </button>
+                          <button class="sim-chip" type="button" data-composer-cw aria-pressed="false">CW</button>
+                          <span class="sim-chip">ALT</span>
+                          <span class="sim-chip">EN / 中文</span>
+                        </div>
+                        <div class="sim-toast" data-composer-toast hidden data-zh-hans="仅作预览：在应用中将直接发布到你的 Mastodon 实例。" data-zh-hant="僅供預覽：在應用程式中將直接發布至你的 Mastodon 站台。">Preview only — real posts publish straight to your server.</div>
+                      </div>
+                    </div>
+
+                    <!-- PANEL 4: EXPLORE & FULLSCREEN MEDIA -->
+                    <div class="sim-panel" data-sim-panel="explore" hidden>
+                      <div class="sim-search-box"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg><span data-zh-hans="搜索 mastodon.social…" data-zh-hant="搜尋 mastodon.social…">Search mastodon.social…</span></div>
+                      <div class="sim-tag-row">
+                        <span class="sim-tag-pill"><b>#</b>FieldNotes</span>
+                        <span class="sim-tag-pill"><b>#</b>SilentSunday</span>
+                        <span class="sim-tag-pill"><b>#</b>BookClub</span>
+                        <span class="sim-tag-pill"><b>#</b>OpenWeb</span>
+                      </div>
+                      <article class="sim-card">
+                        <div class="qt-avatar qt-avatar-pine">L</div>
+                        <div class="sim-card-content">
+                          <div class="qt-post-head"><strong>Lina</strong><time data-zh-hans="轻点查看大图" data-zh-hant="輕點檢視大圖">Tap a photo</time></div>
+                          <span class="qt-handle">@lina@studio.example</span>
+                          <p class="qt-post-text" data-zh-hans="这周最喜欢的两个安静角落：午后书桌与暮色提灯。" data-zh-hant="這週最喜歡的兩個安靜角落：午後書桌與暮色提燈。">Two quiet corners from this week — afternoon tea and a lantern at dusk.</p>
+                          <div class="sim-photo-pair">
+                            <button class="sim-media-trigger" type="button" data-open-photo="bookshop" aria-label="Open bookshop photograph full-screen">
+                              <img src="/assets/bookshop.jpg" width="960" height="540" alt="Open hardcover book and steaming teacup on a sunlit wooden table">
+                              <span class="qt-alt-tag">ALT</span>
+                            </button>
+                            <button class="sim-media-trigger" type="button" data-open-photo="twilight" aria-label="Open twilight pier photograph full-screen">
+                              <img src="/assets/twilight.jpg" width="960" height="540" alt="Timber boardwalk beside calm twilight water with a single glowing lantern">
+                              <span class="qt-alt-tag">ALT</span>
+                            </button>
+                          </div>
+                        </div>
+                      </article>
+                    </div>
+                  </div>
+
+                  <!-- Interactive Full-Screen Media Gallery Lightbox -->
+                  <div class="sim-lightbox" data-sim-lightbox hidden role="dialog" aria-label="Full-screen media preview">
+                    <div class="sim-lightbox-bar">
+                      <button class="sim-lightbox-btn" type="button" data-zoom-lightbox aria-pressed="false" data-zh-hans="缩放 1.75×" data-zh-hant="縮放 1.75×">Zoom 1.75×</button>
+                      <button class="sim-lightbox-btn" type="button" data-close-lightbox data-zh-hans="关闭" data-zh-hant="關閉">Close</button>
+                    </div>
+                    <div class="sim-lightbox-img-wrap">
+                      <img class="sim-lightbox-img" data-lightbox-img src="/assets/bookshop.jpg" width="960" height="540" alt="">
+                    </div>
+                    <div class="sim-lightbox-alt">
+                      <strong>ALT · </strong>
+                      <span data-lightbox-alt-text>Warm late-afternoon sunlight crossing a wooden reading table with an open hardcover book and a steaming dark ceramic teacup.</span>
+                    </div>
+                  </div>
+
+                  <div class="sim-dock" role="navigation" aria-label="Preview tabs">
+                    <button class="sim-dock-btn" type="button" data-sim-dock="home" aria-current="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.2 10 3.8l6.5 5.4V16a1 1 0 0 1-1 1h-3.6v-4.4H8.1V17H4.5a1 1 0 0 1-1-1V9.2Z"/></svg><span data-zh-hans="主页" data-zh-hant="首頁">Home</span></button>
+                    <button class="sim-dock-btn" type="button" data-sim-dock="threads" aria-current="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8.5a4.5 4.5 0 1 1 9 0c0 4 1.5 5 1.5 5H4s1.5-1 1.5-5ZM8.5 16a1.7 1.7 0 0 0 3 0"/></svg><span data-zh-hans="会话" data-zh-hant="對話">Thread</span></button>
+                    <button class="sim-dock-btn" type="button" data-sim-dock="composer" aria-current="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.6 3.9a1.8 1.8 0 0 1 2.5 2.5L7.6 15l-3.4.9.9-3.4 8.5-8.6Z"/></svg><span data-zh-hans="发帖" data-zh-hant="發文">Write</span></button>
+                    <button class="sim-dock-btn" type="button" data-sim-dock="explore" aria-current="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg><span data-zh-hans="探索" data-zh-hant="探索">Explore</span></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Physical Hardware Morph Showcase (Pocket · Unfolded · Canvas) -->
+    <section id="screens" class="adaptive-section">
+      <div class="wrap">
+        <div class="adaptive-header">
+          <div class="section-head" data-reveal>
+            <p class="kicker"><span class="kicker-rule" aria-hidden="true"></span><span data-zh-hans="随屏幕自然舒展" data-zh-hant="隨螢幕自然舒展">Shaped for your screen</span></p>
+            <h2><span data-zh-hans="掌中、折叠、抑或" data-zh-hant="掌中、摺疊、抑或">Pocket, book-fold, or </span><em data-zh-hans="宽阔画布。" data-zh-hant="寬闊畫布。">wide desk.</em></h2>
+          </div>
+          <div class="form-switcher" role="group" aria-label="Choose device form factor" data-reveal data-delay="1">
+            <button class="form-btn" type="button" data-form-switch="phone" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="6" y="2.5" width="8" height="15" rx="2"/><path d="M9 14.8h2"/></svg><span data-zh-hans="手机" data-zh-hant="手機">Phone</span></button>
+            <button class="form-btn" type="button" data-form-switch="cover" aria-pressed="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.5" width="14" height="13" rx="2"/><path d="M10 3.5v13"/></svg><span data-zh-hans="折叠外屏" data-zh-hant="摺疊外螢幕">Folded Duo</span></button>
+            <button class="form-btn" type="button" data-form-switch="foldable" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.5" width="14" height="13" rx="2"/><path d="M10 3.5v13"/></svg><span data-zh-hans="展开双页" data-zh-hant="展開雙頁">Unfolded</span></button>
+            <button class="form-btn" type="button" data-form-switch="tablet" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2"/><path d="M6 4v12"/></svg><span data-zh-hans="iPad 与平板" data-zh-hant="iPad 與平板">iPad &amp; Tablet</span></button>
+          </div>
+        </div>
+
+        <div class="adaptive-stage" data-reveal="scale">
+          <div class="adaptive-device" data-adaptive-device data-form="cover" aria-hidden="true">
+            <div class="adaptive-viewport app-surface-day">
+              <div class="adaptive-rail">
+                <img src="/assets/quantoot.png" width="32" height="32" alt="">
+                <span class="rail-dot is-active"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.2 10 3.8l6.5 5.4V16a1 1 0 0 1-1 1h-3.6v-4.4H8.1V17H4.5a1 1 0 0 1-1-1V9.2Z"/></svg></span>
+                <span class="rail-dot"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg></span>
+                <span class="rail-dot"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8.5a4.5 4.5 0 1 1 9 0c0 4 1.5 5 1.5 5H4s1.5-1 1.5-5ZM8.5 16a1.7 1.7 0 0 0 3 0"/></svg></span>
+                <span class="rail-dot"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="6.8" r="3.2"/><path d="M4.2 16.5c.8-2.8 3-4.2 5.8-4.2s5 1.4 5.8 4.2"/></svg></span>
+                <span class="rail-fab"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.6 3.9a1.8 1.8 0 0 1 2.5 2.5L7.6 15l-3.4.9.9-3.4 8.5-8.6Z"/></svg></span>
+              </div>
+
+              <div class="adaptive-pane">
+                <div class="pane-bar">
+                  <span>QuanToot</span>
+                  <small>mastodon.social</small>
+                </div>
+                <div class="qt-tabs">
+                  <span class="qt-tab-item is-active" data-zh-hans="主页" data-zh-hant="首頁">Home</span>
+                  <span class="qt-tab-item" data-zh-hans="本站" data-zh-hant="本地">Local</span>
+                  <span class="qt-tab-item" data-zh-hans="跨站" data-zh-hant="聯邦">Federated</span>
+                </div>
+                <div class="pane-feed">
+                  <div class="pane-post">
+                    <div class="pane-post-head">
+                      <span class="qt-avatar qt-avatar-pine">L</span>
+                      <div><strong>Lina</strong><div class="pane-post-muted">@lina@studio.example · 14m</div></div>
+                    </div>
+                    <p data-zh-hans="清晨笔记：湖面静得连雾气流动的声音都听得见。" data-zh-hant="清晨筆記：湖面靜得連霧氣流動的聲音都聽得見。">Morning field notes. The lake was quiet enough to hear the mist move.</p>
+                    <div class="pane-photo"><img src="/assets/lake.jpg" width="800" height="450" alt=""></div>
+                  </div>
+                </div>
+                <div class="pane-bottom-nav">
+                  <b data-zh-hans="主页" data-zh-hant="首頁">Home</b>
+                  <span data-zh-hans="探索" data-zh-hant="探索">Explore</span>
+                  <span data-zh-hans="通知" data-zh-hant="通知">Alerts</span>
+                  <span data-zh-hans="资料" data-zh-hant="資料">Profile</span>
+                </div>
+              </div>
+
+              <div class="adaptive-hinge"></div>
+              <div class="adaptive-divider"></div>
+
+              <div class="adaptive-pane adaptive-secondary">
+                <div class="pane-bar">
+                  <span data-zh-hans="会话详情" data-zh-hant="對話詳情">Conversation</span>
+                  <small>#BookClub</small>
+                </div>
+                <div class="pane-feed">
+                  <div class="pane-post">
+                    <div class="pane-post-head">
+                      <span class="qt-avatar qt-avatar-slate">M</span>
+                      <div><strong>Mika</strong><div class="pane-post-muted">@mika@notes.example · 22m</div></div>
+                    </div>
+                    <p data-zh-hans="在时间线旁并排展开讨论，让日常浏览拥有如翻开纸本画报般的从容节奏。" data-zh-hant="在時間軸旁並排展開討論，讓日常瀏覽擁有如翻開紙本畫報般的從容節奏。">Unfolding a thread beside your timeline turns social reading into a two-page journal spread.</p>
+                    <div class="pane-photo"><img src="/assets/bookshop.jpg" width="960" height="540" alt=""></div>
+                  </div>
+                </div>
+                <div class="adaptive-reply-bar">
+                  <span class="duo-reply-avatar"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="6.8" r="3.2"/><path d="M4.2 16.5c.8-2.8 3-4.2 5.8-4.2s5 1.4 5.8 4.2"/></svg></span>
+                  <span class="duo-reply-pill"><span data-zh-hans="回复" data-zh-hant="回覆">Reply</span><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.6 3.9a1.8 1.8 0 0 1 2.5 2.5L7.6 15l-3.4.9.9-3.4 8.5-8.6Z"/></svg></span>
+                </div>
+              </div>
+
+              <div class="adaptive-cover-rail">
+                <span class="adaptive-cover-cam"></span>
+                <span class="adaptive-cover-time">9:41</span>
+                <div class="adaptive-glass-pill adaptive-cover-compose-pill">
+                  <span class="adaptive-pill-btn"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.6 3.9a1.8 1.8 0 0 1 2.5 2.5L7.6 15l-3.4.9.9-3.4 8.5-8.6Z"/></svg></span>
+                  <span class="adaptive-pill-btn"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="10" r="1.35"/><circle cx="10" cy="10" r="1.35"/><circle cx="14.5" cy="10" r="1.35"/></svg></span>
+                </div>
+                <div class="adaptive-unfolded-btns">
+                  <span class="adaptive-circle-btn"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="m5.5 5.5 9 9M14.5 5.5l-9 9"/></svg></span>
+                  <span class="adaptive-circle-btn"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="10" r="1.35"/><circle cx="10" cy="10" r="1.35"/><circle cx="14.5" cy="10" r="1.35"/></svg></span>
+                </div>
+                <div class="adaptive-glass-pill adaptive-glass-pill-bottom">
+                  <span class="adaptive-pill-btn is-active"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.2 10 3.8l6.5 5.4V16a1 1 0 0 1-1 1h-3.6v-4.4H8.1V17H4.5a1 1 0 0 1-1-1V9.2Z"/></svg></span>
+                  <span class="adaptive-pill-btn"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg></span>
+                  <span class="adaptive-pill-btn"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8.5a4.5 4.5 0 1 1 9 0c0 4 1.5 5 1.5 5H4s1.5-1 1.5-5ZM8.5 16a1.7 1.7 0 0 0 3 0"/></svg></span>
+                  <span class="adaptive-pill-btn"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="6.8" r="3.2"/><path d="M4.2 16.5c.8-2.8 3-4.2 5.8-4.2s5 1.4 5.8 4.2"/></svg></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="adaptive-caption" data-adaptive-caption></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Curated Interactive Feature Specimens -->
+    <section id="details" class="specimens-section">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <p class="kicker"><span class="kicker-rule" aria-hidden="true"></span><span data-zh-hans="细腻之处" data-zh-hant="細膩之處">Crafted details</span></p>
+          <h2><span data-zh-hans="每一处细微考量，都为了" data-zh-hant="每一處細微考量，都為了">Every small decision, made for </span><em data-zh-hans="更安宁的专注。" data-zh-hant="更安寧的專注。">quieter focus.</em></h2>
+        </div>
+
+        <div class="specimen-grid">
+          <!-- Specimen A: Grouped Notifications & Live Follow Request -->
+          <article class="specimen spec-7" data-reveal>
+            <div class="specimen-copy">
+              <h3 data-zh-hans="克制而清晰的分组合并通知" data-zh-hant="克制而清晰的分組合併通知">Notifications that stay calm</h3>
+              <p data-zh-hans="回复保留完整帖文，喜欢与转发自动聚合头像并尊重内容警告，关注请求无需跳转即可当场同意或婉拒。" data-zh-hant="回覆保留完整貼文，喜愛與轉發自動彙整頭像並尊重內容警告，追蹤請求無需跳轉即可當場核准或婉拒。">Replies show the full conversation, favourites and boosts fold neatly into avatar stacks that respect Content Warnings, and follow requests can be approved or declined on the spot.</p>
+            </div>
+            <div class="notif-stack">
+              <div class="notif-card">
+                <div class="notif-left">
+                  <div class="avatar-stack" aria-hidden="true">
+                    <span class="stack-a">L</span>
+                    <span class="stack-b">A</span>
+                    <span class="stack-c">M</span>
+                    <span class="stack-d">+5</span>
+                  </div>
+                  <span data-zh-hans="Lina 和另外 7 人喜欢了你的笔记" data-zh-hant="Lina 與另外 7 人喜愛了你的筆記">Lina and 7 others favourited your field notes</span>
+                </div>
+              </div>
+              <div class="notif-card">
+                <div class="notif-left">
+                  <span class="qt-avatar qt-avatar-slate">S</span>
+                  <div>
+                    <strong>Sora</strong>
+                    <span class="pane-post-muted" data-zh-hans=" · 投票已结束 · “清晨配咖啡”以 62% 胜出" data-zh-hant=" · 投票已結束 · 「清晨配咖啡」以 62% 勝出"> · Poll ended · “Morning coffee” led with 62%</span>
+                  </div>
+                </div>
+              </div>
+              <div class="notif-card">
+                <div class="notif-left">
+                  <span class="qt-avatar qt-avatar-warm">N</span>
+                  <div>
+                    <strong>Nadia</strong>
+                    <span class="pane-post-muted" data-zh-hans=" 请求关注你" data-zh-hant=" 請求追蹤你"> requested to follow you</span>
+                  </div>
+                </div>
+                <div class="req-actions" data-req-actions>
+                  <button class="req-btn req-btn-accept" type="button" data-req-decision="approved" data-zh-hans="同意" data-zh-hant="核准">Approve</button>
+                  <button class="req-btn" type="button" data-req-decision="declined" data-zh-hans="拒绝" data-zh-hant="婉拒">Decline</button>
+                </div>
+                <span class="req-status" data-req-status hidden></span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Specimen B: Interactive ALT-Lens Photo Frame -->
+          <article class="specimen spec-5 spec-warm" data-reveal data-delay="1">
+            <div class="specimen-copy">
+              <h3 data-zh-hans="图文并重，留存原片" data-zh-hant="圖文並重，留存原片">Images with context &amp; care</h3>
+              <p data-zh-hans="随时展开完整 ALT 图片描述、顺滑放大细节、原生播放视频，并仅按需请求写入权限保存原图。" data-zh-hant="隨時展開完整 ALT 圖片描述、順滑放大細節、原生播放影片，並僅按需請求寫入權限儲存原圖。">Read full ALT descriptions right over any photograph, zoom in cleanly, watch video natively, and save original photos with add-only library access.</p>
+            </div>
+            <div class="alt-frame" data-alt-frame>
+              <img src="/assets/twilight.jpg" width="960" height="540" alt="Timber boardwalk beside calm twilight water with a single glowing lantern">
+              <div class="alt-lens-sheet" data-alt-sheet hidden data-zh-hans="暮色薄雾中的常青林畔，一座木质长廊伸向平静的蓝绿色湖面，尽头亮着一盏温暖提灯。" data-zh-hant="暮色薄霧中的常青林畔，一座木質長廊伸向平靜的藍綠色湖面，盡頭亮著一盞溫暖提燈。">A weathered timber boardwalk extending alongside misty pine trees overlooking calm blue-green twilight water, lit by a single warm lantern.</div>
+              <button class="alt-lens-btn" type="button" data-alt-lens aria-expanded="false" data-zh-hans="ALT · 查看描述" data-zh-hant="ALT · 檢視描述">ALT · Inspect</button>
+            </div>
+          </article>
+
+          <!-- Specimen C: Multi-Account Sanctuary (Deep Pine) -->
+          <article class="specimen spec-6 spec-pine" data-reveal>
+            <div class="specimen-copy">
+              <h3 data-zh-hans="多个账号，各自安好" data-zh-hant="多個帳號，各自安好">Several accounts, cleanly apart</h3>
+              <p data-zh-hans="在同一部手机上同时打理日常、工作与兴趣社区账号。切换身份时，时间线、缓存与草稿彻底隔离，绝不串号误发。" data-zh-hant="在同一部手機上同時打理日常、工作與興趣社群帳號。切換身分時，時間軸、快取與草稿徹底隔離，絕不混用誤發。">Carry personal, studio, and community Mastodon servers on one device. Switching accounts resets your active feeds, streams, and drafts so nothing ever crosses between identities.</p>
+            </div>
+            <div class="sanctuary-list" role="group" aria-label="Sample multi-account switcher">
+              <button class="sanctuary-card" type="button" data-sanctuary-card aria-pressed="true">
+                <div class="sanctuary-left">
+                  <span class="qt-avatar qt-avatar-pine">L</span>
+                  <div class="sanctuary-meta"><strong>Lina</strong><small>@lina@mastodon.social</small></div>
+                </div>
+                <span class="sanctuary-pill" data-zh-hans="当前" data-zh-hant="目前">Active</span>
+              </button>
+              <button class="sanctuary-card" type="button" data-sanctuary-card aria-pressed="false">
+                <div class="sanctuary-left">
+                  <span class="qt-avatar qt-avatar-warm">S</span>
+                  <div class="sanctuary-meta"><strong>Studio Desk</strong><small>@notes@studio.example</small></div>
+                </div>
+                <span class="sanctuary-pill" data-zh-hans="切换" data-zh-hant="切換">Switch</span>
+              </button>
+              <button class="sanctuary-card" type="button" data-sanctuary-card aria-pressed="false">
+                <div class="sanctuary-left">
+                  <span class="qt-avatar qt-avatar-slate">B</span>
+                  <div class="sanctuary-meta"><strong>Book Club</strong><small>@readers@journal.example</small></div>
+                </div>
+                <span class="sanctuary-pill" data-zh-hans="切换" data-zh-hant="切換">Switch</span>
+              </button>
+            </div>
+          </article>
+
+          <!-- Specimen D: Filters, Moderation & Trilingual Craft -->
+          <article class="specimen spec-6" data-reveal data-delay="1">
+            <div class="specimen-copy">
+              <h3 data-zh-hans="你看到的，由你决定" data-zh-hant="你看到的，由你決定">Shape what reaches your screen</h3>
+              <p data-zh-hans="随时管理服务器端关键词过滤（隐藏或折叠提醒）、一键静音或屏蔽账号、向实例管理员举报，并在英文、简体中文与繁体中文间自由切换。" data-zh-hant="隨時管理站台端關鍵字篩選（隱藏或摺疊提醒）、一鍵靜音或封鎖帳號、向站台管理員檢舉，並在英文、簡體中文與繁體中文間自由切換。">Create server-side keyword filters to hide or warn about topics you want to skip, mute or block accounts effortlessly, report abuse straight to instance moderators, and read in English, 简体中文, or 繁體中文.</p>
+            </div>
+            <div class="filter-demo">
+              <div class="filter-demo-top">
+                <span data-zh-hans="关键词过滤：「剧透」" data-zh-hant="關鍵字篩選：「劇透」">Keyword filter: “spoilers”</span>
+                <button class="req-btn" type="button" data-filter-toggle aria-pressed="true" data-zh-hans="切换过滤" data-zh-hant="切換篩選">Toggle shield</button>
+              </div>
+              <div class="filter-shield" data-filter-shield data-zh-hans="已折叠 · 剧透过滤 — 准备好后再手动展开" data-zh-hant="已摺疊 · 劇透篩選 — 準備好後再手動展開">Filtered · Spoilers — tap to peek whenever you are ready</div>
+              <p class="filter-post-plain" data-filter-plain hidden data-zh-hans="刚看完大结局，博物馆里那个安静的反转太令人意外了。" data-zh-hant="剛看完大結局，博物館裡那個安靜的反轉太令人意外了。">Just finished tonight’s final episode — that quiet plot twist in the museum completely floored me.</p>
+              <div class="swatch-row">
+                <span data-zh-hans="日间与夜间 · EN · 简体 · 繁體" data-zh-hant="日間與夜間 · EN · 简体 · 繁體">Day &amp; Night · EN · 简体 · 繁體</span>
+                <span class="swatch-dots" aria-hidden="true">
+                  <i class="swatch-dot sw-paper"></i>
+                  <i class="swatch-dot sw-vermilion"></i>
+                  <i class="swatch-dot sw-pine"></i>
+                  <i class="swatch-dot sw-obsidian"></i>
+                  <i class="swatch-dot sw-coral"></i>
+                </span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Nocturnal Pine Privacy Interlude -->
+    <section class="privacy-band" aria-labelledby="privacy-heading">
+      <div class="wrap privacy-grid">
+        <div data-reveal="left">
+          <p class="kicker"><span class="kicker-rule" aria-hidden="true"></span><span data-zh-hans="生而尊重隐私" data-zh-hant="生而尊重隱私">Private by nature</span></p>
+          <h2 id="privacy-heading"><span data-zh-hans="你的设备，你的实例，" data-zh-hant="你的裝置，你的站台，">Your device. Your server. </span><em data-zh-hans="中间没有第三者。" data-zh-hant="中間沒有第三者。">Nobody in the middle.</em></h2>
+          <p class="section-lead" data-zh-hans="QuanToot 直接与你所选的 Mastodon 实例对话，不存在任何监视你阅读轨迹的开发者服务器，也没有广告与行为追踪。" data-zh-hant="QuanToot 直接與你所選的 Mastodon 站台對話，不存在任何監視你閱讀軌跡的開發者伺服器，也沒有廣告與行為追蹤。">QuanToot speaks straight to the Mastodon instance you choose. There is no developer server watching what you read, no ad network, and no behavioral tracking.</p>
+          <ul class="privacy-points">
+            <li><span class="privacy-check"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.5 10.5 3.6 3.6 7.4-8.2"/></svg></span><span data-zh-hans="通过实例官方浏览器页面完成授权，应用从不接触密码，并将登录凭据妥善保存在系统钥匙串或安全存储中。" data-zh-hant="透過站台官方瀏覽器頁面完成授權，應用程式從不接觸密碼，並將登入憑證妥善保存在系統鑰匙圈或安全儲存中。">Sign in through your server’s own browser page — QuanToot never sees your password, and stores your session in iOS Keychain or Android Keystore.</span></li>
+            <li><span class="privacy-check"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.5 10.5 3.6 3.6 7.4-8.2"/></svg></span><span data-zh-hans="随时一键清理媒体缓存、彻底移除本地会话，或直达所属实例的永久注销页面。" data-zh-hant="隨時一鍵清除媒體快取、徹底移除本機工作階段，或直達所屬站台的永久刪除頁面。">Clear cached media in one tap, remove saved device sessions cleanly, or jump straight to your server’s permanent account deletion page.</span></li>
+          </ul>
+          <div class="privacy-links">
+            <a class="btn btn-on-dark" href="/privacy/" data-zh-hans="阅读隐私政策" data-zh-hant="閱讀隱私權政策">Read privacy policy</a>
+            <a class="btn btn-on-dark-ghost" href="/support/" data-zh-hans="安全与支持" data-zh-hant="安全與支援">Safety &amp; support</a>
+          </div>
+        </div>
+
+        <div class="privacy-constellation" data-reveal="right" aria-label="Direct connection diagram">
+          <div class="flow-nodes">
+            <div class="flow-node">
+              <div class="flow-node-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="9" width="11" height="7.5" rx="1.8"/><path d="M7 9V6.8a3 3 0 0 1 6 0V9"/></svg></div>
+              <strong data-zh-hans="你的设备" data-zh-hant="你的裝置">Your Device</strong>
+              <small data-zh-hans="系统安全凭据库" data-zh-hant="系統安全憑證庫">System secure storage</small>
+            </div>
+            <div class="flow-bridge" aria-hidden="true">
+              <span class="flow-label" data-zh-hans="加密直连" data-zh-hant="加密直連">Encrypted</span>
+              <span class="flow-line"></span>
+              <span class="flow-label" data-zh-hans="无中转" data-zh-hant="無中轉">Direct</span>
+            </div>
+            <div class="flow-node">
+              <div class="flow-node-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.2"/><path d="M3.2 10h13.6M10 2.8a10.5 10.5 0 0 1 0 14.4M10 2.8a10.5 10.5 0 0 0 0 14.4"/></svg></div>
+              <strong data-zh-hans="你的实例" data-zh-hant="你的站台">Your Server</strong>
+              <small data-zh-hans="你选择的社区" data-zh-hant="你選擇的社群">Your chosen community</small>
+            </div>
+          </div>
+          <div class="flow-absent">
+            <span data-zh-hans="广告网络、统计追踪器或开发者数据服务器" data-zh-hant="廣告聯播網、分析追蹤器或開發者資料伺服器">Ad networks, analytics trackers, or developer data servers</span>
+            <span class="flow-absent-badge" data-zh-hans="无 · 0" data-zh-hant="無 · 0">None · 0</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Signature Download Finale -->
+    <section class="download-section" aria-label="Download QuanToot">
+      <div class="wrap download-grid">
+        <article id="android" class="download-card download-android" aria-labelledby="android-title" data-android-downloads data-reveal>
+          <div>
+            <p class="kicker"><span data-zh-hans="Android 8.0 及以上" data-zh-hant="Android 8.0 以上">Android 8.0 or later</span></p>
+            <h2 id="android-title" data-zh-hans="下载 Android 版" data-zh-hant="下載 Android 版">Download for Android</h2>
+            <p class="release-status" role="status">
+              <span data-release-loading data-zh-hans="正在获取最新正式版…" data-zh-hant="正在取得最新正式版…" hidden>Checking for the latest stable release…</span>
+              <span data-release-ready hidden>
+                <span data-zh-hans="最新官方签名正式版" data-zh-hant="最新官方簽署正式版">Latest official release</span>
+                <strong class="release-version-pill" data-release-version></strong>
+              </span>
+              <span data-release-missing data-zh-hans="暂时没有可下载的正式版 APK。" data-zh-hant="目前沒有可下載的正式版 APK。" hidden>There is no stable APK available right now.</span>
+              <span data-release-error data-zh-hans="暂时无法自动获取最新版本，可在下方 Forgejo 页面查看所有版本。" data-zh-hant="暫時無法自動取得最新版本，可在下方 Forgejo 頁面查看所有版本。" hidden>Couldn’t load the latest release automatically. Browse all releases on Forgejo below.</span>
+            </p>
+            <ul class="apk-list" data-release-apks hidden>
+              <li data-abi="arm64-v8a" hidden><a class="apk-link apk-recommended"><strong>arm64-v8a</strong><span data-zh-hans="推荐 · 绝大多数安卓手机" data-zh-hant="推薦 · 絕大多數 Android 手機">Recommended · Most Android phones</span></a></li>
+              <li data-abi="armeabi-v7a" hidden><a class="apk-link"><strong>armeabi-v7a</strong><span data-zh-hans="32 位 ARM 设备" data-zh-hant="32 位元 ARM 裝置">32-bit ARM devices</span></a></li>
+              <li data-abi="x86_64" hidden><a class="apk-link"><strong>x86_64</strong><span data-zh-hans="64 位 x86 平板与模拟器" data-zh-hant="64 位元 x86 平板與模擬器">64-bit x86 tablets &amp; emulators</span></a></li>
+              <li data-abi="x86" hidden><a class="apk-link"><strong>x86</strong><span data-zh-hans="32 位 x86 设备" data-zh-hant="32 位元 x86 裝置">32-bit x86 devices</span></a></li>
+            </ul>
+            <noscript><p>Enable JavaScript to load direct signed APK links, or browse all releases on Forgejo below.</p></noscript>
+          </div>
+          <div class="release-links">
+            <a data-release-checksums data-zh-hans="SHA-256 校验值" data-zh-hant="SHA-256 校驗值" hidden>SHA-256 checksums</a>
+            <a href="https://git.qqs.tw/bobmaster/quantoot_next/releases" data-zh-hans="在 Forgejo 查看所有版本" data-zh-hant="在 Forgejo 查看所有版本">All releases on Forgejo</a>
+            <span data-zh-hans="支持应用内 SHA-256 校验更新" data-zh-hant="支援應用程式內 SHA-256 驗證更新">Optional in-app updates verified with SHA-256</span>
+          </div>
+        </article>
+
+        <article id="ios" class="download-card download-ios" aria-labelledby="ios-title" data-reveal data-delay="1">
+          <div>
+            <p class="kicker"><span data-zh-hans="iPhone 与 iPad · iOS 15.0+" data-zh-hant="iPhone 與 iPad · iOS 15.0+">iPhone &amp; iPad · iOS 15.0+</span></p>
+            <h2 id="ios-title" data-zh-hans="QuanToot iOS 版" data-zh-hant="QuanToot iOS 版">QuanToot for iOS</h2>
+            <p class="section-lead" data-zh-hans="为 iPhone、iPad 与折叠设备精心打造，支持钥匙串安全存储、双栏阅读与完整无障碍体验，现正准备提交至 App Store。" data-zh-hant="為 iPhone、iPad 與摺疊裝置精心打造，支援鑰匙圈安全儲存、雙欄閱讀與完整無障礙體驗，現正準備提交至 App Store。">Built for iPhone, iPad, and foldable displays, with Keychain security, split-screen reading, and full accessibility support. Currently preparing for App Store submission.</p>
+            <ul class="ios-specs">
+              <li><span data-zh-hans="发布状态" data-zh-hant="發布狀態">Availability</span><strong data-zh-hans="准备提交 App Store" data-zh-hant="準備提交 App Store">Preparing for App Store</strong></li>
+              <li><span data-zh-hans="支持设备" data-zh-hant="支援裝置">Supported devices</span><strong data-zh-hans="iPhone 与 iPad（iOS 15.0+）" data-zh-hant="iPhone 與 iPad（iOS 15.0+）">iPhone &amp; iPad (iOS 15.0+)</strong></li>
+              <li><span data-zh-hans="界面语言" data-zh-hant="介面語言">Languages</span><strong>English · 简体中文 · 繁體中文</strong></li>
+            </ul>
+          </div>
+          <div class="ios-actions">
+            <a class="btn btn-primary" href="/support/" data-zh-hans="支持与动态" data-zh-hant="支援與動態">Support &amp; updates</a>
+            <a class="btn btn-secondary" href="https://git.qqs.tw/bobmaster/quantoot_next" data-zh-hans="查看源码" data-zh-hant="檢視原始碼">Source code</a>
+          </div>
+        </article>
+      </div>
+    </section>
   </main>
-  <footer class="footer">
-    <div class="wrap foot">
-      <a class="brand" href="/"><img src="/assets/quantoot.png" width="32" height="32" alt="">QuanToot</a>
-      <div><a href="/privacy/" data-zh-hans="隐私政策" data-zh-hant="隱私權政策">Privacy</a><a href="/support/" data-zh-hans="支持" data-zh-hant="支援">Support</a><a href="https://git.qqs.tw/bobmaster/quantoot_next" data-zh-hans="源代码" data-zh-hant="原始碼">Source</a></div>
-      <small data-zh-hans="由 BobMaster 开发" data-zh-hant="由 BobMaster 開發">Made by BobMaster</small>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="/">
+            <img class="brand-icon" src="/assets/quantoot.png" width="32" height="32" alt="">
+            <span>QuanToot</span>
+          </a>
+          <p data-zh-hans="适用于 iPhone、iPad、Android 与折叠屏的独立 Mastodon 客户端。天生克制安静——无广告、无追踪，也不在你和你的实例之间多留一道中间层。" data-zh-hant="適用於 iPhone、iPad、Android 與摺疊螢幕的獨立 Mastodon 用戶端。天生克制安靜——無廣告、無追蹤，也不在你與站台之間多留一道中間層。">An independent Mastodon client for iPhone, iPad, Android, and foldables. Quiet by design — with no ads, no analytics, and nothing between you and your server.</p>
+        </div>
+        <div class="footer-col">
+          <h3 data-zh-hans="浏览" data-zh-hant="瀏覽">Explore</h3>
+          <ul>
+            <li><a href="#experience" data-zh-hans="阅读与书写" data-zh-hant="閱讀與書寫">Reading &amp; writing</a></li>
+            <li><a href="#screens" data-zh-hans="多端舒展" data-zh-hant="多螢幕舒展">Every screen</a></li>
+            <li><a href="#details" data-zh-hans="细腻之处" data-zh-hant="細膩之處">Crafted details</a></li>
+            <li><a href="#android" data-zh-hans="下载获取" data-zh-hant="下載取得">Downloads</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3 data-zh-hans="信任与支持" data-zh-hant="信任與支援">Trust &amp; help</h3>
+          <ul>
+            <li><a href="/privacy/" data-zh-hans="隐私政策" data-zh-hant="隱私權政策">Privacy policy</a></li>
+            <li><a href="/support/" data-zh-hans="支持与安全" data-zh-hant="支援與安全">Support &amp; safety</a></li>
+            <li><a href="https://git.qqs.tw/bobmaster/quantoot_next" data-zh-hans="源代码仓库" data-zh-hant="原始碼儲存庫">Source repository</a></li>
+            <li><a href="https://git.qqs.tw/bobmaster/quantoot_next/releases" data-zh-hans="所有发行版本" data-zh-hant="所有發行版本">Release archive</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span data-zh-hans="由 BobMaster 倾心打造 · 独立 Mastodon 客户端" data-zh-hant="由 BobMaster 傾心打造 · 獨立 Mastodon 用戶端">Crafted by BobMaster · Independent Mastodon client</span>
+        <span><a href="mailto:bobmaster@hibobmaster.com">bobmaster@hibobmaster.com</a></span>
+      </div>
     </div>
   </footer>
 </body>
