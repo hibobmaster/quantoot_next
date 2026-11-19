@@ -151,7 +151,7 @@ private fun SettingsIndex(ui: UiContext, state: SessionState) {
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically) {
         BrandMark(Modifier.size(28.dp))
-        Text(tr("settings_version_label", "version" to (appUpdates?.currentVersion ?: "0.6.7")),
+        Text(tr("settings_version_label", "version" to (appUpdates?.currentVersion ?: "0.6.8")),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
