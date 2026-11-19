@@ -20,6 +20,7 @@ interface PlatformServices {
     val oauthRedirects: Flow<String>
     val foreground: StateFlow<Boolean>
     val languageTag: String
+    val appUpdates: AppUpdates? get() = null
 
     fun openAuthorization(url: String)
 

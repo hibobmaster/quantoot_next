@@ -75,6 +75,8 @@ fun SettingsScreen(ui: UiContext, state: SessionState, section: SettingsSection?
 @Composable
 private fun SettingsIndex(ui: UiContext, state: SessionState) {
     var choosingLanguage by remember { mutableStateOf(false) }
+    var checkingUpdates by remember { mutableStateOf(false) }
+    val appUpdates = ui.platform.appUpdates
     val loader = SingletonImageLoader.get(LocalPlatformContext.current)
     var cacheBytes by remember(loader) { mutableStateOf<Long?>(null) }
     var clearingCache by remember(loader) { mutableStateOf(false) }
@@ -97,7 +99,7 @@ private fun SettingsIndex(ui: UiContext, state: SessionState) {
         SettingsRow(
             tr("settings_clear_media_cache"), Icons.Default.Delete,
             showChevron = false,
-            trailingValue = cacheBytes?.let(::formatCacheSize),
+            trailingValue = cacheBytes?.let(::formatByteSize),
             enabled = !clearingCache,
         ) {
             clearingCache = true
@@ -126,6 +128,9 @@ private fun SettingsIndex(ui: UiContext, state: SessionState) {
         }
     }
     SettingsGroup(tr("settings_about")) {
+        if (appUpdates != null) {
+            SettingsRow(tr("settings_check_for_updates"), Icons.Default.Refresh) { checkingUpdates = true }
+        }
         SettingsRow(tr(SettingsSection.Server.titleKey), PostIcons.Public, detail = state.instance) {
             ui.navigate(Screen.Settings(SettingsSection.Server))
         }
@@ -146,8 +151,12 @@ private fun SettingsIndex(ui: UiContext, state: SessionState) {
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically) {
         BrandMark(Modifier.size(28.dp))
-        Text(tr("settings_version_label", "version" to "0.6.5"), style = MaterialTheme.typography.labelMedium,
+        Text(tr("settings_version_label", "version" to (appUpdates?.currentVersion ?: "0.6.5")),
+            style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+    if (checkingUpdates && appUpdates != null) {
+        AppUpdateDialog(appUpdates, ui.platform.foreground, ui::open) { checkingUpdates = false }
     }
     if (choosingLanguage) ChoiceSheet(
         tr("settings_language"), locale, languages,
@@ -156,7 +165,7 @@ private fun SettingsIndex(ui: UiContext, state: SessionState) {
     )
 }
 
-private fun formatCacheSize(bytes: Long): String {
+internal fun formatByteSize(bytes: Long): String {
     if (bytes < 1_000) return "$bytes B"
     val units = listOf("KB", "MB", "GB", "TB", "PB", "EB")
     var amount = bytes / 1_000.0

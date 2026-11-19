@@ -29,6 +29,7 @@ class AndroidPlatformServices(private val activity: ComponentActivity) : Platfor
     private val redirects = Channel<String>(Channel.BUFFERED)
     override val oauthRedirects = redirects.receiveAsFlow()
     override val foreground = MutableStateFlow(true)
+    override val appUpdates: AppUpdates = AndroidAppUpdates(activity)
     override val languageTag: String
         get() = Locale.getDefault().toLanguageTag()
 
