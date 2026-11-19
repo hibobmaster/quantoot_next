@@ -128,11 +128,11 @@ private fun SettingsIndex(ui: UiContext, state: SessionState) {
         }
     }
     SettingsGroup(tr("settings_about")) {
-        if (appUpdates != null) {
-            SettingsRow(tr("settings_check_for_updates"), Icons.Default.Refresh) { checkingUpdates = true }
-        }
         SettingsRow(tr(SettingsSection.Server.titleKey), PostIcons.Public, detail = state.instance) {
             ui.navigate(Screen.Settings(SettingsSection.Server))
+        }
+        SettingsRow(tr("settings_feedback"), Icons.Default.Email, showChevron = false) {
+            ui.open("https://quanquan.space/")
         }
         SettingsRow(tr(SettingsSection.PrivacyPolicy.titleKey), Icons.Default.Lock) {
             ui.navigate(Screen.Settings(SettingsSection.PrivacyPolicy))
@@ -140,11 +140,8 @@ private fun SettingsIndex(ui: UiContext, state: SessionState) {
         SettingsRow(tr(SettingsSection.Licenses.titleKey), Icons.AutoMirrored.Filled.List) {
             ui.navigate(Screen.Settings(SettingsSection.Licenses))
         }
-        SettingsRow(tr("settings_developer_support"), Icons.Default.AccountCircle, detail = "BobMaster", showChevron = false) {
-            ui.platform.share("QuanToot support: BobMaster <bobmaster@hibobmaster.com>")
-        }
-        SettingsRow(tr("settings_feedback"), Icons.Default.Email, showChevron = false) {
-            ui.open("https://quanquan.space/")
+        if (appUpdates != null) {
+            SettingsRow(tr("settings_check_for_updates"), Icons.Default.Refresh) { checkingUpdates = true }
         }
     }
     Row(Modifier.fillMaxWidth().padding(vertical = 12.dp),
