@@ -44,8 +44,5 @@ jobs:
         run: ./gradlew --no-daemon -PsplitApks=true :shared:testAndroidHostTest :androidApp:assembleRelease --console=plain
       - name: Sign and verify the four APKs
         run: bash ci/android/request-signing.sh
-      - uses: https://data.forgejo.org/forgejo/upload-artifact@16871d9e8cfcf27ff31822cac382bbb5450f1e1e # Forgejo v4
-        with:
-          name: quantoot-android-${{ forgejo.ref_name }}
-          path: androidApp/build/ci-release/
-          if-no-files-found: error
+      - name: Publish signed APKs to Forgejo Releases
+        run: node ci/android/publish-release.mjs
