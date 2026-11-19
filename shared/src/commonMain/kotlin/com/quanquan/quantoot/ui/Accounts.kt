@@ -43,7 +43,6 @@ import coil3.compose.AsyncImage
 import com.quanquan.quantoot.auth.*
 import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
-import com.quanquan.quantoot.platform.*
 import kotlinx.coroutines.*
 
 private const val DEFAULT_INSTANCE = "m.qqs.tw"
@@ -281,6 +280,7 @@ fun ProfileScreen(ui: UiContext, id: String) {
                     val rel = relationship
                     ProfileMasthead(
                         account = person,
+                        ownProfile = self,
                         label = tr(if (self) "mastodon_edit_profile"
                             else if (rel?.requested == true) "mastodon_follow_requested"
                             else if (rel?.following == true) "mastodon_following" else "mastodon_follow"),
@@ -461,6 +461,7 @@ private fun ProfileStat(count: Int, label: String, onClick: (() -> Unit)? = null
 @Composable
 private fun ProfileMasthead(
     account: Account,
+    ownProfile: Boolean,
     label: String,
     busy: Boolean,
     shareEnabled: Boolean,
@@ -469,14 +470,12 @@ private fun ProfileMasthead(
     onShare: () -> Unit,
     overflow: (@Composable () -> Unit)?,
 ) {
+    val colors = MaterialTheme.colorScheme
+    val actionBorder = BorderStroke(0.75.dp, colors.outlineVariant)
     val density = LocalDensity.current
     val measurer = rememberTextMeasurer()
     val style = MaterialTheme.typography.labelLarge
-    val header = remember(account.header) {
-        safeWebUrl(account.header)?.takeUnless {
-            it.substringBefore('?').substringBefore('#').substringAfterLast('/') == "missing.png"
-        }
-    }
+    val header = remember(account.header) { profileImageUrl(account.header) }
     val avatar: @Composable () -> Unit = {
         Box(Modifier.background(MaterialTheme.colorScheme.surface, CircleShape).padding(3.dp)) {
             AccountAvatar(account, 64.dp)
@@ -488,9 +487,10 @@ private fun ProfileMasthead(
             enabled = !busy,
             modifier = modifier.heightIn(min = 48.dp),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            border = actionBorder.takeIf { ownProfile },
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.onSurface,
-                contentColor = MaterialTheme.colorScheme.surface,
+                containerColor = if (ownProfile) Color.Transparent else colors.onSurface,
+                contentColor = if (ownProfile) colors.onSurface else colors.surface,
             ),
         ) {
             if (busy) {
@@ -501,11 +501,10 @@ private fun ProfileMasthead(
         }
     }
     val secondary: @Composable () -> Unit = {
-        val border = BorderStroke(0.75.dp, MaterialTheme.colorScheme.outlineVariant)
-        OutlinedIconButton(onClick = onQr, enabled = shareEnabled, modifier = Modifier.size(48.dp), border = border) {
+        OutlinedIconButton(onClick = onQr, enabled = shareEnabled, modifier = Modifier.size(48.dp), border = actionBorder) {
             Icon(ProfileQrIcon, "QR", Modifier.size(19.dp))
         }
-        OutlinedIconButton(onClick = onShare, enabled = shareEnabled, modifier = Modifier.size(48.dp), border = border) {
+        OutlinedIconButton(onClick = onShare, enabled = shareEnabled, modifier = Modifier.size(48.dp), border = actionBorder) {
             Icon(Icons.Default.Share, tr("mastodon_button_share"), Modifier.size(19.dp))
         }
         overflow?.invoke()
@@ -553,8 +552,12 @@ private fun ProfileMasthead(
     }
 }
 
+internal fun profileImageUrl(raw: String): String? = safeWebUrl(raw)?.takeUnless {
+    it.substringBefore('?').substringBefore('#').substringAfterLast('/') == "missing.png"
+}
+
 @Composable
-private fun ProfileCoverPattern(modifier: Modifier) {
+internal fun ProfileCoverPattern(modifier: Modifier) {
     val paper = MaterialTheme.colorScheme.surfaceContainerLow
     val ink = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.21f)
     val accent = MaterialTheme.colorScheme.primary
@@ -648,139 +651,5 @@ fun PeopleScreen(ui: UiContext, route: Screen.People) {
                 }
             }
         }
-    }
-}
-
-@Composable
-fun EditProfileScreen(ui: UiContext) {
-    val initial = ui.me ?: return
-    var name by remember { mutableStateOf(initial.displayName) }
-    var note by remember { mutableStateOf(initial.source?.note ?: plainText(initial.note)) }
-    var locked by remember { mutableStateOf(initial.locked) }
-    var fields by remember { mutableStateOf(initial.source?.fields ?: initial.fields) }
-    var avatar by remember { mutableStateOf<PickedMedia?>(null) }
-    var header by remember { mutableStateOf<PickedMedia?>(null) }
-    var busy by remember { mutableStateOf(false) }
-    var avatarRemoved by remember { mutableStateOf(false) }
-    var headerRemoved by remember { mutableStateOf(false) }
-    Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        OutlinedTextField(
-            name,
-            { name = it },
-            label = { Text(tr("mastodon_profile_display_name")) },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        OutlinedTextField(
-            note,
-            { note = it },
-            label = { Text(tr("mastodon_profile_bio")) },
-            modifier = Modifier.fillMaxWidth(),
-            minLines = 4,
-        )
-        Toggle(tr("mastodon_profile_locked"), locked) { locked = it }
-        listOf(true, false).forEach { isAvatar ->
-            Text(tr(if (isAvatar) "mastodon_profile_avatar" else "mastodon_profile_header"))
-            val image = if (isAvatar) avatar else header
-            val removed = if (isAvatar) avatarRemoved else headerRemoved
-            if (!removed)
-                AsyncImage(
-                    image?.bytes ?: safeWebUrl(if (isAvatar) initial.avatar else initial.header),
-                    null,
-                    Modifier.fillMaxWidth().height(100.dp),
-                )
-            Row {
-                TextButton(
-                    onClick = {
-                        ui.run {
-                            val picked = ui.platform.pickMedia(1).firstOrNull() ?: return@run
-                            if (isAvatar) {
-                                avatar = picked
-                                avatarRemoved = false
-                            } else {
-                                header = picked
-                                headerRemoved = false
-                            }
-                        }
-                    },
-                    enabled = !busy,
-                ) {
-                    Text(tr("mastodon_profile_replace_image"))
-                }
-                TextButton(
-                    onClick = {
-                        ui.run {
-                            ui.store.updateAccount(ui.api.deleteProfileImage(isAvatar))
-                            if (isAvatar) {
-                                avatar = null
-                                avatarRemoved = true
-                            } else {
-                                header = null
-                                headerRemoved = true
-                            }
-                        }
-                    },
-                    enabled = !busy,
-                ) {
-                    Text(tr("mastodon_profile_remove_image"))
-                }
-            }
-        }
-        Text(tr("mastodon_profile_custom_fields"), style = MaterialTheme.typography.titleMedium)
-        fields.forEachIndexed { index, field ->
-            Column {
-                OutlinedTextField(
-                    field.name,
-                    { text ->
-                        fields = fields.mapIndexed { i, value ->
-                            if (i == index) value.copy(name = text) else value
-                        }
-                    },
-                    label = { Text(tr("mastodon_profile_field_name")) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    field.value,
-                    { text ->
-                        fields = fields.mapIndexed { i, value ->
-                            if (i == index) value.copy(value = text) else value
-                        }
-                    },
-                    label = { Text(tr("mastodon_profile_field_value")) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                TextButton(onClick = { fields = fields.filterIndexed { i, _ -> i != index } }) {
-                    Text(tr("mastodon_delete"))
-                }
-            }
-        }
-        if (fields.size < 4)
-            TextButton(onClick = { fields = fields + ProfileField() }) {
-                Text(tr("mastodon_profile_add_field"))
-            }
-        Button(
-            onClick = {
-                busy = true
-                ui.run {
-                    try {
-                        ui.store.updateAccount(
-                            ui.api.updateProfile(
-                                ProfileUpdate(name, note, locked, fields, avatar, header)
-                            )
-                        )
-                        ui.revision++
-                        ui.back()
-                    } finally {
-                        busy = false
-                    }
-                }
-            },
-            enabled = !busy,
-        ) {
-            Text(tr("mastodon_save_changes"))
-        }
-        if (busy) Loading()
     }
 }

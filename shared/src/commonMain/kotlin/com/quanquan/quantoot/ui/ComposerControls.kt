@@ -32,10 +32,11 @@ import com.quanquan.quantoot.model.MediaAttachment
 import com.quanquan.quantoot.model.Status
 
 @Composable
-internal fun ComposerHeader(
+internal fun EditorHeader(
     title: String,
     onClose: () -> Unit,
     closeEnabled: Boolean = true,
+    closeIcon: ImageVector = Icons.Default.Close,
     action: @Composable () -> Unit = {},
 ) {
     Row(
@@ -43,7 +44,7 @@ internal fun ComposerHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        IconButton(onClick = onClose, enabled = closeEnabled) { Icon(Icons.Default.Close, tr("mastodon_close")) }
+        IconButton(onClick = onClose, enabled = closeEnabled) { Icon(closeIcon, tr("mastodon_close")) }
         Text(title, Modifier.weight(1f).semantics { heading() }, style = MaterialTheme.typography.titleLarge,
             maxLines = 2, overflow = TextOverflow.Ellipsis)
         action()

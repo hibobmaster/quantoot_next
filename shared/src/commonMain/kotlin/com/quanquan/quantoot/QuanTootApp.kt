@@ -188,7 +188,7 @@ private fun AppShell(
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentWindowInsets = WindowInsets(0),
                 snackbarHost = { SnackbarHost(snackbar) },
-                topBar = { if (route !is Screen.Compose) ShellHeader(ui, tab, route, rail) },
+                topBar = { if (route !is Screen.Compose && route != Screen.EditProfile) ShellHeader(ui, tab, route, rail) },
                 bottomBar = { if (!rail && route == null) DestinationBar(tab, unread, select) },
                 floatingActionButton = {
                     if (!rail && ((route == null && tab != MainTab.Explore) || route is Screen.Feed || route is Screen.Profile))

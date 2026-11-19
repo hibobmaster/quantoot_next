@@ -200,21 +200,34 @@ fun Empty(label: String = tr("mastodon_empty_timeline")) {
 }
 
 @Composable
-fun Toggle(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+fun Toggle(
+    label: String,
+    checked: Boolean,
+    description: String? = null,
+    enabled: Boolean = true,
+    onChange: (Boolean) -> Unit,
+) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         shape = MaterialTheme.shapes.medium,
     ) {
         Row(
             Modifier.fillMaxWidth()
-                .toggleable(checked, role = Role.Switch, onValueChange = onChange)
+                .toggleable(checked, enabled = enabled, role = Role.Switch, onValueChange = onChange)
                 .heightIn(min = 56.dp)
                 .padding(horizontal = 16.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(label, Modifier.weight(1f).padding(end = 16.dp))
+            Column(Modifier.weight(1f).padding(end = 16.dp).padding(vertical = if (description == null) 0.dp else 4.dp)) {
+                Text(label)
+                if (description != null) {
+                    Text(description, style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
             Switch(
                 checked = checked,
+                enabled = enabled,
                 onCheckedChange = null,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = MaterialTheme.colorScheme.onPrimary,

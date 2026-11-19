@@ -162,7 +162,7 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
     })
     if (route.edit?.poll != null) {
         Column(Modifier.fillMaxSize()) {
-            ComposerHeader(title, ui::requestBack)
+            EditorHeader(title, ui::requestBack)
             Column(
                 Modifier.verticalScroll(rememberScrollState()).padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -310,7 +310,7 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
     val quoteLabel = quotePolicies.firstOrNull { it.first == draft.quotePolicy }?.second ?: draft.quotePolicy
 
     Column(Modifier.fillMaxSize().imePadding()) {
-        ComposerHeader(title, ui::requestBack, closeEnabled = !publishing) {
+        EditorHeader(title, ui::requestBack, closeEnabled = !publishing) {
             Button(
                 onClick = ::publish,
                 enabled = canPublish,
@@ -468,7 +468,7 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
                     Text(tr("mastodon_post_options"), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
                     IconButton(onClick = dismissPanel) { Icon(Icons.Default.Close, tr("mastodon_close")) }
                 }
-                Toggle(tr("mastodon_sensitive_content"), draft.sensitive, draft::chooseSensitive)
+                Toggle(tr("mastodon_sensitive_content"), draft.sensitive, onChange = draft::chooseSensitive)
                 Choice(tr("mastodon_compose_quote_policy"), draft.quotePolicy, quotePolicies, draft::chooseQuotePolicy)
             }
         }
