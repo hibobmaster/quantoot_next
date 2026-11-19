@@ -1,6 +1,7 @@
 package com.quanquan.quantoot.ui
 
 import androidx.compose.foundation.MutatePriority
+import com.quanquan.quantoot.model.Status
 import com.quanquan.quantoot.model.Timeline
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -8,7 +9,9 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 
 class ProfileFeedViewportTest {
@@ -85,6 +88,41 @@ class ProfileFeedViewportTest {
         assertFalse(profileReadingOlder(geometry, ProfileVisibleItem.Status(0, 160), rowCount = 4))
         assertTrue(profileReadingOlder(geometry, ProfileVisibleItem.Status(0, 161), rowCount = 4))
         assertTrue(profileReadingOlder(geometry, ProfileVisibleItem.Status(1, 0), rowCount = 4))
+    }
+
+    @Test
+    fun revealingProfilePostsKeepsTheHeadAlignedWhenThePendingRowDisappears() {
+        val controls = listOf(ProfileFeedControl.Activity, ProfileFeedControl.Pending, ProfileFeedControl.Error)
+        assertEquals(0, profileHeadAfterReveal(ProfileFeedControl.Activity.key, "first", controls))
+        for (key in listOf(ProfileFeedControl.Pending.key, ProfileFeedControl.Error.key)) {
+            assertEquals(1, profileHeadAfterReveal(key, "first", controls))
+        }
+        assertEquals(2, profileHeadAfterReveal(profileStatusKey("first"), "first", controls))
+        assertNull(profileHeadAfterReveal(profileStatusKey("older"), "first", controls))
+        assertNull(profileHeadAfterReveal(PROFILE_FOOTER_KEY, "first", controls))
+        assertEquals(2, profileHeadAfterReveal(PROFILE_EMPTY_KEY, null, controls))
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun profileHeadRevealsBufferedPostsWithoutMovingTheHeader() = runTest {
+        val state = ProfileScrollState()
+        state.measured(400, 48, 700)
+        val viewport = ProfileFeedViewport(state, state.attachment)
+        val pager = FeedPager(backgroundScope, { status: Status -> status.id }, beforeReplace = {
+            if (viewport.isSettledAtTop()) viewport.requestTop()
+        }) { error("Showing queued posts should not fetch again") }
+        viewport.attach(pager)
+        pager.restore(FeedSnapshot(listOf(Status(id = "older"))))
+        pager.created(Status(id = "new"), defer = true)
+        backgroundScope.launch { pager.revealWhenAtTop(viewport::isSettledAtTop) }
+        runCurrent()
+
+        assertEquals(listOf("new", "older"), pager.rows.map { it.id })
+        assertTrue(pager.pending.isEmpty())
+        assertEquals(0f, state.geometry.collapsed)
+        state.select(ProfileSelection(ProfileCategory.Media))
+        assertFalse(viewport.isSettledAtTop())
     }
 
     @Test

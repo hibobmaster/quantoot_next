@@ -1,5 +1,7 @@
 package com.quanquan.quantoot.ui
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshots.Snapshot
 import com.quanquan.quantoot.model.*
 import com.quanquan.quantoot.platform.KeyValueStore
 import kotlin.test.*
@@ -88,6 +90,47 @@ class FeedBehaviorTest {
         assertEquals(listOf("3"), pager.pending.map { it.id })
         pager.reveal()
         assertEquals(listOf("3", "2", "1"), pager.rows.map { it.id })
+    }
+
+    @Test
+    fun returningToTopRevealsPendingPostsEvenWhileARefreshIsInFlight() = runTest {
+        val response = CompletableDeferred<Page<Status>>()
+        val atTop = mutableStateOf(false)
+        var requested = 0
+        var topRequests = 0
+        val pager = FeedPager(backgroundScope, { status: Status -> status.id },
+            beforeReplace = { topRequests++ },
+        ) {
+            requested++
+            response.await()
+        }
+        pager.restore(FeedSnapshot(listOf(Status(id = "2"), Status(id = "1")), nextCursor = "tail", continuationKnown = true))
+        backgroundScope.launch { pager.revealWhenAtTop { atTop.value } }
+        runCurrent()
+
+        pager.load(defer = true)
+        pager.created(Status(id = "3"), defer = true)
+        Snapshot.sendApplyNotifications()
+        runCurrent()
+        assertEquals(listOf("2", "1"), pager.rows.map { it.id })
+        assertEquals(listOf("3"), pager.pending.map { it.id })
+
+        Snapshot.withMutableSnapshot { atTop.value = true }
+        runCurrent()
+        assertTrue(pager.busy)
+        assertEquals(listOf("3", "2", "1"), pager.rows.map { it.id })
+        assertTrue(pager.pending.isEmpty())
+        assertEquals(1, topRequests)
+
+        response.complete(Page(listOf(Status(id = "4"), Status(id = "3"), Status(id = "2")), "head"))
+        runCurrent()
+        Snapshot.sendApplyNotifications()
+        runCurrent()
+        assertEquals(listOf("4", "3", "2", "1"), pager.rows.map { it.id })
+        assertTrue(pager.pending.isEmpty())
+        assertEquals("tail", pager.snapshot().nextCursor)
+        assertEquals(2, topRequests)
+        assertEquals(1, requested)
     }
 
     @Test

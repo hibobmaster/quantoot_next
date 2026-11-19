@@ -112,6 +112,8 @@ internal interface FeedViewport {
     val emptyPosition: FeedPosition
     fun position(): FeedPosition
     fun readingOlder(): Boolean
+    fun isSettledAtTop(): Boolean
+    fun requestTop()
     fun nearEnd(rowCount: Int): Boolean
     suspend fun restore(position: FeedPosition)
     suspend fun revealFirstStatus()
@@ -137,10 +139,12 @@ private class ListFeedViewport(private val list: LazyListState) : FeedViewport {
         }
     }
 
-    override fun readingOlder(): Boolean {
-        val visible = visiblePosition()
-        return rowCount > 0 && (visible.index >= rowCount || visible.readingOlder())
-    }
+    override fun readingOlder(): Boolean = rowCount > 0 && !isSettledAtTop()
+
+    override fun isSettledAtTop(): Boolean =
+        list.firstVisibleItemIndex == 0 && list.firstVisibleItemScrollOffset == 0 && !list.isScrollInProgress
+
+    override fun requestTop() = list.requestScrollToItem(0)
 
     override fun nearEnd(rowCount: Int) = feedNeedsMore(list.layoutInfo.visibleItemsInfo.map { it.index }, rowCount, hasLeading = false)
 
@@ -165,7 +169,6 @@ private fun <T> rememberFeedPager(
     project: (T) -> T?,
     displayedCount: (List<T>) -> Int = { it.size },
     visit: FeedVisit<T>? = null,
-    beforeReplace: () -> Unit = {},
     fetch: suspend (String?) -> Page<T>,
 ): FeedPager<T> {
     val accountKey = ui.store.state.value.activeKey
@@ -188,7 +191,9 @@ private fun <T> rememberFeedPager(
                 } finally {
                     scope.cancel()
                 }
-            }, beforeReplace = beforeReplace, fetch = fetch)
+            }, beforeReplace = {
+                if (restored && viewport.isSettledAtTop()) viewport.requestTop()
+            }, fetch = fetch)
         }
         DisposableEffect(pager) {
             val current = cache.attach(cacheKey)
@@ -217,6 +222,7 @@ private fun <T> rememberFeedPager(
         DisposableEffect(pager, isActive, foreground) {
             val job = if (isActive && foreground) scope.launch {
                 snapshotFlow { restored }.first { it }
+                launch { pager.revealWhenAtTop(viewport::isSettledAtTop) }
                 pager.load(defer = viewport.readingOlder())
                 launch {
                     while (currentCoroutineContext().isActive) {
@@ -245,11 +251,10 @@ internal fun rememberStatusPager(
     viewport: FeedViewport,
     isActive: Boolean = true,
     visit: FeedVisit<Status>? = null,
-    beforeReplace: () -> Unit = {},
 ): FeedPager<Status> {
     val pager = rememberFeedPager(
         ui, source.toString(), ui.statusFeedCache, viewport, isActive, { it.id }, ui.statuses::project,
-        visit = visit, beforeReplace = beforeReplace,
+        visit = visit,
     ) { cursor ->
         ui.statuses.read({ ui.api.timeline(source, maxId = cursor) }) { it.items }
     }
@@ -294,14 +299,7 @@ internal fun FeedScreen(
         val listState = rememberLazyListState()
         val viewport = remember(listState) { ListFeedViewport(listState) }
         val scope = rememberCoroutineScope()
-        val pager = rememberStatusPager(ui, source, viewport, isActive, visit) {
-            if (
-                visit != null && !listState.isScrollInProgress &&
-                listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
-            ) {
-                listState.requestScrollToItem(0)
-            }
-        }
+        val pager = rememberStatusPager(ui, source, viewport, isActive, visit)
         if (reselected != null) LaunchedEffect(pager, reselected) {
             reselected.collect {
                 pager.reveal()

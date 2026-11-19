@@ -58,6 +58,24 @@ internal class ProfileFeedViewport(
     override fun readingOlder(): Boolean =
         profileReadingOlder(state.geometry, visibleItems().firstOrNull(), pager.rows.size)
 
+    override fun isSettledAtTop(): Boolean = topAfterReveal() != null
+
+    override fun requestTop() {
+        topAfterReveal()?.let { body.list.requestScrollToItem(it) }
+    }
+
+    private fun topAfterReveal(): Int? {
+        val list = body.list
+        if (state.attachment !== body || state.isScrollInProgress || list.isScrollInProgress) return null
+        if (list.firstVisibleItemScrollOffset != 0) return null
+        val index = list.firstVisibleItemIndex
+        if (index == 0) return 0
+
+        // Leading controls may have been scrolled away, or moved the first status down an index.
+        val key = list.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }?.key ?: return null
+        return profileHeadAfterReveal(key, pager.rows.firstOrNull()?.id, controls)
+    }
+
     override fun nearEnd(rowCount: Int): Boolean = visibleItems().any {
         it == ProfileVisibleItem.Footer || it is ProfileVisibleItem.Status && it.index >= rowCount - 3
     }
@@ -97,6 +115,16 @@ internal class ProfileFeedViewport(
         state.restore(body, ProfileBodyLocation(state.geometry.headerHeight.toFloat(), controls.size))
     }
 }
+
+internal fun profileHeadAfterReveal(firstKey: Any, firstStatusId: String?, controls: List<ProfileFeedControl>): Int? =
+    when (firstKey) {
+        ProfileFeedControl.Activity.key -> 0
+        ProfileFeedControl.Pending.key, ProfileFeedControl.Error.key ->
+            controls.count { it == ProfileFeedControl.Activity }
+        firstStatusId?.let(::profileStatusKey), PROFILE_EMPTY_KEY ->
+            controls.count { it != ProfileFeedControl.Pending }
+        else -> null
+    }
 
 internal sealed interface ProfileVisibleItem {
     data class Status(val index: Int, val offset: Int) : ProfileVisibleItem

@@ -6,6 +6,7 @@ import com.quanquan.quantoot.platform.KeyValueStore
 import com.quanquan.quantoot.platform.sha256
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.collect
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -343,6 +344,7 @@ internal class FeedPager<T>(
 
     fun reveal() {
         if (closed) return
+        if (pending.isNotEmpty()) beforeReplace()
         rows = projected(pending + rows)
         pending = emptyList()
     }
@@ -373,6 +375,13 @@ internal class FeedPager<T>(
         closed = true
         cancelLoad()
         onClose(this)
+    }
+}
+
+internal suspend fun <T> FeedPager<T>.revealWhenAtTop(isAtTop: () -> Boolean) {
+    // The queue can clear and fill again within one snapshot notification.
+    snapshotFlow { pending.takeIf { it.isNotEmpty() && isAtTop() }.orEmpty() }.collect { arrivals ->
+        if (arrivals.isNotEmpty()) reveal()
     }
 }
 
