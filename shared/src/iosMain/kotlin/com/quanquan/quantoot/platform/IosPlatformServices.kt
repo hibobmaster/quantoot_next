@@ -90,6 +90,15 @@ class IosPlatformServices : PlatformServices {
         )
     }
 
+    override suspend fun composeEmail(recipient: String): Boolean {
+        val url = NSURL.URLWithString("mailto:$recipient") ?: return false
+        return suspendCancellableCoroutine { continuation ->
+            UIApplication.sharedApplication.openURL(url, options = emptyMap<Any?, Any?>()) { opened ->
+                continuation.resume(opened)
+            }
+        }
+    }
+
     override fun share(text: String) {
         val controller = UIActivityViewController(listOf(text), null)
         controller.popoverPresentationController?.let { popover ->

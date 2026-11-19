@@ -1,5 +1,6 @@
 package com.quanquan.quantoot.platform
 
+import android.content.ActivityNotFoundException
 import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
@@ -65,6 +66,15 @@ class AndroidPlatformServices(private val activity: ComponentActivity) : Platfor
         activity.startActivity(
             Intent(Intent.ACTION_VIEW, validatedUrl(url)).addCategory(Intent.CATEGORY_BROWSABLE)
         )
+    }
+
+    override suspend fun composeEmail(recipient: String): Boolean = try {
+        activity.startActivity(Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto", recipient, null)))
+        true
+    } catch (_: ActivityNotFoundException) {
+        false
+    } catch (_: SecurityException) {
+        false
     }
 
     override fun share(text: String) {

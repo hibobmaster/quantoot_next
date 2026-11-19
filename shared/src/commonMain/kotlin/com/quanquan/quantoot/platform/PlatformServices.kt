@@ -26,6 +26,8 @@ interface PlatformServices {
 
     fun openUrl(url: String)
 
+    suspend fun composeEmail(recipient: String): Boolean
+
     fun share(text: String)
 
     suspend fun pickMedia(limit: Int = 4): List<PickedMedia>

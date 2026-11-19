@@ -2,6 +2,7 @@ package com.quanquan.quantoot.ui
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
@@ -23,6 +24,8 @@ import com.quanquan.quantoot.auth.SessionState
 import com.quanquan.quantoot.model.*
 import kotlin.math.roundToLong
 import kotlinx.coroutines.*
+
+private const val FEEDBACK_EMAIL = "bobmaster@hibobmaster.com"
 
 enum class SettingsSection(val titleKey: String, val requiresAccount: Boolean) {
     Privacy("mastodon_settings_privacy", true),
@@ -131,8 +134,8 @@ private fun SettingsIndex(ui: UiContext, state: SessionState) {
         SettingsRow(tr(SettingsSection.Server.titleKey), PostIcons.Public, detail = state.instance) {
             ui.navigate(Screen.Settings(SettingsSection.Server))
         }
-        SettingsRow(tr("settings_feedback"), Icons.Default.Email, showChevron = false) {
-            ui.open("https://quanquan.space/")
+        FeedbackAction(ui) { onFeedback ->
+            SettingsRow(tr("settings_feedback"), Icons.Default.Email, showChevron = false, onClick = onFeedback)
         }
         SettingsRow(tr(SettingsSection.PrivacyPolicy.titleKey), Icons.Default.Lock) {
             ui.navigate(Screen.Settings(SettingsSection.PrivacyPolicy))
@@ -174,6 +177,30 @@ internal fun formatByteSize(bytes: Long): String {
     val tenths = (amount * 10).roundToLong()
     val number = if (tenths % 10 == 0L) "${tenths / 10}" else "${tenths / 10}.${tenths % 10}"
     return "$number ${units[unit]}"
+}
+
+@Composable
+private fun FeedbackAction(ui: UiContext, content: @Composable (onClick: () -> Unit) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var showAddress by remember { mutableStateOf(false) }
+    content {
+        scope.launch { showAddress = !ui.platform.composeEmail(FEEDBACK_EMAIL) }
+    }
+    if (showAddress) {
+        AlertDialog(
+            onDismissRequest = { showAddress = false },
+            title = { Text(tr("settings_feedback")) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(tr("settings_feedback_mail_unavailable"))
+                    SelectionContainer { Text(FEEDBACK_EMAIL) }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showAddress = false }) { Text(tr("mastodon_close")) }
+            },
+        )
+    }
 }
 
 @Composable
@@ -544,6 +571,8 @@ private fun PrivacyPolicy(ui: UiContext) {
         Text(body)
     }
     Text("Contact", style = MaterialTheme.typography.titleMedium)
-    Text("BobMaster · bobmaster@hibobmaster.com")
-    TextButton(onClick = { ui.open("https://quanquan.space/") }) { Text(tr("settings_feedback")) }
+    Text("BobMaster · $FEEDBACK_EMAIL")
+    FeedbackAction(ui) { onFeedback ->
+        TextButton(onClick = onFeedback) { Text(tr("settings_feedback")) }
+    }
 }

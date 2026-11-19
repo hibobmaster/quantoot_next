@@ -370,6 +370,8 @@ private class FakePlatform : PlatformServices {
 
     override fun openUrl(url: String) = Unit
 
+    override suspend fun composeEmail(recipient: String): Boolean = false
+
     override fun share(text: String) = Unit
 
     override suspend fun pickMedia(limit: Int): List<PickedMedia> = emptyList()
