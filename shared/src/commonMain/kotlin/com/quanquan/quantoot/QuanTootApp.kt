@@ -196,7 +196,7 @@ private fun AppShell(
                 },
             ) { padding ->
                 Column(Modifier.fillMaxSize().padding(padding)) {
-                    if (route != Screen.Instance) ErrorNotice(state.error) { store.clearError() }
+                    if (route !is Screen.Instance) ErrorNotice(state.error) { store.clearError() }
                     ErrorNotice(ui.error, ui::retry)
                     Box(Modifier.weight(1f)) {
                         key(route, if (route == null) tab else null) {
@@ -208,7 +208,10 @@ private fun AppShell(
                                 is Screen.Compose -> ComposerScreen(ui, route)
                                 is Screen.Settings -> SettingsScreen(ui, state, route.section)
                                 Screen.Accounts -> AccountsScreen(ui, state)
-                                Screen.Instance -> InstanceScreen(store, state, showHeading = false) {
+                                is Screen.Instance -> InstanceScreen(
+                                    store, state, showHeading = false,
+                                    prefillCurrentInstance = route.prefillCurrentInstance,
+                                ) {
                                     routes.clear()
                                     homeTimeline = HomeTimeline.Local
                                     tab = MainTab.Home
@@ -250,7 +253,7 @@ fun LoginPrompt(
             textAlign = TextAlign.Center)
         Text(tr(messageKey), Modifier.widthIn(max = 360.dp).padding(top = 8.dp), style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-        Button(onClick = { ui.navigate(Screen.Instance) }, modifier = Modifier.padding(top = 20.dp)) {
+        Button(onClick = { ui.navigate(Screen.Instance()) }, modifier = Modifier.padding(top = 20.dp)) {
             Text(tr("mastodon_login"))
         }
     }

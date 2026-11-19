@@ -26,13 +26,10 @@ final class ClientExperienceTests: XCTestCase {
         let field = app.textViews
             .matching(NSPredicate(format: "label BEGINSWITH %@", "Instance domain")).firstMatch
         XCTAssertTrue(field.waitForExistence(timeout: 5))
-        let previous = field.value as? String ?? ""
-        field.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
-        field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: previous.count))
-        XCTAssertEqual(field.value as? String, "")
+        XCTAssertEqual(field.value as? String ?? "", "")
         XCTAssertTrue(app.buttons["Continue to Log In"].isEnabled)
         XCTAssertTrue(app.buttons["Browse Public Posts"].isEnabled)
-        XCTAssertTrue(app.staticTexts["Leave blank to use m.qqs.tw."].exists)
+        XCTAssertTrue(app.staticTexts["Leave blank to log in to mastodon.social or browse m.qqs.tw as a guest."].exists)
         capture("Blank default instance", app)
         app.buttons["Close"].firstMatch.tap()
         app.buttons["Close"].firstMatch.tap()

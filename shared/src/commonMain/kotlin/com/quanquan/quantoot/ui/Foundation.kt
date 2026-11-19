@@ -57,7 +57,7 @@ sealed interface Screen {
 
     data object Accounts : Screen
 
-    data object Instance : Screen
+    data class Instance(val prefillCurrentInstance: Boolean = true) : Screen
 
     data object EditProfile : Screen
 }
@@ -119,7 +119,7 @@ class UiContext(
     }
 
     fun requireLogin(block: () -> Unit) {
-        if (me == null) navigate(Screen.Instance) else block()
+        if (me == null) navigate(Screen.Instance()) else block()
     }
 
     fun open(raw: String?) {

@@ -91,7 +91,7 @@ internal fun ShellHeader(ui: UiContext, tab: MainTab, screen: Screen?, rail: Boo
                     is Screen.People -> tr(if (screen.following) "mastodon_following_count" else "mastodon_followers_count_label")
                     is Screen.Settings -> tr(screen.section?.titleKey ?: "settings_title")
                     Screen.Accounts -> accountsLabel
-                    Screen.Instance -> tr("mastodon_choose_instance")
+                    is Screen.Instance -> tr("mastodon_choose_instance")
                     Screen.EditProfile -> tr("mastodon_edit_profile")
                     is Screen.Compose -> return
                 }

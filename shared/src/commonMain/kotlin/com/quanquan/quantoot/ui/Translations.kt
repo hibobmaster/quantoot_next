@@ -141,8 +141,7 @@ private fun english0(): Map<String, String> = mapOf(
 )
 
 private fun english1(): Map<String, String> = mapOf(
-    "mastodon_instance_hint" to "m.qqs.tw",
-    "mastodon_instance_default_hint" to "Leave blank to use {instance}.",
+    "mastodon_instance_default_hint" to "Leave blank to log in to {login} or browse {guest} as a guest.",
     "mastodon_previous_media" to "Previous attachment",
     "mastodon_next_media" to "Next attachment",
     "mastodon_zoom_in" to "Zoom in",
@@ -537,8 +536,7 @@ private fun chinese0(): Map<String, String> = mapOf(
 )
 
 private fun chinese1(): Map<String, String> = mapOf(
-    "mastodon_instance_hint" to "m.qqs.tw",
-    "mastodon_instance_default_hint" to "留空则使用 {instance}。",
+    "mastodon_instance_default_hint" to "留空时，登录使用 {login}，访客浏览使用 {guest}。",
     "mastodon_previous_media" to "上一个附件",
     "mastodon_next_media" to "下一个附件",
     "mastodon_zoom_in" to "放大",
@@ -933,8 +931,7 @@ private fun traditional0(): Map<String, String> = mapOf(
 )
 
 private fun traditional1(): Map<String, String> = mapOf(
-    "mastodon_instance_hint" to "m.qqs.tw",
-    "mastodon_instance_default_hint" to "留空則使用 {instance}。",
+    "mastodon_instance_default_hint" to "留空時，登入使用 {login}，訪客瀏覽使用 {guest}。",
     "mastodon_previous_media" to "上一個附件",
     "mastodon_next_media" to "下一個附件",
     "mastodon_zoom_in" to "放大",

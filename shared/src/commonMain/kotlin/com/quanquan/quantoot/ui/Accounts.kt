@@ -46,16 +46,18 @@ import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
 import kotlinx.coroutines.*
 
-private const val DEFAULT_INSTANCE = "m.qqs.tw"
+private const val DEFAULT_LOGIN_INSTANCE = "mastodon.social"
+private const val DEFAULT_GUEST_INSTANCE = "m.qqs.tw"
 
 @Composable
 fun InstanceScreen(
     store: AccountStore,
     state: SessionState,
     showHeading: Boolean = true,
+    prefillCurrentInstance: Boolean = true,
     onBrowse: () -> Unit = {},
 ) {
-    var instance by remember { mutableStateOf(state.instance.orEmpty()) }
+    var instance by remember { mutableStateOf(if (prefillCurrentInstance) state.instance.orEmpty() else "") }
     val scope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
     BoxWithConstraints(
@@ -102,8 +104,10 @@ fun InstanceScreen(
                     enabled = !state.busy,
                     label = { Text(tr("mastodon_instance_label")) },
                     leadingIcon = { Icon(PostIcons.Public, null, Modifier.size(20.dp)) },
-                    placeholder = { Text(tr("mastodon_instance_hint")) },
-                    supportingText = { Text(tr("mastodon_instance_default_hint", "instance" to DEFAULT_INSTANCE)) },
+                    placeholder = { Text(DEFAULT_LOGIN_INSTANCE) },
+                    supportingText = {
+                        Text(tr("mastodon_instance_default_hint", "login" to DEFAULT_LOGIN_INSTANCE, "guest" to DEFAULT_GUEST_INSTANCE))
+                    },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         autoCorrectEnabled = false,
@@ -122,7 +126,7 @@ fun InstanceScreen(
             }
             Spacer(Modifier.height(if (compact) 4.dp else 16.dp))
             Button(
-                onClick = { scope.launch { store.login(instance.ifBlank { DEFAULT_INSTANCE }) } },
+                onClick = { scope.launch { store.login(instance.ifBlank { DEFAULT_LOGIN_INSTANCE }) } },
                 enabled = !state.busy,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp),
             ) { Text(tr("mastodon_continue_login")) }
@@ -130,7 +134,7 @@ fun InstanceScreen(
             TextButton(
                 onClick = {
                     scope.launch {
-                        store.browse(instance.ifBlank { DEFAULT_INSTANCE })
+                        store.browse(instance.ifBlank { DEFAULT_GUEST_INSTANCE })
                         if (store.state.value.error == null) onBrowse()
                     }
                 },
@@ -159,7 +163,7 @@ fun AccountsScreen(ui: UiContext, state: SessionState) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(state.instance.orEmpty(), style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold)
-                TextButton(onClick = { ui.navigate(Screen.Instance) }, contentPadding = PaddingValues(0.dp)) {
+                TextButton(onClick = { ui.navigate(Screen.Instance()) }, contentPadding = PaddingValues(0.dp)) {
                     Text(tr("mastodon_change_server"))
                 }
             }
@@ -201,7 +205,7 @@ fun AccountsScreen(ui: UiContext, state: SessionState) {
         }
         item {
             Button(
-                onClick = { ui.navigate(Screen.Instance) },
+                onClick = { ui.navigate(Screen.Instance(prefillCurrentInstance = false)) },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp).heightIn(min = 48.dp),
             ) {
                 Icon(Icons.Default.Add, null, Modifier.size(20.dp))
