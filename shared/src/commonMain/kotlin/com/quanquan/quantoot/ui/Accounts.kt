@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -56,6 +57,7 @@ fun InstanceScreen(
 ) {
     var instance by remember { mutableStateOf(state.instance.orEmpty()) }
     val scope = rememberCoroutineScope()
+    val uriHandler = LocalUriHandler.current
     BoxWithConstraints(
         Modifier.fillMaxSize().imePadding(),
         contentAlignment = Alignment.TopCenter,
@@ -136,6 +138,9 @@ fun InstanceScreen(
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
             ) { Text(tr("mastodon_browse_without_login")) }
+            TextButton(onClick = { uriHandler.openUri(PRIVACY_POLICY_URL) }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                Text(tr("settings_privacy_policy"))
+            }
             if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
             Spacer(Modifier.height(if (compact) 4.dp else 12.dp))
         }
@@ -245,7 +250,7 @@ fun ProfileScreen(ui: UiContext, id: String) {
                 relationshipBusy = true
                 ui.run {
                     try {
-                        relationship = ui.api.relationshipAction(id, action)
+                        relationship = ui.changeRelationship(id, action)
                     } finally {
                         relationshipBusy = false
                     }
@@ -415,11 +420,7 @@ fun ProfileScreen(ui: UiContext, id: String) {
             onDismissRequest = { report = false },
             title = { Text(tr("mastodon_report")) },
             text = {
-                OutlinedTextField(
-                    comment,
-                    { comment = it },
-                    label = { Text(tr("mastodon_report_comment")) },
-                )
+                ReportFields(ui, comment) { comment = it }
             },
             confirmButton = {
                 TextButton(

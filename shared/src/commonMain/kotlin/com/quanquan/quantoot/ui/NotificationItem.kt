@@ -100,7 +100,7 @@ internal fun NotificationItem(
                 }
                 NotificationTime(notification)
             }
-            StatusCard(ui, status)
+            StatusCard(ui, status, filterContext = "notifications")
         }
         return
     }
@@ -215,10 +215,15 @@ private fun InteractionStatusPreview(ui: UiContext, entry: Status, modifier: Mod
         verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically),
     ) {
         EmojiText(status.account.name, status.account.emojis, style = MaterialTheme.typography.labelLarge, maxLines = 1)
-        val preview = interactionPreviewText(status)
+        val restriction = status.contentRestriction(ui.platform.hideSensitivePosts, "notifications")
+        val preview = when (restriction) {
+            PostContentRestriction.Hidden -> tr("safety_hidden_post")
+            is PostContentRestriction.Warning -> restriction.title.ifBlank { tr("mastodon_content_warning") }
+            PostContentRestriction.None -> interactionPreviewText(status)
+        }
         if (preview.isNotBlank()) EmojiText(preview, status.emojis,
             style = MaterialTheme.typography.bodyMedium.copy(color = colors.onSurfaceVariant), maxLines = 3)
-        if (status.spoilerText.isNotBlank()) Text(tr("mastodon_content_warning"),
+        if (restriction is PostContentRestriction.Warning) Text(tr("mastodon_content_warning"),
             style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant)
     }
 }

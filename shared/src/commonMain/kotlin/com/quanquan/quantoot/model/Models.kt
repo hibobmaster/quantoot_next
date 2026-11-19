@@ -157,10 +157,14 @@ data class Status(
     val reblog: Status? = null,
     val quote: Quote? = null,
     val tags: List<Tag> = emptyList(),
+    val filtered: List<StatusFilterMatch> = emptyList(),
 ) {
     val original: Status
         get() = reblog ?: this
 }
+
+@Serializable
+data class StatusFilterMatch(val filter: ContentFilter)
 
 @Serializable
 data class StatusContext(

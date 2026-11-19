@@ -126,6 +126,9 @@ class UiContext(
         raw?.let(::safeWebUrl)?.let(platform::openUrl)
     }
 
+    suspend fun changeRelationship(id: String, action: String): Relationship =
+        api.relationshipAction(id, action).also { statuses.setAccountBlocked(id, it.blocking) }
+
     suspend fun ingest(event: StreamEvent) {
         statuses.apply(event)
         eventBus.emit(event)

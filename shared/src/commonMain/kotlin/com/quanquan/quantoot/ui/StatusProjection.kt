@@ -21,6 +21,7 @@ internal class StatusProjection {
 
     private val records = mutableStateMapOf<String, Record>()
     private val deleted = mutableStateMapOf<String, Boolean>()
+    private val blockedAuthors = mutableStateMapOf<String, Boolean>()
     private val actionGenerations = mutableMapOf<Pair<String, StatusAction>, Long>()
     private var sequence = 0L
 
@@ -68,11 +69,16 @@ internal class StatusProjection {
 
     fun known(id: String): Status? = records[id]?.value?.let(::project)
 
+    fun setAccountBlocked(id: String, blocked: Boolean) {
+        if (blocked) blockedAuthors[id] = true else blockedAuthors.remove(id)
+    }
+
     fun project(entry: Status): Status? = project(entry, emptySet())
 
     private fun project(entry: Status, visiting: Set<String>): Status? {
         if (deleted[entry.id] == true || entry.id in visiting) return null
         val value = records[entry.id]?.value ?: entry
+        if (blockedAuthors[value.account.id] == true) return null
         val path = visiting + entry.id
         val reblog = value.reblog?.let { project(it, path) ?: return null }
         val quote = value.quote?.let {

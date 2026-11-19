@@ -28,6 +28,23 @@ internal fun inlineQuoteUrl(html: String): String? {
 
 internal fun mayResolveQuote(quote: Quote?): Boolean = quote == null || quote.state == "accepted"
 
+internal sealed interface PostContentRestriction {
+    data object None : PostContentRestriction
+    data object Hidden : PostContentRestriction
+    data class Warning(val title: String) : PostContentRestriction
+}
+
+internal fun Status.contentRestriction(hideSensitive: Boolean, context: String): PostContentRestriction {
+    val matches = filtered.map { it.filter }.filter { context in it.context }
+    if ((hideSensitive && sensitive) || matches.any { it.action == "hide" }) return PostContentRestriction.Hidden
+    val warning = matches.firstOrNull { it.action == "warn" }
+    return when {
+        warning != null -> PostContentRestriction.Warning(warning.title.ifBlank { spoilerText })
+        spoilerText.isNotBlank() -> PostContentRestriction.Warning(spoilerText)
+        else -> PostContentRestriction.None
+    }
+}
+
 @Composable
 internal fun LinkPreview(ui: UiContext, card: PreviewCard) {
     val url = safeWebUrl(card.url) ?: return
@@ -52,7 +69,7 @@ internal fun LinkPreview(ui: UiContext, card: PreviewCard) {
 }
 
 @Composable
-internal fun QuotedPost(ui: UiContext, status: Status) {
+internal fun QuotedPost(ui: UiContext, status: Status, filterContext: String) {
     val quote = status.quote
     val id = quote?.quotedStatusId
     val url = remember(status.content) { inlineQuoteUrl(status.content) }
@@ -81,7 +98,7 @@ internal fun QuotedPost(ui: UiContext, status: Status) {
     }
     val target = (embedded ?: loaded)?.let { ui.statuses.project(it) }
     if (target != null) {
-        StatusCard(ui, target, presentation = StatusPresentation.Quoted)
+        StatusCard(ui, target, presentation = StatusPresentation.Quoted, filterContext = filterContext)
     } else if (loading) {
         Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shape = MaterialTheme.shapes.medium,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {

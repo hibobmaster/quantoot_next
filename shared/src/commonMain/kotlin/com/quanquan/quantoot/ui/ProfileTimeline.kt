@@ -101,7 +101,7 @@ internal fun ProfileTimeline(
                     }
                 }
                 pager.rows.forEach { status ->
-                    item(profileStatusKey(status.id)) { StatusCard(ui, status) }
+                    item(profileStatusKey(status.id)) { StatusCard(ui, status, filterContext = "account") }
                 }
                 item(viewport.footerKey) {
                     when {

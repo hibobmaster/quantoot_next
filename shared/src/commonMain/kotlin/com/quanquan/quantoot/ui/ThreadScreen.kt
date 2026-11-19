@@ -72,13 +72,14 @@ fun ThreadScreen(ui: UiContext, id: String, focusReplyId: String? = null) {
                 state = listState,
                 contentPadding = PaddingValues(bottom = 12.dp),
             ) {
-                items(ancestors, key = { "ancestor:${it.id}" }) { StatusCard(ui, it) }
+                items(ancestors, key = { "ancestor:${it.id}" }) { StatusCard(ui, it, filterContext = "thread") }
                 item(key = "focal:$id") {
                     when {
                         root != null -> StatusCard(
                             ui, root, highlighted = highlightFocus && focusReplyId == null,
                             presentation = StatusPresentation.Focal,
                             onViewReplies = { scope.launch { listState.animateScrollToItem(thread.ancestors.size + 1) } },
+                            filterContext = "thread",
                         )
                         thread.rootUnavailable -> Empty(tr("mastodon_post_gone"))
                         thread.busy -> Loading()
@@ -94,7 +95,8 @@ fun ThreadScreen(ui: UiContext, id: String, focusReplyId: String? = null) {
                 items(descendants, key = { "reply:${it.id}" }) { status ->
                     val levels = (thread.depth(status.id) - 1).coerceIn(0, 3)
                     Box(Modifier.padding(start = indentStep * levels)) {
-                        StatusCard(ui, status, highlighted = highlightFocus && status.id == focusReplyId)
+                        StatusCard(ui, status, highlighted = highlightFocus && status.id == focusReplyId,
+                            filterContext = "thread")
                     }
                 }
                 if (thread.loaded && descendants.isEmpty() && thread.error == null)

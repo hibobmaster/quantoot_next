@@ -21,6 +21,7 @@ interface PlatformServices {
     val foreground: StateFlow<Boolean>
     val languageTag: String
     val appUpdates: AppUpdates? get() = null
+    val hideSensitivePosts: Boolean get() = false
 
     fun openAuthorization(url: String)
 

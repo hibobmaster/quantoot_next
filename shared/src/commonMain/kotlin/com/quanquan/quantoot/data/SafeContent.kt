@@ -31,6 +31,9 @@ fun normalizeInstance(input: String): String {
     return authority.lowercase().removeSuffix(":443")
 }
 
+internal fun mastodonAccountDeletionUrl(instance: String): String =
+    "https://${normalizeInstance(instance)}/settings/delete"
+
 private fun validAuthority(authority: String): Boolean {
     if (authority.isBlank() || authority.any { it.code !in 33..126 || it in "@%\\?#" }) return false
     val host: String

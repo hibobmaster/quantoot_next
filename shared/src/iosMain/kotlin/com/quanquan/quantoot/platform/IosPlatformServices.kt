@@ -40,6 +40,7 @@ import platform.darwin.NSObject
 import platform.posix.memcpy
 
 class IosPlatformServices : PlatformServices {
+    override val hideSensitivePosts = true
     override val preferences: KeyValueStore = IosPreferences()
     override val secureStorage: KeyValueStore = IosSecureStorage()
     private val redirects = Channel<String>(Channel.BUFFERED)

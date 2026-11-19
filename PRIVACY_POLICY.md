@@ -1,61 +1,52 @@
 # QuanToot Privacy Policy
 
-Last updated: July 14, 2026
+Updated November 19, 2026
 
-QuanToot is a client application for accessing Mastodon servers. QuanToot does
-not operate a social network or a backend service.
+QuanToot is an independent Mastodon client developed by BobMaster. This policy
+covers the iOS and Android apps and the QuanToot website.
 
-## Data collected by QuanToot
+## Data on your device
 
-BobMaster, the developer of QuanToot, does not collect, receive, sell, or share
-personal information through the app. QuanToot contains no advertising,
-analytics, or tracking SDKs.
+QuanToot stores your selected server, app preferences, and cached timelines and
+media on the device. Your Mastodon session and access token are stored with
+OS-provided secure storage. The app has no advertising, analytics, or tracking
+SDKs. QuanToot does not operate a social network or collect this local app data
+on a developer backend.
 
-The app processes information needed to provide its features and stores some of
-it locally on your device, including:
+## Servers, content, and downloads
 
-- the Mastodon server you select and app preferences;
-- cached timeline and media data; and
-- your Mastodon account session and access token. Authentication data is stored
-  using the operating system's secure storage, and Android backup is disabled
-  for the app's data.
-
-This locally stored information is not sent to BobMaster.
-
-## Independent Mastodon servers
-
-When you choose or sign in to a Mastodon server, QuanToot communicates directly
-with that independently operated server. The server operator may collect or
-process information such as your IP address, account and profile information,
-posts, media, interactions, and usage records. Remote media or linked-content
-hosts may also receive ordinary connection information when their content is
-loaded.
-
-Those third parties are not controlled by QuanToot or BobMaster. Their own
-privacy policies, terms, retention practices, and applicable laws govern their
-processing. Review the policies of your selected Mastodon server before signing
-in or posting.
+QuanToot communicates with the Mastodon server you select. That operator may
+process your IP address, account data, posts, media, interactions, and activity
+according to its policies. Media hosts and linked sites may receive normal
+connection information when content is loaded. On Android, the optional update
+check requests release information and packages from the Forgejo host.
 
 ## Photos and media
 
-QuanToot uses Android's system picker when you choose media to upload, so the app
-receives only the items you select. When you explicitly save media, the app may
-write that item to your device's gallery.
+The app uses the system picker for media you select to attach or upload. A chosen
+item is sent to your server when you upload it. If you explicitly save a file to
+the photo library, QuanToot requests the access needed for that action.
 
-## Your choices and data deletion
+## Your choices and retention
 
-You can remove an account from QuanToot, clear the app's local data in Android
-settings, or uninstall the app to delete locally stored data. To access, correct,
-or delete information held by a Mastodon server, use that server's controls or
-contact its operator.
+Use **Accounts → Remove account** to remove a saved session and its token. Clear
+cached media in app settings. Removing the app clears its app container. iOS
+Keychain items can outlive an uninstall, so remove saved accounts before
+uninstalling if you want to clear their credentials. For permanent account
+deletion and server-held data, use **Settings → Delete Mastodon account** or
+contact your instance.
 
-## Changes to this policy
+## Website and support email
 
-This policy may be updated when QuanToot's features or legal requirements
-change. The updated date above will identify the latest version.
+The website uses session storage for its language selector and contains no
+analytics scripts. Its hosting provider may process routine request information
+needed to deliver pages and protect the service. When you email support,
+BobMaster receives your email address, message, and any information you choose
+to include, and keeps it as needed to respond or handle follow-up. You can
+request deletion by email.
 
 ## Contact
 
-Developer support: BobMaster, bobmaster@hibobmaster.com
+BobMaster · bobmaster@hibobmaster.com
 
-Feedback: https://quanquan.space/
+[Privacy policy on the website](https://quantoot.qqs.tw/privacy/)

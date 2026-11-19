@@ -21,17 +21,22 @@ import coil3.SingletonImageLoader
 import coil3.compose.LocalPlatformContext
 import com.quanquan.quantoot.LoginPrompt
 import com.quanquan.quantoot.auth.SessionState
+import com.quanquan.quantoot.data.mastodonAccountDeletionUrl
 import com.quanquan.quantoot.model.*
 import kotlin.math.roundToLong
 import kotlinx.coroutines.*
 
 private const val FEEDBACK_EMAIL = "bobmaster@hibobmaster.com"
+private const val WEBSITE = "https://quantoot.qqs.tw"
+internal const val PRIVACY_POLICY_URL = "$WEBSITE/privacy/"
+private const val SUPPORT_URL = "$WEBSITE/support/"
 
 enum class SettingsSection(val titleKey: String, val requiresAccount: Boolean) {
     Privacy("mastodon_settings_privacy", true),
     PostingDefaults("mastodon_settings_posting_defaults", true),
     Filters("mastodon_settings_filters", true),
     Notifications("mastodon_settings_notifications", true),
+    AccountDeletion("settings_delete_server_account", true),
     Server("mastodon_settings_about_server", false),
     PrivacyPolicy("settings_privacy_policy", false),
     Licenses("settings_open_source_licenses", false),
@@ -53,6 +58,7 @@ fun SettingsScreen(ui: UiContext, state: SessionState, section: SettingsSection?
             SettingsSection.PostingDefaults -> AccountDefaults(ui, section == SettingsSection.Privacy)
             SettingsSection.Filters -> FiltersSettings(ui)
             SettingsSection.Notifications -> NotificationSettings(ui)
+            SettingsSection.AccountDeletion -> AccountDeletion(ui, state)
             SettingsSection.Server -> ServerSettings(ui)
             SettingsSection.PrivacyPolicy -> PrivacyPolicy(ui)
             SettingsSection.Licenses -> {
@@ -125,6 +131,7 @@ private fun SettingsIndex(ui: UiContext, state: SessionState) {
                 SettingsSection.PostingDefaults to Icons.Default.Edit,
                 SettingsSection.Filters to Icons.AutoMirrored.Filled.List,
                 SettingsSection.Notifications to Icons.Default.Notifications,
+                SettingsSection.AccountDeletion to Icons.Default.Delete,
             ).forEach { (section, icon) ->
                 SettingsRow(tr(section.titleKey), icon) { ui.navigate(Screen.Settings(section)) }
             }
@@ -552,7 +559,8 @@ private fun ServerSettings(ui: UiContext) {
 
 @Composable
 private fun PrivacyPolicy(ui: UiContext) {
-    Text("Last updated: July 14, 2026", style = MaterialTheme.typography.bodySmall)
+    Text("Last updated: November 19, 2026", style = MaterialTheme.typography.bodySmall)
+    TextButton(onClick = { ui.open(PRIVACY_POLICY_URL) }) { Text(tr("settings_privacy_online")) }
     val sections =
         listOf(
             "Data collected by QuanToot" to
@@ -562,7 +570,7 @@ private fun PrivacyPolicy(ui: UiContext) {
             "Photos and media" to
                 "QuanToot uses the system picker when you choose media to upload, so the app receives only the items you select. When you explicitly save media, the app may write that item to your device's gallery.",
             "Your choices and data deletion" to
-                "Remove an account, clear QuanToot's data in system settings, or uninstall the app to delete locally stored data. For data held by a Mastodon server, use that server's controls or contact its operator.",
+                "Remove an account to clear its saved credentials and use Clear media cache to remove cached media. On iOS, remove saved accounts before uninstalling to clear credentials that may remain in Keychain. To delete the account and its server-held data, use Settings → Delete Mastodon account. The server handles confirmation and retention.",
             "Changes to this policy" to
                 "This policy may be updated when QuanToot's features or legal requirements change. The date above identifies the latest version.",
         )
@@ -574,5 +582,25 @@ private fun PrivacyPolicy(ui: UiContext) {
     Text("BobMaster · $FEEDBACK_EMAIL")
     FeedbackAction(ui) { onFeedback ->
         TextButton(onClick = onFeedback) { Text(tr("settings_feedback")) }
+    }
+}
+
+@Composable
+private fun AccountDeletion(ui: UiContext, state: SessionState) {
+    val session = state.activeSession ?: return
+    Text("@${session.account.acct} · ${session.instance}", style = MaterialTheme.typography.titleLarge)
+    Text(tr("settings_delete_server_account_explanation", "instance" to session.instance))
+    Button(onClick = { ui.open(mastodonAccountDeletionUrl(session.instance)) }) {
+        Text(tr("settings_delete_server_account_continue"))
+    }
+    TextButton(onClick = { ui.open("$SUPPORT_URL#account") }) { Text(tr("settings_account_deletion_help")) }
+}
+
+@Composable
+internal fun ReportFields(ui: UiContext, comment: String, onCommentChange: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(tr("safety_report_destination", "instance" to ui.api.instance))
+        OutlinedTextField(comment, onCommentChange, label = { Text(tr("mastodon_report_comment")) })
+        TextButton(onClick = { ui.open(SUPPORT_URL) }) { Text(tr("safety_report_help")) }
     }
 }

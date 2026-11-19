@@ -324,7 +324,7 @@ internal fun FeedScreen(
                         pager.rows,
                         key = { "status:${it.id}" },
                     ) { status ->
-                        StatusCard(ui, status)
+                        StatusCard(ui, status, filterContext = if (source == Timeline.Home) "home" else "public")
                     }
                     item(key = FEED_FOOTER_KEY) {
                         when {

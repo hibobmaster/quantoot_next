@@ -21,6 +21,7 @@ import com.quanquan.quantoot.model.Status
 internal fun PostActionSheet(
     ui: UiContext,
     status: Status,
+    hidden: Boolean,
     onDismiss: () -> Unit,
     onDelete: () -> Unit,
     onReport: () -> Unit,
@@ -38,21 +39,23 @@ internal fun PostActionSheet(
         ) {
             AccountRow(status.account) { choose { ui.navigate(Screen.Profile(status.account.id)) } }
             HorizontalDivider(Modifier.padding(vertical = 8.dp), color = MaterialTheme.colorScheme.outlineVariant)
-            PostActionRow(tr("mastodon_reply_to", "name" to "@${status.account.acct}"), PostIcons.Replies) {
-                choose { ui.requireLogin { ui.navigate(Screen.Compose(reply = status)) } }
-            }
-            if (status.visibility == "public" || status.visibility == "unlisted")
-                PostActionRow(tr("mastodon_quote_action"), PostIcons.Quote) {
-                    choose { ui.requireLogin { ui.navigate(Screen.Compose(quote = status)) } }
+            if (!hidden) {
+                PostActionRow(tr("mastodon_reply_to", "name" to "@${status.account.acct}"), PostIcons.Replies) {
+                    choose { ui.requireLogin { ui.navigate(Screen.Compose(reply = status)) } }
                 }
-            PostActionRow(tr("mastodon_button_share"), Icons.Default.Share) {
-                choose { ui.platform.share(safeWebUrl(status.url.orEmpty()) ?: plainText(status.content)) }
-            }
-            PostActionRow(tr("mastodon_open_in_browser"), Icons.AutoMirrored.Filled.ArrowForward) {
-                choose { ui.open(status.url) }
+                if (status.visibility == "public" || status.visibility == "unlisted")
+                    PostActionRow(tr("mastodon_quote_action"), PostIcons.Quote) {
+                        choose { ui.requireLogin { ui.navigate(Screen.Compose(quote = status)) } }
+                    }
+                PostActionRow(tr("mastodon_button_share"), Icons.Default.Share) {
+                    choose { ui.platform.share(safeWebUrl(status.url.orEmpty()) ?: plainText(status.content)) }
+                }
+                PostActionRow(tr("mastodon_open_in_browser"), Icons.AutoMirrored.Filled.ArrowForward) {
+                    choose { ui.open(status.url) }
+                }
             }
             if (ui.me?.id == status.account.id) {
-                PostActionRow(tr("mastodon_edit"), Icons.Default.Edit) {
+                if (!hidden) PostActionRow(tr("mastodon_edit"), Icons.Default.Edit) {
                     choose { ui.navigate(Screen.Compose(edit = status)) }
                 }
                 PostActionRow(tr("mastodon_delete"), Icons.Default.Delete, destructive = true) {
@@ -61,13 +64,13 @@ internal fun PostActionSheet(
             } else if (ui.me != null) {
                 PostActionRow(tr("mastodon_mute"), Icons.Default.Notifications) {
                     choose { ui.run {
-                        ui.api.relationshipAction(status.account.id, "mute")
+                        ui.changeRelationship(status.account.id, "mute")
                         ui.message = "Muted @${status.account.acct}"
                     } }
                 }
                 PostActionRow(tr("mastodon_block"), Icons.Default.Close, destructive = true) {
                     choose { ui.run {
-                        ui.api.relationshipAction(status.account.id, "block")
+                        ui.changeRelationship(status.account.id, "block")
                         ui.message = "Blocked @${status.account.acct}"
                     } }
                 }

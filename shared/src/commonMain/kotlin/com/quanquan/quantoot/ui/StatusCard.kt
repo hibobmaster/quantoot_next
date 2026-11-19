@@ -83,6 +83,7 @@ fun StatusCard(
     highlighted: Boolean = false,
     presentation: StatusPresentation = StatusPresentation.Full,
     onViewReplies: (() -> Unit)? = null,
+    filterContext: String = "public",
 ) {
     val projected = ui.statuses.project(entry) ?: return
     val status = projected.original
@@ -97,7 +98,9 @@ fun StatusCard(
         targetValue = if (highlighted) 1f else 0f,
         animationSpec = tween(450),
     )
-    var revealed by remember(status.id, status.spoilerText) { mutableStateOf(status.spoilerText.isBlank()) }
+    val restriction = status.contentRestriction(ui.platform.hideSensitivePosts, filterContext)
+    val hidden = restriction == PostContentRestriction.Hidden
+    var revealed by remember(status.id, restriction) { mutableStateOf(restriction == PostContentRestriction.None) }
     var menu by remember(status.id) { mutableStateOf(false) }
     var deleteConfirm by remember(status.id) { mutableStateOf(false) }
     var report by remember(status.id) { mutableStateOf(false) }
@@ -171,7 +174,11 @@ fun StatusCard(
                             )
                         }
                     }
-                    if (status.spoilerText.isNotBlank()) {
+                    if (hidden) {
+                        Text(tr("safety_hidden_post"), style = MaterialTheme.typography.bodyMedium,
+                            color = colors.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
+                    }
+                    if (restriction is PostContentRestriction.Warning) {
                         Surface(
                             onClick = { revealed = !revealed }, color = colors.surfaceContainerLow,
                             shape = MaterialTheme.shapes.small,
@@ -184,14 +191,14 @@ fun StatusCard(
                                 Column(Modifier.weight(1f)) {
                                     Text(tr("mastodon_content_warning"), style = MaterialTheme.typography.labelSmall,
                                         color = colors.onSurfaceVariant)
-                                    Text(status.spoilerText, style = MaterialTheme.typography.titleSmall)
+                                    if (restriction.title.isNotBlank()) Text(restriction.title, style = MaterialTheme.typography.titleSmall)
                                 }
                                 Text(tr(if (revealed) "mastodon_hide" else "mastodon_show"),
                                     style = MaterialTheme.typography.labelLarge, color = colors.primary)
                             }
                         }
                     }
-                    if (revealed) {
+                    if (!hidden && revealed) {
                         HtmlContent(
                             ui, status.content, emojis = status.emojis, mentions = status.mentions, tags = status.tags,
                             style = when (presentation) {
@@ -205,13 +212,13 @@ fun StatusCard(
                         MediaAttachments(ui, status.mediaAttachments, status.sensitive)
                         status.poll?.let { PollView(ui, it) }
                         status.card?.let { LinkPreview(ui, it) }
-                        if (!quoted) QuotedPost(ui, status)
+                        if (!quoted) QuotedPost(ui, status, filterContext)
                     }
                     if (footerMetadata) PostMetadata(status)
                 }
             }
             if (!quoted) {
-                PostActions(
+                if (!hidden) PostActions(
                     ui, status,
                     Modifier.fillMaxWidth().padding(start = 16.dp + rail, end = 16.dp, bottom = 2.dp),
                     centerButtons = focal,
@@ -221,7 +228,7 @@ fun StatusCard(
             }
         }
     }
-    if (menu) PostActionSheet(ui, status, onDismiss = { menu = false },
+    if (menu) PostActionSheet(ui, status, hidden, onDismiss = { menu = false },
         onDelete = { deleteConfirm = true }, onReport = { report = true })
     if (deleteConfirm)
         AlertDialog(
@@ -251,11 +258,7 @@ fun StatusCard(
             onDismissRequest = { report = false },
             title = { Text(tr("mastodon_report")) },
             text = {
-                OutlinedTextField(
-                    reportComment,
-                    { reportComment = it },
-                    label = { Text(tr("mastodon_report_comment")) },
-                )
+                ReportFields(ui, reportComment) { reportComment = it }
             },
             confirmButton = {
                 TextButton(
