@@ -106,7 +106,6 @@ fun StatusCard(
     val openThread = { ui.navigate(Screen.Thread(status.id)) }
     Surface(
         modifier = Modifier.fillMaxWidth().testTag("status-card-${status.id}"),
-        onClick = openThread,
         shape = if (quoted) MaterialTheme.shapes.medium else RectangleShape,
         color = if (quoted) colors.surfaceContainerLow else colors.surface,
         border = when {
@@ -118,8 +117,9 @@ fun StatusCard(
         Column {
             Column(
                 Modifier.fillMaxWidth()
+                    .clickable(onClick = openThread)
                     .padding(horizontal = if (quoted) 12.dp else 16.dp)
-                    .padding(top = if (quoted) 6.dp else 12.dp, bottom = if (quoted) 12.dp else 2.dp),
+                    .padding(top = if (quoted) 6.dp else 12.dp, bottom = if (quoted) 12.dp else 0.dp),
             ) {
                 if (status.pinned) PostContext(Icons.Default.Star, tr("mastodon_featured"), rail)
                 if (projected.reblog != null)
@@ -209,11 +209,15 @@ fun StatusCard(
                     }
                     if (footerMetadata) PostMetadata(status)
                 }
-                if (!quoted) {
-                    PostActions(ui, status, Modifier.fillMaxWidth().padding(start = rail), onViewReplies ?: openThread)
-                }
             }
-            if (!quoted) HorizontalDivider(thickness = Dp.Hairline, color = colors.outlineVariant)
+            if (!quoted) {
+                PostActions(
+                    ui, status,
+                    Modifier.fillMaxWidth().padding(start = 16.dp + rail, end = 16.dp, bottom = 2.dp),
+                    onViewReplies ?: openThread,
+                )
+                HorizontalDivider(thickness = Dp.Hairline, color = colors.outlineVariant)
+            }
         }
     }
     if (menu) PostActionSheet(ui, status, onDismiss = { menu = false },
@@ -382,9 +386,12 @@ private fun PostAction(
         else -> colors.onSurfaceVariant
     }
     Row(
-        modifier.heightIn(min = 48.dp).clickable(enabled = enabled && !busy, role = Role.Button, onClick = onClick)
+        modifier.padding(end = 6.dp)
+            .wrapContentWidth(Alignment.Start)
+            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+            .clickable(enabled = enabled && !busy, role = Role.Button, onClick = onClick)
             .semantics { contentDescription = label }
-            .padding(start = 4.dp),
+            .padding(horizontal = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
