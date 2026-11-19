@@ -1,16 +1,17 @@
 package com.quanquan.quantoot.ui
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,7 +23,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -103,11 +107,11 @@ internal fun AppUpdateDialog(
         is UpdateStep.Installing -> tr("settings_update_install")
         is UpdateStep.Failed -> tr("settings_check_for_updates")
     }
-    val icon = when (activeStep) {
-        UpdateStep.Current, is UpdateStep.Ready -> Icons.Default.Check
-        is UpdateStep.Available, is UpdateStep.Downloading -> Icons.Default.KeyboardArrowDown
-        is UpdateStep.Failed -> Icons.Default.Info
-        else -> Icons.Default.Refresh
+    val symbol = when (activeStep) {
+        UpdateStep.Checking, is UpdateStep.Installing -> UpdateSymbol.Working
+        UpdateStep.Current, is UpdateStep.Ready -> UpdateSymbol.Complete
+        is UpdateStep.Available, is UpdateStep.Downloading -> UpdateSymbol.Download
+        is UpdateStep.Failed -> UpdateSymbol.Error
     }
     val primaryAction: Pair<String, () -> Unit>? = when (activeStep) {
         is UpdateStep.Available -> tr("settings_update_download") to { step = UpdateStep.Downloading(activeStep.update) }
@@ -123,13 +127,29 @@ internal fun AppUpdateDialog(
         else -> null
     }
     val colors = MaterialTheme.colorScheme
-    val failed = activeStep is UpdateStep.Failed
+    val entry = remember { Animatable(0f) }
+    LaunchedEffect(entry) { entry.animateTo(1f, updateSpring()) }
+    val contentEntrance = remember(activeStep::class) { Animatable(0f) }
+    LaunchedEffect(contentEntrance) {
+        contentEntrance.animateTo(1f, tween(260, easing = FastOutSlowInEasing))
+    }
+    val reveal = Modifier.graphicsLayer {
+        alpha = contentEntrance.value
+        translationY = (1f - contentEntrance.value) * 8.dp.toPx()
+    }
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Surface(
-            modifier = Modifier.padding(horizontal = 24.dp).widthIn(max = 420.dp).fillMaxWidth(),
+            modifier = Modifier.padding(horizontal = 24.dp).widthIn(max = 420.dp).fillMaxWidth()
+                .graphicsLayer {
+                    val progress = entry.value
+                    alpha = (progress * 2f).coerceIn(0f, 1f)
+                    scaleX = 0.94f + 0.06f * progress
+                    scaleY = scaleX
+                }
+                .animateContentSize(updateSpring()),
             shape = MaterialTheme.shapes.extraLarge,
             color = colors.surfaceContainerLow,
             border = BorderStroke(1.dp, colors.outlineVariant),
@@ -139,44 +159,44 @@ internal fun AppUpdateDialog(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Surface(
-                        shape = MaterialTheme.shapes.medium,
-                        color = if (failed) colors.errorContainer else colors.surfaceContainerHigh,
-                    ) {
-                        Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
-                            Icon(icon, null, Modifier.size(22.dp),
-                                tint = if (failed) colors.onErrorContainer else colors.primary)
-                        }
-                    }
-                    Text(title, Modifier.weight(1f).semantics { heading() }, style = MaterialTheme.typography.titleLarge)
+                    UpdateStatusBadge(symbol)
+                    Text(
+                        title,
+                        Modifier.weight(1f).then(reveal).semantics {
+                            heading()
+                            liveRegion = LiveRegionMode.Polite
+                        },
+                        style = MaterialTheme.typography.titleLarge,
+                    )
                 }
                 when (activeStep) {
-                    UpdateStep.Checking, is UpdateStep.Installing -> LinearProgressIndicator(Modifier.fillMaxWidth())
-                    UpdateStep.Current -> Unit
+                    UpdateStep.Checking, UpdateStep.Current, is UpdateStep.Installing -> Unit
                     is UpdateStep.Available -> {
-                        UpdateVersionSummary(updates.currentVersion, activeStep.update)
-                        UpdateReleaseNotes(activeStep.update.releaseNotes) { openRelease(activeStep.update.releaseUrl) }
+                        Column(reveal, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            UpdateVersionSummary(updates.currentVersion, activeStep.update)
+                            UpdateReleaseNotes(activeStep.update.releaseNotes) { openRelease(activeStep.update.releaseUrl) }
+                        }
                     }
                     is UpdateStep.Downloading -> {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(reveal, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 verticalAlignment = Alignment.CenterVertically) {
                                 Text(tr("settings_version_label", "version" to activeStep.update.version),
                                     Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                                 Text("$percent%", style = MaterialTheme.typography.labelLarge, color = colors.primary)
                             }
-                            LinearProgressIndicator(progress = { percent / 100f }, modifier = Modifier.fillMaxWidth())
+                            UpdateWaveProgress(percent / 100f)
                         }
                     }
                     is UpdateStep.Ready -> {
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Column(reveal, verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text(tr("settings_version_label", "version" to activeStep.update.version),
                                 style = MaterialTheme.typography.titleMedium)
                             Text(tr(if (canInstall) "settings_update_ready" else "settings_update_permission"),
                                 style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
                         }
                     }
-                    is UpdateStep.Failed -> Text(tr(activeStep.message),
+                    is UpdateStep.Failed -> Text(tr(activeStep.message), reveal,
                         style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
                 }
                 val dismissLabel = tr(if (activeStep == UpdateStep.Current) "mastodon_close" else "mastodon_cancel")
@@ -219,6 +239,7 @@ private fun UpdateReleaseNotes(notes: String, openRelease: () -> Unit) {
     }
     var expanded by remember(notes) { mutableStateOf(false) }
     var canExpand by remember(notes) { mutableStateOf(false) }
+    val chevronRotation by animateFloatAsState(if (expanded) 180f else 0f, updateSpring(), label = "Release notes chevron")
     val colors = MaterialTheme.colorScheme
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(
@@ -248,9 +269,9 @@ private fun UpdateReleaseNotes(notes: String, openRelease: () -> Unit) {
                 Text(tr(if (expanded) "settings_update_collapse_notes" else "settings_update_expand_notes"))
                 Spacer(Modifier.width(4.dp))
                 Icon(
-                    if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(18.dp).graphicsLayer { rotationZ = chevronRotation },
                 )
             }
         }
