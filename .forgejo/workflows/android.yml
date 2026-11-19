@@ -4,8 +4,24 @@ on:
   push:
     branches: [main]
     tags: ['v*']
+    paths-ignore:
+      - '.audit/**'
+      - '.forgejo/workflows/website.yml'
+      - '.github/workflows/**'
+      - 'docs/**'
+      - 'iosApp/**'
+      - 'shared/src/iosMain/**'
+      - 'website/**'
   pull_request:
     branches: [main]
+    paths-ignore:
+      - '.audit/**'
+      - '.forgejo/workflows/website.yml'
+      - '.github/workflows/**'
+      - 'docs/**'
+      - 'iosApp/**'
+      - 'shared/src/iosMain/**'
+      - 'website/**'
 
 env:
   JAVA_TOOL_OPTIONS: '-Djdk.serialFilter=!com.google.common.collect.CompactHashMap*;!com.google.common.collect.CompactHashSet*;!com.google.common.collect.MapMakerInternalMap*'

@@ -1,6 +1,6 @@
 # QuanToot Android CI
 
-Forgejo 只需给本仓库注册带 `android-ci` 标签的 Linux x86_64 Runner。PR 和 `main` 运行共享测试并构建 Debug APK，测试报告的 Actions 构件保留期配置为 14 天。推送指向 `main` 历史的版本标签（例如 `v0.6.5`）时，工作流运行测试，生成并签名四个 ABI 的 Release APK。
+Forgejo 只需给本仓库注册带 `android-ci` 标签的 Linux x86_64 Runner。推送到 `main` 或向 `main` 提交 PR 时，工作流运行共享测试并构建 Debug APK。如果改动只涉及官网、`docs/`、`.audit/`、iOS 专属代码或 GitHub 工作流，则跳过 Forgejo Android CI。测试报告的 Actions 构件保留期配置为 14 天。推送指向 `main` 历史的版本标签（例如 `v0.6.5`）时，工作流运行测试，生成并签名四个 ABI 的 Release APK。
 
 ## Runner 和签名服务
 
