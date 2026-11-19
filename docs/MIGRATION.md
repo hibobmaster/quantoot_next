@@ -49,12 +49,10 @@ Android 导入原项目默认 FlutterSecureStorage 11 的 RSA-OAEP 加 AES-GCM �
 
 ## 验证记录
 
-构建日志、回归测试证据和截图位于 `.audit/verification`。决策记录位于 `.audit/kmp-migration.tsv`。
-
-本次通过 43 项共享测试、2 项 iOS Keychain 测试和 1 项原生 iOS 游客浏览 UI 测试。Android 设备验证通过 Keystore 加密、Flutter v3 导入、重新打开与移除。Android 和 iOS 都已实际显示公开帖子。最终测试数量与结果记录在 `.audit/verification/summary.json`。
+初始迁移通过 43 项共享测试、2 项 iOS Keychain 测试和 1 项原生 iOS 游客浏览 UI 测试。Android 设备验证通过 Keystore 加密、Flutter v3 导入、重新打开与移除。Android 和 iOS 都已实际显示公开帖子。
 
 iOS UI 测试使用 `m.qqs.tw` 的公开时间线，因此需要网络。它只在没有已选实例的模拟器上运行初次设置，否则跳过以保护已有状态。存储迁移测试遇到真实已存账户时也会跳过。此次两项存储测试和游客 UI 测试均未跳过。
 
 共享 MockEngine 测试不访问用户账号。0.6.1 的界面修复使用 iPhone 17 Pro 模拟器上已有的测试账号，验证登录状态保留、现有回复、媒体、编辑器和服务器资料。那一轮没有向服务器发帖、编辑、删除、投票、举报或写入账户设置。
 
-0.6.2 使用同一测试账号验证了临时帖的发布、编辑、删除和一张 JPEG 的相册保存。具体范围和限制记录在 [客户端功能对照](CLIENT_PARITY.md)。初始迁移的 43 项测试证据保留为历史基线。0.6.1 结果位于 `.audit/client-polish`，0.6.2 结果位于 `.audit/client-refinement`。
+0.6.2 使用同一测试账号验证了临时帖的发布、编辑、删除和一张 JPEG 的相册保存。具体范围及历史记录入口见 [客户端功能对照](CLIENT_PARITY.md)。

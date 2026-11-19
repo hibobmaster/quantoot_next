@@ -1,1 +1,0 @@
-emptyMediaBeforeY=458.0; afterDragY=458.0

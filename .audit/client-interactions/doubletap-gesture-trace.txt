@@ -1,1 +1,0 @@
-gesture-trace: D=117930811,prev=null,min=40,max=300,double=false; U=117930878,owner=Undecided,scale=1.0; D=117930878,prev=117930878,min=40,max=300,double=false; U=117930928,owner=Undecided,scale=1.0;
