@@ -66,18 +66,18 @@ export function renderHomePage() {
                   <span>5G</span>
                 </div>
                 <div class="qt-pane-top">
-                  <span ${tr('New post', '新帖子', '新貼文')}>New post</span>
-                  <span class="wing-publish" ${tr('Publish', '发布', '發布')}>Publish</span>
+                  <span ${tr('New post', '新嘟文', '新嘟文')}>New post</span>
+                  <span class="wing-publish" ${tr('Publish', '发布', '發佈')}>Publish</span>
                 </div>
                 <div class="wing-pad">
-                  <div class="wing-cw" ${tr('CW · Evening reading', '内容警告 · 晚间书单', '內容警告 · 晚間書單')}>CW · Evening reading</div>
+                  <div class="wing-cw" ${tr('Content warning · Evening reading', '内容警告 · 晚间书单', '內容警告 · 晚間書單')}>Content warning · Evening reading</div>
                   <p class="qt-post-text" ${tr('How do you unwind with your timeline at the end of the day?', '一天结束时，你更喜欢怎样翻看时间线？', '一天結束時，你更喜歡怎樣翻看時間軸？')}>How do you unwind with your timeline at the end of the day?</p>
                   <div class="wing-poll">
                     <div class="wing-poll-row"><span class="wing-poll-fill wing-poll-68"></span><span ${tr('Warm tea & bookmarks', '热茶配书签', '熱茶配書籤')}>Warm tea &amp; bookmarks</span><span>68%</span></div>
-                    <div class="wing-poll-row"><span class="wing-poll-fill wing-poll-32"></span><span ${tr('Quick local catch-up', '随手逛逛本站', '隨手逛逛本地')}>Quick local catch-up</span><span>32%</span></div>
+                    <div class="wing-poll-row"><span class="wing-poll-fill wing-poll-32"></span><span ${tr('Quick local catch-up', '随手逛逛本站', '隨手逛逛在地')}>Quick local catch-up</span><span>32%</span></div>
                   </div>
                   <div class="wing-chips">
-                    <span class="wing-chip" ${tr('Unlisted', '不公开列出', '不公開列出')}>Unlisted</span>
+                    <span class="wing-chip" ${tr('Quiet public', '不公开', '不公開')}>Quiet public</span>
                     <span class="wing-chip">ALT</span>
                     <span class="wing-chip">EN</span>
                   </div>
@@ -95,7 +95,7 @@ export function renderHomePage() {
                   </div>
                   <div class="qt-tabs">
                     <span class="qt-tab-item is-active" ${tr('Home', '主页', '首頁')}>Home</span>
-                    <span class="qt-tab-item" ${tr('Local', '本站', '本地')}>Local</span>
+                    <span class="qt-tab-item" ${tr('Local', '本站', '在地')}>Local</span>
                     <span class="qt-tab-item" ${tr('Federated', '跨站', '聯邦')}>Federated</span>
                   </div>
                   <article class="qt-post">
@@ -120,7 +120,7 @@ export function renderHomePage() {
 
                 <div class="duo-pane duo-pane-right">
                   <div class="duo-pane-heading">
-                    <strong ${tr('Conversation', '会话详情', '對話詳情')}>Conversation</strong>
+                    <strong ${tr('Conversation', '对话', '對話')}>Conversation</strong>
                   </div>
                   <article class="qt-post">
                     <div class="qt-avatar qt-avatar-warm">A</div>
@@ -171,7 +171,7 @@ export function renderHomePage() {
                   </div>
                   <div class="qt-tabs">
                     <span class="qt-tab-item is-active" ${tr('Home', '主页', '首頁')}>Home</span>
-                    <span class="qt-tab-item" ${tr('Local', '本站', '本地')}>Local</span>
+                    <span class="qt-tab-item" ${tr('Local', '本站', '在地')}>Local</span>
                     <span class="qt-tab-item" ${tr('Federated', '跨站', '聯邦')}>Federated</span>
                   </div>
                   <article class="qt-post">
@@ -238,10 +238,10 @@ export function renderHomePage() {
           <p class="kicker"><span class="kicker-rule" aria-hidden="true"></span><span ${tr('The reading experience', '阅读与书写体验', '閱讀與書寫體驗')}>The reading experience</span></p>
           <h2><span ${tr('Scroll the story, or ', '随滚动流转，也可', '隨捲動流轉，也可')}>Scroll the story, or </span><em ${tr('touch the glass.', '亲手点开试试。', '親手點開試試。')}>touch the glass.</em></h2>
           <p class="section-lead" ${tr(
-            'Every control inside the preview responds just like the app — switch timelines, reveal waiting posts, fold Content Warnings, vote in a poll, or open photographs full-screen.',
-            '右侧设备内的交互完全可点按体验：切换时间线、展开等候的新帖、打开内容警告、参与投票，或点开照片细看 ALT 描述。',
-            '右側裝置內的互動完全可點按體驗：切換時間軸、展開等候的新貼文、開啟內容警告、參與投票，或點開照片細看 ALT 描述。'
-          )}>Every control inside the preview responds just like the app — switch timelines, reveal waiting posts, fold Content Warnings, vote in a poll, or open photographs full-screen.</p>
+            'Every control inside the preview responds just like the app — switch timelines, reveal new posts, fold Content Warnings, vote in a poll, or open photographs full-screen.',
+            '右侧设备内的交互完全可点按体验：切换时间线、展开新嘟文、打开内容警告、参与投票，或点开照片细看 ALT 描述。',
+            '右側裝置內的互動完全可點按體驗：切換時間軸、展開新嘟文、開啟內容警告、參與投票，或點開照片細看 ALT 描述。'
+          )}>Every control inside the preview responds just like the app — switch timelines, reveal new posts, fold Content Warnings, vote in a poll, or open photographs full-screen.</p>
         </div>
 
         <div class="story-grid">
@@ -250,7 +250,7 @@ export function renderHomePage() {
               <span class="chapter-num">01</span>
               <h3 ${tr('Timelines that wait for you', '懂得等候你的时间线', '懂得等候你的時間軸')}>Timelines that wait for you</h3>
               <p ${tr('Move smoothly between Home, Local, and Federated streams. While you catch up on earlier posts, new arrivals gather quietly in a single pill — ready whenever you are.', '在主页、本站与跨站之间从容切换。当你专注翻阅早先的帖子时，新到达的内容会安静聚拢在顶部提示中，等你准备好再展开。', '在首頁、本地與聯邦之間從容切換。當你專注翻閱早先的貼文時，新到達的內容會安靜聚攏在頂部提示中，等你準備好再展開。')}>Move smoothly between Home, Local, and Federated streams. While you catch up on earlier posts, new arrivals gather quietly in a single pill — ready whenever you are.</p>
-              <span class="chapter-cue">${icons.sparkles}<span ${tr('Try tapping “1 new post waiting” or “Show post”', '试试点击“有 1 条新帖子”或“展开内容”', '試試點選「有 1 則新貼文」或「顯示內容」')}>Try tapping “1 new post waiting” or “Show post”</span></span>
+              <span class="chapter-cue">${icons.sparkles}<span ${tr('Try tapping “New posts (1)” or “Show”', '试试点击“新嘟文 (1)”或“显示”', '試試點選「新嘟文 (1)」或「顯示」')}>Try tapping “New posts (1)” or “Show”</span></span>
             </button>
 
             <button class="story-chapter" type="button" data-story-chapter="threads" aria-pressed="false">
@@ -307,7 +307,7 @@ export function renderHomePage() {
                     <div class="sim-panel" data-sim-panel="timelines">
                       <div class="sim-feed-tabs" role="tablist">
                         <button class="sim-feed-tab" type="button" role="tab" aria-selected="true" data-feed-tab="home" ${tr('Home', '主页', '首頁')}>Home</button>
-                        <button class="sim-feed-tab" type="button" role="tab" aria-selected="false" data-feed-tab="local" ${tr('Local', '本站', '本地')}>Local</button>
+                        <button class="sim-feed-tab" type="button" role="tab" aria-selected="false" data-feed-tab="local" ${tr('Local', '本站', '在地')}>Local</button>
                         <button class="sim-feed-tab" type="button" role="tab" aria-selected="false" data-feed-tab="federated" ${tr('Federated', '跨站', '聯邦')}>Federated</button>
                       </div>
 
@@ -315,7 +315,7 @@ export function renderHomePage() {
                         <div class="sim-pending-wrap" data-pending-wrap>
                           <button class="sim-pending-pill" type="button" data-reveal-pending>
                             ${icons.arrowUp}
-                            <span ${tr('1 new post waiting', '有 1 条新帖子', '有 1 則新貼文')}>1 new post waiting</span>
+                            <span ${tr('New posts (1)', '新嘟文 (1)', '新嘟文 (1)')}>New posts (1)</span>
                           </button>
                         </div>
 
@@ -349,8 +349,8 @@ export function renderHomePage() {
                             <div class="qt-post-head"><strong>Kenji</strong><time ${tr('52m', '52 分钟前', '52 分鐘前')}>52m</time></div>
                             <span class="qt-handle">@kenji@cinema.example</span>
                             <div class="sim-cw-banner">
-                              <span ${tr('CW: Film ending notes', '内容警告：电影结局笔记', '內容警告：電影結局筆記')}>CW: Film ending notes</span>
-                              <button class="sim-cw-btn" type="button" data-cw-toggle aria-expanded="false" ${tr('Show post', '展开内容', '顯示內容')}>Show post</button>
+                              <span ${tr('Content warning · Film ending notes', '内容警告 · 电影结局笔记', '內容警告 · 電影結局筆記')}>Content warning · Film ending notes</span>
+                              <button class="sim-cw-btn" type="button" data-cw-toggle aria-expanded="false" ${tr('Show', '显示', '顯示')}>Show</button>
                             </div>
                             <p class="qt-post-text" data-cw-body hidden ${tr('The final five minutes had zero dialogue — just rain on a train window and a slow piano motif. Worth seeing in a quiet theater.', '最后五分钟没有一句台词，只有车窗雨声与缓慢的钢琴主题，值得在安静的影厅里看。', '最後五分鐘沒有一句台詞，只有車窗雨聲與緩慢的鋼琴主題，值得在安靜的影廳裡看。')}>The final five minutes had zero dialogue — just rain on a train window and a slow piano motif. Worth seeing in a quiet theater.</p>
                           </div>
@@ -393,7 +393,7 @@ export function renderHomePage() {
                       <article class="sim-card is-focal">
                         <div class="qt-avatar qt-avatar-warm">A</div>
                         <div class="sim-card-content">
-                          <div class="qt-post-head"><strong>Amir</strong><time ${tr('1h ago · Edited', '1 小时前 · 已编辑', '1 小時前 · 已編輯')}>1h ago · Edited</time></div>
+                          <div class="qt-post-head"><strong>Amir</strong><time ${tr('1h ago · edited', '1 小时前 · 已编辑', '1 小時前 · 已編輯')}>1h ago · edited</time></div>
                           <span class="qt-handle">@amir@journal.example</span>
                           <p class="qt-post-text" ${tr('Chronological timelines feel different once your client stops fighting for your attention.', '当客户端不再千方百计争夺你的注意力，按时间排序的阅读体验会完全不同。', '當用戶端不再千方百計爭奪你的注意力，按時間排序的閱讀體驗會完全不同。')}>Chronological timelines feel different once your client stops fighting for your attention.</p>
                           <div class="qt-quote-card">
@@ -424,8 +424,8 @@ export function renderHomePage() {
                     <div class="sim-panel" data-sim-panel="composer" hidden>
                       <div class="sim-composer">
                         <div class="sim-composer-top">
-                          <strong ${tr('New post', '发布新帖', '發布新貼文')}>New post</strong>
-                          <button class="sim-publish-btn" type="button" data-composer-publish ${tr('Publish', '发布', '發布')}>Publish</button>
+                          <strong ${tr('New post', '新嘟文', '新嘟文')}>New post</strong>
+                          <button class="sim-publish-btn" type="button" data-composer-publish ${tr('Publish', '发布', '發佈')}>Publish</button>
                         </div>
                         <div class="sim-composer-field" data-composer-cw-box hidden ${tr('Content warning: Coffee & tea notes', '内容警告：茶与咖啡笔记', '內容警告：茶與咖啡筆記')}>Content warning: Coffee &amp; tea notes</div>
                         <div class="sim-composer-field" ${tr('Weekend poll — when do you usually catch up on Mastodon?', '周末小投票：你通常在一天中的什么时候翻看 Mastodon？', '週末小投票：你通常在一天中的什麼時候翻看 Mastodon？')}>Weekend poll — when do you usually catch up on Mastodon?</div>
@@ -460,7 +460,7 @@ export function renderHomePage() {
 
                     <!-- PANEL 4: EXPLORE & FULLSCREEN MEDIA -->
                     <div class="sim-panel" data-sim-panel="explore" hidden>
-                      <div class="sim-search-box">${icons.search}<span ${tr('Search mastodon.social…', '搜索 mastodon.social…', '搜尋 mastodon.social…')}>Search mastodon.social…</span></div>
+                      <div class="sim-search-box">${icons.search}<span ${tr('Search mastodon.social', '搜索 mastodon.social', '搜尋 mastodon.social')}>Search mastodon.social</span></div>
                       <div class="sim-tag-row">
                         <span class="sim-tag-pill"><b>#</b>FieldNotes</span>
                         <span class="sim-tag-pill"><b>#</b>SilentSunday</span>
@@ -505,8 +505,8 @@ export function renderHomePage() {
 
                   <div class="sim-dock" role="navigation" aria-label="Preview tabs">
                     <button class="sim-dock-btn" type="button" data-sim-dock="home" aria-current="true">${icons.home}<span ${tr('Home', '主页', '首頁')}>Home</span></button>
-                    <button class="sim-dock-btn" type="button" data-sim-dock="threads" aria-current="false">${icons.bell}<span ${tr('Thread', '会话', '對話')}>Thread</span></button>
-                    <button class="sim-dock-btn" type="button" data-sim-dock="composer" aria-current="false">${icons.edit}<span ${tr('Write', '发帖', '發文')}>Write</span></button>
+                    <button class="sim-dock-btn" type="button" data-sim-dock="threads" aria-current="false">${icons.bell}<span ${tr('Conversation', '对话', '對話')}>Conversation</span></button>
+                    <button class="sim-dock-btn" type="button" data-sim-dock="composer" aria-current="false">${icons.edit}<span ${tr('New post', '新嘟文', '新嘟文')}>New post</span></button>
                     <button class="sim-dock-btn" type="button" data-sim-dock="explore" aria-current="false">${icons.search}<span ${tr('Explore', '探索', '探索')}>Explore</span></button>
                   </div>
                 </div>
@@ -552,7 +552,7 @@ export function renderHomePage() {
                 </div>
                 <div class="qt-tabs">
                   <span class="qt-tab-item is-active" ${tr('Home', '主页', '首頁')}>Home</span>
-                  <span class="qt-tab-item" ${tr('Local', '本站', '本地')}>Local</span>
+                  <span class="qt-tab-item" ${tr('Local', '本站', '在地')}>Local</span>
                   <span class="qt-tab-item" ${tr('Federated', '跨站', '聯邦')}>Federated</span>
                 </div>
                 <div class="pane-feed">
@@ -568,8 +568,8 @@ export function renderHomePage() {
                 <div class="pane-bottom-nav">
                   <b ${tr('Home', '主页', '首頁')}>Home</b>
                   <span ${tr('Explore', '探索', '探索')}>Explore</span>
-                  <span ${tr('Alerts', '通知', '通知')}>Alerts</span>
-                  <span ${tr('Profile', '资料', '資料')}>Profile</span>
+                  <span ${tr('Notifications', '通知', '通知')}>Notifications</span>
+                  <span ${tr('Profile', '个人资料', '個人檔案')}>Profile</span>
                 </div>
               </div>
 
@@ -578,7 +578,7 @@ export function renderHomePage() {
 
               <div class="adaptive-pane adaptive-secondary">
                 <div class="pane-bar">
-                  <span ${tr('Conversation', '会话详情', '對話詳情')}>Conversation</span>
+                  <span ${tr('Conversation', '对话', '對話')}>Conversation</span>
                   <small>#BookClub</small>
                 </div>
                 <div class="pane-feed">
@@ -635,7 +635,7 @@ export function renderHomePage() {
           <article class="specimen spec-7" data-reveal>
             <div class="specimen-copy">
               <h3 ${tr('Notifications that stay calm', '克制而清晰的分组合并通知', '克制而清晰的分組合併通知')}>Notifications that stay calm</h3>
-              <p ${tr('Replies show the full conversation, favourites and boosts fold neatly into avatar stacks that respect Content Warnings, and follow requests can be approved or declined on the spot.', '回复保留完整帖文，喜欢与转发自动聚合头像并尊重内容警告，关注请求无需跳转即可当场同意或婉拒。', '回覆保留完整貼文，喜愛與轉發自動彙整頭像並尊重內容警告，追蹤請求無需跳轉即可當場核准或婉拒。')}>Replies show the full conversation, favourites and boosts fold neatly into avatar stacks that respect Content Warnings, and follow requests can be approved or declined on the spot.</p>
+              <p ${tr('Replies show the full conversation, favorites and boosts fold neatly into avatar stacks that respect Content Warnings, and follow requests can be approved or rejected on the spot.', '回复保留完整帖文，收藏与转发自动聚合头像并尊重内容警告，关注请求无需跳转即可当场批准或拒绝。', '回覆保留完整貼文，最愛與轉發自動彙整頭像並尊重內容警告，跟隨請求無需跳轉即可當場核准或拒絕。')}>Replies show the full conversation, favorites and boosts fold neatly into avatar stacks that respect Content Warnings, and follow requests can be approved or rejected on the spot.</p>
             </div>
             <div class="notif-stack">
               <div class="notif-card">
@@ -646,7 +646,7 @@ export function renderHomePage() {
                     <span class="stack-c">M</span>
                     <span class="stack-d">+5</span>
                   </div>
-                  <span ${tr('Lina and 7 others favourited your field notes', 'Lina 和另外 7 人喜欢了你的笔记', 'Lina 與另外 7 人喜愛了你的筆記')}>Lina and 7 others favourited your field notes</span>
+                  <span ${tr('Lina and 7 others favorited your field notes', 'Lina 和其他 7 人已收藏你的笔记', 'Lina 和其他 7 人已加入最愛')}>Lina and 7 others favorited your field notes</span>
                 </div>
               </div>
               <div class="notif-card">
@@ -654,7 +654,7 @@ export function renderHomePage() {
                   <span class="qt-avatar qt-avatar-slate">S</span>
                   <div>
                     <strong>Sora</strong>
-                    <span class="pane-post-muted" ${tr(' · Poll ended · “Morning coffee” led with 62%', ' · 投票已结束 · “清晨配咖啡”以 62% 胜出', ' · 投票已結束 · 「清晨配咖啡」以 62% 勝出')}> · Poll ended · “Morning coffee” led with 62%</span>
+                    <span class="pane-post-muted" ${tr(' · poll ended · “Morning coffee” led with 62%', ' · 投票已结束 · “清晨配咖啡”以 62% 胜出', ' · 投票已結束 · 「清晨配咖啡」以 62% 勝出')}> · poll ended · “Morning coffee” led with 62%</span>
                   </div>
                 </div>
               </div>
@@ -663,12 +663,12 @@ export function renderHomePage() {
                   <span class="qt-avatar qt-avatar-warm">N</span>
                   <div>
                     <strong>Nadia</strong>
-                    <span class="pane-post-muted" ${tr(' requested to follow you', ' 请求关注你', ' 請求追蹤你')}> requested to follow you</span>
+                    <span class="pane-post-muted" ${tr(' sent a follow request', ' 发送了关注请求', ' 傳送了跟隨請求')}> sent a follow request</span>
                   </div>
                 </div>
                 <div class="req-actions" data-req-actions>
-                  <button class="req-btn req-btn-accept" type="button" data-req-decision="approved" ${tr('Approve', '同意', '核准')}>Approve</button>
-                  <button class="req-btn" type="button" data-req-decision="declined" ${tr('Decline', '拒绝', '婉拒')}>Decline</button>
+                  <button class="req-btn req-btn-accept" type="button" data-req-decision="approved" ${tr('Approve', '批准', '核准')}>Approve</button>
+                  <button class="req-btn" type="button" data-req-decision="rejected" ${tr('Reject', '拒绝', '拒絕')}>Reject</button>
                 </div>
                 <span class="req-status" data-req-status hidden></span>
               </div>

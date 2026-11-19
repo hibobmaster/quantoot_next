@@ -5,14 +5,14 @@ type VisibilityKey = (typeof VISIBILITY_ORDER)[number];
 
 const VISIBILITY_LABELS: Record<VisibilityKey, Record<Language, string>> = {
   public: { en: 'Public', 'zh-Hans': '公开', 'zh-Hant': '公開' },
-  unlisted: { en: 'Unlisted', 'zh-Hans': '不公开列出', 'zh-Hant': '不公開列出' },
-  private: { en: 'Followers only', 'zh-Hans': '仅关注者', 'zh-Hant': '僅追蹤者' },
-  direct: { en: 'Direct', 'zh-Hans': '仅提及的人', 'zh-Hant': '僅提及的人' },
+  unlisted: { en: 'Quiet public', 'zh-Hans': '不公开', 'zh-Hant': '不公開' },
+  private: { en: 'Followers', 'zh-Hans': '关注者', 'zh-Hant': '跟隨者' },
+  direct: { en: 'Private mention', 'zh-Hans': '私信', 'zh-Hant': '私訊' },
 };
 
 const CW_BUTTON_LABELS: Record<'show' | 'hide', Record<Language, string>> = {
-  show: { en: 'Show post', 'zh-Hans': '展开内容', 'zh-Hant': '顯示內容' },
-  hide: { en: 'Hide', 'zh-Hans': '收起', 'zh-Hant': '收起' },
+  show: { en: 'Show', 'zh-Hans': '显示', 'zh-Hant': '顯示' },
+  hide: { en: 'Hide', 'zh-Hans': '隐藏', 'zh-Hant': '隱藏' },
 };
 
 const ADAPTIVE_CAPTIONS: Record<'phone' | 'cover' | 'foldable' | 'tablet', Record<Language, string>> = {
@@ -38,9 +38,9 @@ const ADAPTIVE_CAPTIONS: Record<'phone' | 'cover' | 'foldable' | 'tablet', Recor
   },
 };
 
-const REQ_FEEDBACK: Record<'approved' | 'declined', Record<Language, string>> = {
-  approved: { en: 'Request approved', 'zh-Hans': '已同意关注请求', 'zh-Hant': '已核准追蹤請求' },
-  declined: { en: 'Request declined', 'zh-Hans': '已拒绝关注请求', 'zh-Hant': '已婉拒追蹤請求' },
+const REQ_FEEDBACK: Record<'approved' | 'rejected', Record<Language, string>> = {
+  approved: { en: 'Approved', 'zh-Hans': '已批准', 'zh-Hant': '已核准' },
+  rejected: { en: 'Rejected', 'zh-Hans': '已拒绝', 'zh-Hant': '已拒絕' },
 };
 
 const LIGHTBOX_PHOTOS: Record<string, { src: string; alt: Record<Language, string> }> = {
@@ -326,17 +326,17 @@ export function initInteractiveApp(): void {
   }
 
   // 10. Curated Feature Specimens Interactions
-  // A. Follow Request Approve / Decline
+  // A. Follow Request Approve / Reject
   const reqActions = document.querySelector<HTMLElement>('[data-req-actions]');
   const reqStatus = document.querySelector<HTMLElement>('[data-req-status]');
-  let reqState: 'approved' | 'declined' | null = null;
+  let reqState: 'approved' | 'rejected' | null = null;
   function renderReqStatus(): void {
     if (!reqStatus || !reqState) return;
     reqStatus.textContent = REQ_FEEDBACK[reqState][getLanguage()];
   }
   document.querySelectorAll<HTMLButtonElement>('[data-req-decision]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const decision = btn.dataset.reqDecision as 'approved' | 'declined';
+      const decision = btn.dataset.reqDecision as 'approved' | 'rejected';
       reqState = decision;
       if (reqActions) reqActions.hidden = true;
       if (reqStatus) {
