@@ -1,12 +1,16 @@
 package com.quanquan.quantoot.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,8 +19,13 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.quanquan.quantoot.platform.AppUpdate
 import com.quanquan.quantoot.platform.AppUpdates
 import com.quanquan.quantoot.platform.InvalidUpdatePackage
@@ -34,6 +43,7 @@ private sealed interface UpdateStep {
     data class Failed(val message: String, val retry: UpdateStep) : UpdateStep
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun AppUpdateDialog(
     updates: AppUpdates,
@@ -83,61 +93,125 @@ internal fun AppUpdateDialog(
         activeStep is UpdateStep.Ready && updates.canInstall()
     }
     val title = when (activeStep) {
-        is UpdateStep.Available -> tr("settings_update_available", "version" to activeStep.update.version)
-        is UpdateStep.Ready -> tr("settings_version_label", "version" to activeStep.update.version)
+        UpdateStep.Checking -> tr("settings_update_checking")
+        UpdateStep.Current -> tr("settings_update_current", "version" to updates.currentVersion)
+        is UpdateStep.Available -> tr("settings_update_new_version")
+        is UpdateStep.Downloading -> tr("settings_update_downloading_title")
+        is UpdateStep.Ready -> tr("settings_update_ready_title")
         is UpdateStep.Installing -> tr("settings_update_install")
-        else -> tr("settings_check_for_updates")
+        is UpdateStep.Failed -> tr("settings_check_for_updates")
     }
-    AlertDialog(
+    val icon = when (activeStep) {
+        UpdateStep.Current, is UpdateStep.Ready -> Icons.Default.Check
+        is UpdateStep.Available, is UpdateStep.Downloading -> Icons.Default.KeyboardArrowDown
+        is UpdateStep.Failed -> Icons.Default.Info
+        else -> Icons.Default.Refresh
+    }
+    val primaryAction: Pair<String, () -> Unit>? = when (activeStep) {
+        is UpdateStep.Available -> tr("settings_update_download") to { step = UpdateStep.Downloading(activeStep.update) }
+        is UpdateStep.Ready -> tr(if (canInstall) "settings_update_install" else "settings_update_allow") to {
+            try {
+                if (updates.canInstall()) step = UpdateStep.Installing(activeStep.update)
+                else updates.openInstallSettings()
+            } catch (_: Exception) {
+                step = UpdateStep.Failed("settings_update_install_failed", activeStep)
+            }
+        }
+        is UpdateStep.Failed -> tr("mastodon_retry") to { step = activeStep.retry }
+        else -> null
+    }
+    val colors = MaterialTheme.colorScheme
+    val failed = activeStep is UpdateStep.Failed
+    Dialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                when (activeStep) {
-                    UpdateStep.Checking -> {
-                        Text(tr("settings_update_checking"))
-                        LinearProgressIndicator(Modifier.fillMaxWidth())
-                    }
-                    UpdateStep.Current -> Text(tr("settings_update_current", "version" to updates.currentVersion))
-                    is UpdateStep.Available -> {
-                        Text(tr("settings_update_download_size", "size" to formatByteSize(activeStep.update.bytes)))
-                        TextButton(onClick = { openRelease(activeStep.update.releaseUrl) }) {
-                            Text(tr("settings_update_release_notes"))
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Surface(
+            modifier = Modifier.padding(horizontal = 24.dp).widthIn(max = 420.dp).fillMaxWidth(),
+            shape = MaterialTheme.shapes.extraLarge,
+            color = colors.surfaceContainerLow,
+            border = BorderStroke(1.dp, colors.outlineVariant),
+        ) {
+            Column(
+                Modifier.verticalScroll(rememberScrollState()).padding(22.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Surface(
+                        shape = MaterialTheme.shapes.medium,
+                        color = if (failed) colors.errorContainer else colors.surfaceContainerHigh,
+                    ) {
+                        Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
+                            Icon(icon, null, Modifier.size(22.dp),
+                                tint = if (failed) colors.onErrorContainer else colors.primary)
                         }
                     }
+                    Text(title, Modifier.weight(1f).semantics { heading() }, style = MaterialTheme.typography.titleLarge)
+                }
+                when (activeStep) {
+                    UpdateStep.Checking, is UpdateStep.Installing -> LinearProgressIndicator(Modifier.fillMaxWidth())
+                    UpdateStep.Current -> Unit
+                    is UpdateStep.Available -> UpdateVersionSummary(updates.currentVersion, activeStep.update)
                     is UpdateStep.Downloading -> {
-                        Text(tr("settings_update_downloading", "percent" to percent.toString()))
-                        LinearProgressIndicator(progress = { percent / 100f }, modifier = Modifier.fillMaxWidth())
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically) {
+                                Text(tr("settings_version_label", "version" to activeStep.update.version),
+                                    Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                                Text("$percent%", style = MaterialTheme.typography.labelLarge, color = colors.primary)
+                            }
+                            LinearProgressIndicator(progress = { percent / 100f }, modifier = Modifier.fillMaxWidth())
+                        }
                     }
-                    is UpdateStep.Ready -> Text(tr(if (canInstall) "settings_update_ready" else "settings_update_permission"))
-                    is UpdateStep.Installing -> LinearProgressIndicator(Modifier.fillMaxWidth())
-                    is UpdateStep.Failed -> Text(tr(activeStep.message))
-                }
-            }
-        },
-        confirmButton = {
-            when (activeStep) {
-                is UpdateStep.Available -> TextButton(onClick = { step = UpdateStep.Downloading(activeStep.update) }) {
-                    Text(tr("settings_update_download"))
-                }
-                is UpdateStep.Ready -> TextButton(onClick = {
-                    try {
-                        if (updates.canInstall()) step = UpdateStep.Installing(activeStep.update)
-                        else updates.openInstallSettings()
-                    } catch (_: Exception) {
-                        step = UpdateStep.Failed("settings_update_install_failed", activeStep)
+                    is UpdateStep.Ready -> {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(tr("settings_version_label", "version" to activeStep.update.version),
+                                style = MaterialTheme.typography.titleMedium)
+                            Text(tr(if (canInstall) "settings_update_ready" else "settings_update_permission"),
+                                style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
+                        }
                     }
-                }) {
-                    Text(tr(if (canInstall) "settings_update_install" else "settings_update_allow"))
+                    is UpdateStep.Failed -> Text(tr(activeStep.message),
+                        style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
                 }
-                is UpdateStep.Failed -> TextButton(onClick = { step = activeStep.retry }) { Text(tr("mastodon_retry")) }
-                else -> Unit
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (primaryAction != null) {
+                        Button(onClick = primaryAction.second, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                            Text(primaryAction.first)
+                        }
+                    }
+                    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        if (activeStep is UpdateStep.Available) {
+                            TextButton(onClick = { openRelease(activeStep.update.releaseUrl) }) {
+                                Text(tr("settings_update_release_notes"))
+                            }
+                        }
+                        TextButton(
+                            onClick = onDismiss,
+                            colors = ButtonDefaults.textButtonColors(contentColor = colors.onSurfaceVariant),
+                        ) {
+                            Text(tr(if (activeStep == UpdateStep.Current) "mastodon_close" else "mastodon_cancel"))
+                        }
+                    }
+                }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(tr(if (activeStep == UpdateStep.Current) "mastodon_close" else "mastodon_cancel"))
+        }
+    }
+}
+
+@Composable
+private fun UpdateVersionSummary(current: String, update: AppUpdate) {
+    val colors = MaterialTheme.colorScheme
+    Surface(shape = MaterialTheme.shapes.medium, color = colors.surfaceContainer) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("v$current", style = MaterialTheme.typography.titleMedium, color = colors.onSurfaceVariant)
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, null, Modifier.size(17.dp), tint = colors.onSurfaceVariant)
+                Text("v${update.version}", style = MaterialTheme.typography.titleMedium, color = colors.primary)
             }
-        },
-    )
+            Text(tr("settings_update_download_size", "size" to formatByteSize(update.bytes)),
+                style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
+        }
+    }
 }
