@@ -1,5 +1,6 @@
 package com.quanquan.quantoot.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -8,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -44,6 +46,19 @@ internal fun Wordmark() {
 @Composable
 internal fun ShellHeader(ui: UiContext, tab: MainTab, screen: Screen?, rail: Boolean) {
     val colors = MaterialTheme.colorScheme
+    if (screen is Screen.Settings && screen.section == SettingsSection.AccountDeletion) {
+        Row(
+            Modifier.padding(start = 8.dp)
+                .clickable(role = Role.Button, onClick = ui::requestBack)
+                .heightIn(min = 48.dp).padding(start = 4.dp, end = 16.dp, top = 6.dp, bottom = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, null, tint = colors.primary)
+            Text(tr("settings_title"), color = colors.primary, style = MaterialTheme.typography.bodyLarge)
+        }
+        return
+    }
     val home = screen == null && tab == MainTab.Home
     val accountsLabel = tr("mastodon_accounts")
     Column {

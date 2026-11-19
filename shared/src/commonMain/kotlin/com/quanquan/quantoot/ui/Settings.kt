@@ -2,20 +2,28 @@ package com.quanquan.quantoot.ui
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.SingletonImageLoader
 import coil3.compose.LocalPlatformContext
@@ -588,13 +596,101 @@ private fun PrivacyPolicy(ui: UiContext) {
 @Composable
 private fun AccountDeletion(ui: UiContext, state: SessionState) {
     val session = state.activeSession ?: return
-    Text("@${session.account.acct} · ${session.instance}", style = MaterialTheme.typography.titleLarge)
-    Text(tr("settings_delete_server_account_explanation", "instance" to session.instance))
-    Button(onClick = { ui.open(mastodonAccountDeletionUrl(session.instance)) }) {
-        Text(tr("settings_delete_server_account_continue"))
+    val account = session.account
+    val colors = MaterialTheme.colorScheme
+    val type = MaterialTheme.typography
+    val groupShape = MaterialTheme.shapes.large
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+        Column(Modifier.widthIn(max = 440.dp).fillMaxWidth().padding(top = 20.dp, bottom = 22.dp)) {
+            Column(
+                Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Box(
+                    Modifier.size(60.dp).background(colors.error.copy(alpha = 0.10f), CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Outlined.Delete, null, Modifier.size(28.dp), tint = colors.error)
+                }
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    tr("settings_delete_server_account"),
+                    Modifier.testTag("screen-title").semantics { heading() },
+                    style = type.headlineMedium,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    tr("settings_delete_server_account_explanation"),
+                    color = colors.onSurfaceVariant,
+                    style = type.bodyLarge,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            Spacer(Modifier.height(26.dp))
+            Surface(Modifier.fillMaxWidth(), shape = groupShape, color = colors.surfaceContainerLow) {
+                Row(
+                    Modifier.padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    AccountAvatar(account, 46.dp)
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        EmojiText(account.name, account.emojis, style = type.titleMedium)
+                        Text(
+                            "@${account.acct.substringBefore('@')} · ${session.instance}",
+                            color = colors.onSurfaceVariant,
+                            style = type.bodySmall,
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+            Surface(Modifier.fillMaxWidth(), shape = groupShape, color = colors.surfaceContainerLow) {
+                Column {
+                    AccountDeletionLink(tr("settings_delete_server_account_continue"), colors.error) {
+                        ui.open(mastodonAccountDeletionUrl(session.instance))
+                    }
+                    HorizontalDivider(Modifier.padding(start = 16.dp), thickness = 0.5.dp, color = colors.outlineVariant)
+                    AccountDeletionLink(tr("settings_account_deletion_help"), colors.onSurface) {
+                        ui.open("$SUPPORT_URL#account")
+                    }
+                }
+            }
+            Text(
+                tr("settings_delete_server_account_sign_out"),
+                Modifier.padding(start = 16.dp, top = 10.dp, end = 16.dp),
+                color = colors.onSurfaceVariant,
+                style = type.bodySmall,
+            )
+        }
     }
-    TextButton(onClick = { ui.open("$SUPPORT_URL#account") }) { Text(tr("settings_account_deletion_help")) }
 }
+
+@Composable
+private fun AccountDeletionLink(label: String, color: Color, onClick: () -> Unit) {
+    Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = Color.Transparent) {
+        Row(
+            Modifier.heightIn(min = 54.dp).padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(label, Modifier.weight(1f), color = color, style = MaterialTheme.typography.titleMedium)
+            Icon(ExternalPageArrow, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+private val ExternalPageArrow = ImageVector.Builder("External page", 24.dp, 24.dp, 24f, 24f).apply {
+    path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 1.8f,
+        strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+        moveTo(6f, 18f)
+        lineTo(18f, 6f)
+        moveTo(9f, 6f)
+        horizontalLineTo(18f)
+        verticalLineTo(15f)
+    }
+}.build()
 
 @Composable
 internal fun ReportFields(ui: UiContext, comment: String, onCommentChange: (String) -> Unit) {
