@@ -8,8 +8,7 @@ final class ClientExperienceTests: XCTestCase {
         app.launchArguments = ["-app_locale", "en"]
         app.launch()
 
-        XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 15))
-        app.buttons["Settings"].tap()
+        app.openShellAction("Settings")
         let language = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Language")).firstMatch
         XCTAssertTrue(language.waitForExistence(timeout: 5))
         language.tap()
@@ -21,7 +20,7 @@ final class ClientExperienceTests: XCTestCase {
         english.tap()
         app.buttons["Close"].firstMatch.tap()
 
-        app.buttons["Accounts"].tap()
+        app.openShellAction("Accounts")
         app.buttons["Add account"].tap()
         let field = app.textViews
             .matching(NSPredicate(format: "label BEGINSWITH %@", "Instance domain")).firstMatch
@@ -353,8 +352,7 @@ final class ClientExperienceTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["-app_locale", "en"]
         app.launch()
-        XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 15))
-        app.buttons["Settings"].tap()
+        app.openShellAction("Settings")
         let about = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "About this server")).firstMatch
         if !about.isHittable { app.swipeUp() }
         XCTAssertTrue(about.waitForExistence(timeout: 5))

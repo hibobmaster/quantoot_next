@@ -1,6 +1,7 @@
 package com.quanquan.quantoot.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -16,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -23,6 +25,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -44,7 +47,28 @@ internal fun Wordmark() {
 }
 
 @Composable
-internal fun ShellHeader(ui: UiContext, tab: MainTab, screen: Screen?, rail: Boolean) {
+internal fun screenTitle(tab: MainTab, screen: Screen?): String = when (screen) {
+    null -> if (tab == MainTab.Home) "QuanToot" else tr(tab.titleKey)
+    is Screen.Feed -> screen.title
+    is Screen.Thread -> tr("mastodon_conversation")
+    is Screen.Profile -> tr("mastodon_profile")
+    is Screen.People -> tr(if (screen.following) "mastodon_following_count" else "mastodon_followers_count_label")
+    is Screen.Settings -> tr(screen.section?.titleKey ?: "settings_title")
+    Screen.Accounts -> tr("mastodon_accounts")
+    is Screen.Instance -> tr("mastodon_choose_instance")
+    Screen.EditProfile -> tr("mastodon_edit_profile")
+    is Screen.Compose -> composerTitle(screen)
+}
+
+@Composable
+internal fun ShellHeader(
+    ui: UiContext,
+    tab: MainTab,
+    screen: Screen?,
+    rail: Boolean,
+    detailPane: Boolean = false,
+    nativeBar: Boolean = false,
+) {
     val colors = MaterialTheme.colorScheme
     if (screen is Screen.Settings && screen.section == SettingsSection.AccountDeletion) {
         Row(
@@ -67,9 +91,9 @@ internal fun ShellHeader(ui: UiContext, tab: MainTab, screen: Screen?, rail: Boo
                 .padding(start = if (screen == null) 16.dp else 4.dp, end = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (screen != null) {
+            if (screen != null && !nativeBar) {
                 IconButton(onClick = ui::requestBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, tr("mastodon_close"))
+                    Icon(if (detailPane) Icons.Default.Close else Icons.AutoMirrored.Filled.ArrowBack, tr("mastodon_close"))
                 }
             }
             if (home) {
@@ -83,29 +107,17 @@ internal fun ShellHeader(ui: UiContext, tab: MainTab, screen: Screen?, rail: Boo
                         style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant)
                 }
             } else {
-                val title = when (screen) {
-                    null -> tr(tab.titleKey)
-                    is Screen.Feed -> screen.title
-                    is Screen.Thread -> tr("mastodon_conversation")
-                    is Screen.Profile -> tr("mastodon_profile")
-                    is Screen.People -> tr(if (screen.following) "mastodon_following_count" else "mastodon_followers_count_label")
-                    is Screen.Settings -> tr(screen.section?.titleKey ?: "settings_title")
-                    Screen.Accounts -> accountsLabel
-                    is Screen.Instance -> tr("mastodon_choose_instance")
-                    Screen.EditProfile -> tr("mastodon_edit_profile")
-                    is Screen.Compose -> return
-                }
-                Text(title, Modifier.weight(1f).padding(end = 4.dp).testTag("screen-title").semantics { heading() },
+                Text(screenTitle(tab, screen), Modifier.weight(1f).padding(end = 4.dp).testTag("screen-title").semantics { heading() },
                     style = if (screen == null) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
-            if (screen != Screen.Accounts) {
+            if (!nativeBar && !detailPane && screen != Screen.Accounts) {
                 IconButton(onClick = { ui.navigate(Screen.Accounts) },
                     modifier = Modifier.semantics { contentDescription = accountsLabel }) {
                     AccountAvatar(ui.me, 30.dp)
                 }
             }
-            if (screen !is Screen.Settings) {
+            if (!nativeBar && !detailPane && screen !is Screen.Settings) {
                 IconButton(onClick = { ui.navigate(Screen.Settings()) }) {
                     Icon(Icons.Outlined.Settings, tr("settings_title"), Modifier.size(22.dp))
                 }
@@ -134,8 +146,9 @@ internal fun DestinationRail(
     select: (MainTab) -> Unit,
     compose: () -> Unit,
 ) {
-    BoxWithConstraints(Modifier.width(100.dp).fillMaxHeight()) {
-        val compact = maxHeight < 480.dp
+    BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
+        val showLabels = maxWidth >= 72.dp
+        val compact = maxHeight < 480.dp || !showLabels
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).selectableGroup()
                 .padding(top = if (compact) 6.dp else 20.dp, bottom = 8.dp),
@@ -145,13 +158,12 @@ internal fun DestinationRail(
             BrandMark(Modifier.size(36.dp))
             Spacer(Modifier.height(if (compact) 4.dp else 12.dp))
             MainTab.entries.forEach { tab ->
-                Destination(tab, tab == selected, unread, Modifier.fillMaxWidth(), select, compact)
+                Destination(tab, tab == selected, unread, Modifier.fillMaxWidth(), select, compact, showLabels)
             }
             Spacer(Modifier.height(if (compact) 4.dp else 12.dp))
             NewPostButton(compose)
         }
     }
-    VerticalDivider(thickness = Dp.Hairline)
 }
 
 @Composable
@@ -162,9 +174,13 @@ private fun Destination(
     modifier: Modifier,
     select: (MainTab) -> Unit,
     compact: Boolean = false,
+    showLabel: Boolean = true,
 ) {
     val label = tr(tab.titleKey)
-    val color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+    val colors = MaterialTheme.colorScheme
+    val color = if (selected) colors.onSurface else colors.onSurfaceVariant
+    val iconContainer = if (showLabel) Modifier else Modifier.size(44.dp, 32.dp)
+        .background(if (selected) colors.secondaryContainer else Color.Transparent, CircleShape)
     Column(
         modifier.selectable(selected, role = Role.Tab, onClick = { select(tab) })
             .heightIn(min = if (compact) 48.dp else 60.dp)
@@ -172,18 +188,23 @@ private fun Destination(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        BadgedBox(badge = {
-            if (tab == MainTab.Notifications && unread > 0) {
-                Badge(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary) {
-                    Text(if (unread > 99) "99+" else unread.toString())
+        Box(iconContainer, contentAlignment = Alignment.Center) {
+            BadgedBox(badge = {
+                if (tab == MainTab.Notifications && unread > 0) {
+                    Badge(containerColor = colors.primary, contentColor = colors.onPrimary) {
+                        Text(if (unread > 99) "99+" else unread.toString())
+                    }
                 }
+            }) {
+                Icon(if (selected) tab.filled else tab.outline, if (showLabel) null else label, Modifier.size(24.dp), tint = color)
             }
-        }) {
-            Icon(if (selected) tab.filled else tab.outline, null, Modifier.size(24.dp), tint = color)
         }
-        Text(label, Modifier.padding(top = 2.dp), color = color, maxLines = 1, overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium)
+        if (showLabel) {
+            Text(label, Modifier.padding(top = 2.dp), color = color, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium)
+        }
     }
 }
 

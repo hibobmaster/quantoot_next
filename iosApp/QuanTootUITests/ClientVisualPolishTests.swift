@@ -65,8 +65,7 @@ final class ClientVisualPolishTests: XCTestCase {
     func testLicensesListOnlyBundledDependencies() throws {
         continueAfterFailure = false
         let app = launch()
-        XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 15))
-        app.buttons["Settings"].tap()
+        app.openShellAction("Settings")
         let licenses = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Open source licenses")).firstMatch
         for _ in 0..<5 {
             if licenses.exists && licenses.isHittable { break }

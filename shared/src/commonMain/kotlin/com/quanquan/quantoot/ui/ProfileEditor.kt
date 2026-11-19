@@ -141,23 +141,28 @@ internal fun EditProfileScreen(ui: UiContext) {
         }
     }
 
+    fun save() {
+        if (!dirty || busy) return
+        perform {
+            ui.store.updateAccount(ui.api.updateProfile(ProfileUpdate(name, bio, locked, fields, avatar, header)))
+            ui.revision++
+            ui.message = updated
+            ui.back()
+        }
+    }
+
+    val saveTitle = tr("mastodon_save")
+    val nativeHeader = NativeEditorActions(ui::requestBack, !busy, saveTitle, dirty && !busy, ::save)
     Box(Modifier.fillMaxSize().imePadding(), contentAlignment = Alignment.TopCenter) {
         Column(Modifier.widthIn(max = 620.dp).fillMaxSize()) {
-            EditorHeader(
+            if (!nativeHeader) EditorHeader(
                 tr("mastodon_edit_profile"),
                 ui::requestBack,
                 closeEnabled = !busy,
                 closeIcon = Icons.AutoMirrored.Filled.ArrowBack,
             ) {
                 Button(
-                    onClick = {
-                        perform {
-                            ui.store.updateAccount(ui.api.updateProfile(ProfileUpdate(name, bio, locked, fields, avatar, header)))
-                            ui.revision++
-                            ui.message = updated
-                            ui.back()
-                        }
-                    },
+                    onClick = ::save,
                     enabled = dirty && !busy,
                     modifier = Modifier.heightIn(min = 48.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -166,7 +171,7 @@ internal fun EditProfileScreen(ui: UiContext) {
                         CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
                         Spacer(Modifier.width(8.dp))
                     }
-                    Text(tr("mastodon_save"))
+                    Text(saveTitle)
                 }
             }
             ErrorNotice(error)
@@ -224,13 +229,9 @@ internal fun EditProfileScreen(ui: UiContext) {
         )
     }
     if (discardChanges) {
-        AlertDialog(
-            onDismissRequest = { discardChanges = false },
-            title = { Text(tr("mastodon_profile_discard_changes")) },
-            confirmButton = {
-                TextButton(onClick = ui.back) { Text(tr("mastodon_discard"), color = MaterialTheme.colorScheme.error) }
-            },
-            dismissButton = { TextButton(onClick = { discardChanges = false }) { Text(tr("mastodon_cancel")) } },
+        ConfirmDiscard(
+            ui.platform, tr("mastodon_profile_discard_changes"),
+            onDismiss = { discardChanges = false }, onDiscard = ui.back,
         )
     }
 }

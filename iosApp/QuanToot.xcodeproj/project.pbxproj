@@ -11,6 +11,7 @@
 		44114A3211B56289628730D6 /* ClientRefinementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB28B6302A1E48906D4BA74F /* ClientRefinementTests.swift */; };
 		60DFEE804F2318B18827FE5A /* ProfileTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0E8591AADE1CE930D4D45FA /* ProfileTestSupport.swift */; };
 		662BEAB40D40BBD682C1F610 /* AuthorizedServerReadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555BF0A79B45FDE763E3048B /* AuthorizedServerReadTests.swift */; };
+		67B0C0357F00F6C2DFA8434A /* NativeTabController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 079D0253CB6DDC8D25E79AD6 /* NativeTabController.swift */; };
 		77E0882E96F6C666689BD283 /* ClientVisualPolishTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 976E45546B94F0C5C19DC351 /* ClientVisualPolishTests.swift */; };
 		80B60207D8CA05C62B1437D7 /* GuestBrowsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9F667F2F94F3C7696FDB68 /* GuestBrowsingTests.swift */; };
 		B708DDD5F6D3D819415A61E7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 90A2942637AA84F881EE995B /* PrivacyInfo.xcprivacy */; };
@@ -39,6 +40,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		079D0253CB6DDC8D25E79AD6 /* NativeTabController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeTabController.swift; sourceTree = "<group>"; };
 		0A9F667F2F94F3C7696FDB68 /* GuestBrowsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestBrowsingTests.swift; sourceTree = "<group>"; };
 		457AB8C12B80793595D29CE9 /* ClientInteractionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientInteractionTests.swift; sourceTree = "<group>"; };
 		4A54E38DA536CDA310EC1BEF /* StorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageTests.swift; sourceTree = "<group>"; };
@@ -64,6 +66,7 @@
 			children = (
 				84DF6567EEA62462242BA71C /* Assets.xcassets */,
 				F62EC1904D13C36C6A9057D6 /* Info.plist */,
+				079D0253CB6DDC8D25E79AD6 /* NativeTabController.swift */,
 				90A2942637AA84F881EE995B /* PrivacyInfo.xcprivacy */,
 				B8DD0428EAF02E2FC4DD6ED5 /* QuanToot.entitlements */,
 				C68C2A03C70EF61E58802A51 /* QuanTootApp.swift */,
@@ -246,6 +249,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67B0C0357F00F6C2DFA8434A /* NativeTabController.swift in Sources */,
 				C433BA568A4306134764E975 /* QuanTootApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

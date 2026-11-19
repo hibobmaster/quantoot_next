@@ -7,6 +7,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -24,6 +26,27 @@ import androidx.compose.ui.unit.sp
 import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
 import kotlinx.coroutines.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+
+@Serializable
+private data class SavedComposerDraft(
+    val text: String,
+    val selectionStart: Int,
+    val selectionEnd: Int,
+    val spoiler: String,
+    val visibility: String,
+    val language: String,
+    val quotePolicy: String,
+    val sensitive: Boolean,
+    val attachments: List<MediaAttachment>,
+    val pollEnabled: Boolean,
+    val options: List<String>,
+    val multiple: Boolean,
+    val duration: Int,
+    val hideTotals: Boolean,
+    val retryId: String?,
+)
 
 private class DraftDefault<T>(initial: T) {
     var value by mutableStateOf(initial)
@@ -140,6 +163,35 @@ class ComposerDraft(private val route: Screen.Compose, me: Account?) {
 
     private fun attachmentEdits() = attachments.map { it.id to it.description.orEmpty() }
 
+    internal fun saveForWindowChange(): String? {
+        val saved = SavedComposerDraft(
+            text, textInput.selection.start, textInput.selection.end, spoiler, visibility, language,
+            quotePolicy, sensitive, attachments, pollEnabled, options, multiple, duration, hideTotals,
+            operationId.takeIf { lastPayload == effectivePayload() },
+        )
+        return Json.encodeToString(saved).takeIf { it.length < 128_000 }
+    }
+
+    internal fun restoreAfterWindowChange(value: String) {
+        val saved = runCatching { Json.decodeFromString<SavedComposerDraft>(value) }.getOrNull() ?: return
+        textInput = TextFieldValue(saved.text, TextRange(saved.selectionStart, saved.selectionEnd))
+        spoiler = saved.spoiler
+        chooseVisibility(saved.visibility)
+        chooseLanguage(saved.language)
+        chooseQuotePolicy(saved.quotePolicy)
+        chooseSensitive(saved.sensitive)
+        attachments = saved.attachments
+        pollEnabled = saved.pollEnabled
+        options = saved.options
+        multiple = saved.multiple
+        duration = saved.duration
+        hideTotals = saved.hideTotals
+        saved.retryId?.let {
+            operationId = it
+            lastPayload = effectivePayload()
+        }
+    }
+
     val dirty
         get() =
             effectivePayload() != cleanPayload.copy(
@@ -152,17 +204,22 @@ class ComposerDraft(private val route: Screen.Compose, me: Account?) {
 
 private enum class ComposerPanel { Emoji, Visibility, Language, Options, QuotePolicy }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
-    val title = tr(when {
+internal fun composerTitle(route: Screen.Compose): String = tr(
+    when {
         route.edit != null -> "mastodon_edit_post"
         route.reply != null -> "mastodon_button_reply"
         else -> "mastodon_new_post"
-    })
+    },
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
+    val title = composerTitle(route)
     if (route.edit?.poll != null) {
         Column(Modifier.fillMaxSize()) {
-            EditorHeader(title, ui::requestBack)
+            if (LocalNativeNavigation.current == null) EditorHeader(title, ui::requestBack)
             Column(
                 Modifier.verticalScroll(rememberScrollState()).padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -176,7 +233,10 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
         return
     }
     val key = "${route.edit?.id ?: "new"}:${route.reply?.id.orEmpty()}:${route.quote?.id.orEmpty()}"
-    val draft = remember(key) { ui.drafts.getOrPut(key) { ComposerDraft(route, ui.me) } }
+    val draft = rememberSaveable(key, saver = Saver<ComposerDraft, String>(
+        save = { it.saveForWindowChange() },
+        restore = { saved -> ui.drafts.getOrPut(key) { ComposerDraft(route, ui.me).apply { restoreAfterWindowChange(saved) } } },
+    )) { ui.drafts.getOrPut(key) { ComposerDraft(route, ui.me) } }
     var publishing by remember { mutableStateOf(false) }
     var uploading by remember { mutableStateOf(false) }
     var limit by remember { mutableIntStateOf(500) }
@@ -309,8 +369,10 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
         else listOf("" to tr("mastodon_keep_current_setting")) + quoteOptions()
     val quoteLabel = quotePolicies.firstOrNull { it.first == draft.quotePolicy }?.second ?: draft.quotePolicy
 
+    val publishTitle = tr(if (route.edit == null) "mastodon_publish" else "mastodon_save_changes")
+    val nativeHeader = NativeEditorActions(ui::requestBack, !publishing, publishTitle, canPublish, ::publish)
     Column(Modifier.fillMaxSize().imePadding()) {
-        EditorHeader(title, ui::requestBack, closeEnabled = !publishing) {
+        if (!nativeHeader) EditorHeader(title, ui::requestBack, closeEnabled = !publishing) {
             Button(
                 onClick = ::publish,
                 enabled = canPublish,
@@ -320,7 +382,7 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
                     CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
                     Spacer(Modifier.width(6.dp))
                 }
-                Text(tr(if (route.edit == null) "mastodon_publish" else "mastodon_save_changes"))
+                Text(publishTitle)
             }
         }
         error?.let { message ->
@@ -473,18 +535,13 @@ fun ComposerScreen(ui: UiContext, route: Screen.Compose) {
             }
         }
     }
-    if (discard) AlertDialog(
-        onDismissRequest = { discard = false },
-        title = { Text(tr("mastodon_discard_draft")) },
-        confirmButton = {
-            TextButton(onClick = {
-                ui.drafts.remove(key)
-                discard = false
-                ui.back()
-            }) { Text(tr("mastodon_discard"), color = MaterialTheme.colorScheme.error) }
-        },
-        dismissButton = { TextButton(onClick = { discard = false }) { Text(tr("mastodon_cancel")) } },
-    )
+    if (discard) {
+        ConfirmDiscard(ui.platform, tr("mastodon_discard_draft"), onDismiss = { discard = false }) {
+            ui.drafts.remove(key)
+            discard = false
+            ui.back()
+        }
+    }
     editingAlt?.let { media ->
         AlertDialog(
             onDismissRequest = { if (!savingAlt) editingAlt = null },

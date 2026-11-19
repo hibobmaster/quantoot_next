@@ -21,8 +21,7 @@ final class GuestBrowsingTests: XCTestCase {
         let trending = app.descendants(matching: .any)
             .matching(NSPredicate(format: "label IN %@", ["Trending posts", "Trending topics"])).firstMatch
         XCTAssertTrue(trending.waitForExistence(timeout: 15))
-        XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 15))
-        app.buttons["Settings"].tap()
+        app.openShellAction("Settings")
         for label in ["Privacy and reach", "Posting defaults", "Filters"] {
             XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", label)).firstMatch.exists)
         }
@@ -63,7 +62,7 @@ final class GuestBrowsingTests: XCTestCase {
         let browse = app.buttons["Browse Public Posts"]
         XCTAssertTrue(browse.isEnabled)
         browse.tap()
-        XCTAssertTrue(app.staticTexts["Home"].firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["Home"].firstMatch.waitForExistence(timeout: 10))
         let account = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "@")).firstMatch
         XCTAssertTrue(account.waitForExistence(timeout: 25))
         app.buttons["New post"].tap()

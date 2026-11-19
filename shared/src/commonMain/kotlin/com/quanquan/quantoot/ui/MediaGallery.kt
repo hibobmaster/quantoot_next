@@ -45,6 +45,13 @@ import kotlinx.coroutines.launch
 
 internal data class GallerySaveTarget(val url: String, val name: String)
 
+internal interface MediaArrangement {
+    @Composable
+    fun Present(onDismiss: () -> Unit, player: @Composable (() -> Unit) -> Unit, controls: @Composable () -> Unit)
+}
+
+internal val LocalMediaArrangement = compositionLocalOf<MediaArrangement?> { null }
+
 internal sealed interface GallerySaveResult {
     data object Idle : GallerySaveResult
     data class Saving(val target: GallerySaveTarget) : GallerySaveResult
@@ -168,46 +175,8 @@ fun MediaGallery(
     val whiteText = ButtonDefaults.textButtonColors(
         contentColor = Color.White, disabledContentColor = Color.White.copy(alpha = 0.3f)
     )
-    Dialog(onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Column(Modifier.fillMaxSize().background(Color.Black).systemBarsPadding()) {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onDismiss, colors = whiteControls) {
-                    Icon(Icons.Default.Close, tr("mastodon_close"))
-                }
-                Text(
-                    tr("mastodon_media_position", "index" to "${pager.currentPage + 1}", "total" to "${items.size}"),
-                    color = Color.White,
-                    style = MaterialTheme.typography.labelLarge,
-                )
-                Spacer(Modifier.weight(1f))
-                IconButton(
-                    onClick = { url?.let(ui.platform::share) },
-                    enabled = url != null,
-                    colors = whiteControls,
-                ) { Icon(Icons.Default.Share, tr("mastodon_button_share")) }
-                TextButton(
-                    onClick = {
-                        if (url != null) {
-                            save(GallerySaveTarget(url, "quantoot-${media.id}"))
-                        }
-                    },
-                    enabled = media.type == "image" && url != null && !saveState.saving,
-                    colors = whiteText,
-                ) {
-                    if (saveState.saving) CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
-                    else Text(tr("mastodon_save_to_gallery"))
-                }
-            }
-            HorizontalPager(
-                state = pager,
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                userScrollEnabled = image.scale <= 1f,
-                key = { it },
-            ) { index ->
-                GalleryPage(ui, items[index], images[index], index == pager.currentPage) {
-                    if (index == pager.currentPage && images[index].scale <= 1f) onDismiss()
-                }
-            }
+    val controls: @Composable () -> Unit = {
+        Column(Modifier.fillMaxWidth()) {
             val feedback = saveState.result
             if (feedback is GallerySaveResult.Saved || feedback is GallerySaveResult.Failed) {
                 Snackbar(
@@ -267,6 +236,82 @@ fun MediaGallery(
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                     )
+                }
+            }
+        }
+    }
+    val nativeArrangement = LocalMediaArrangement.current
+    val player: @Composable (Boolean, () -> Unit) -> Unit = { controlsInline, close ->
+        Column(Modifier.fillMaxSize()) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (nativeArrangement == null) {
+                    IconButton(close, colors = whiteControls) {
+                        Icon(Icons.Default.Close, tr("mastodon_close"))
+                    }
+                } else {
+                    Spacer(Modifier.width(48.dp))
+                }
+                Text(
+                    tr("mastodon_media_position", "index" to "${pager.currentPage + 1}", "total" to "${items.size}"),
+                    color = Color.White,
+                    style = MaterialTheme.typography.labelLarge,
+                )
+                Spacer(Modifier.weight(1f))
+                IconButton(
+                    onClick = { url?.let(ui.platform::share) },
+                    enabled = url != null,
+                    colors = whiteControls,
+                ) { Icon(Icons.Default.Share, tr("mastodon_button_share")) }
+                TextButton(
+                    onClick = { url?.let { save(GallerySaveTarget(it, "quantoot-${media.id}")) } },
+                    enabled = media.type == "image" && url != null && !saveState.saving,
+                    colors = whiteText,
+                ) {
+                    if (saveState.saving) CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
+                    else Text(tr("mastodon_save_to_gallery"))
+                }
+            }
+            HorizontalPager(
+                state = pager,
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                userScrollEnabled = image.scale <= 1f,
+                key = { it },
+            ) { index ->
+                GalleryPage(ui, items[index], images[index], index == pager.currentPage) {
+                    if (index == pager.currentPage && images[index].scale <= 1f) close()
+                }
+            }
+            if (controlsInline) controls()
+        }
+    }
+    val controlPane: @Composable () -> Unit = {
+        Box(
+            Modifier.fillMaxSize().background(Color(0xFF141414))
+                .safeDrawingPadding().verticalScroll(rememberScrollState()).padding(vertical = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) { controls() }
+    }
+    if (nativeArrangement != null) {
+        nativeArrangement.Present(
+            onDismiss = onDismiss,
+            player = { close ->
+                Box(Modifier.fillMaxSize().background(Color.Black).safeDrawingPadding()) { player(false, close) }
+            },
+            controls = controlPane,
+        )
+        return
+    }
+    Dialog(onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Box(Modifier.fillMaxSize().background(Color.Black).safeDrawingPadding()) {
+            AdaptiveWorkspace(
+                wantsSecondary = true, navigation = false,
+                singleMaxWidth = Float.POSITIVE_INFINITY, splitUnfolded = false,
+            ) { layout ->
+                WorkspacePane(layout.primary) {
+                    player(layout.secondary == null, onDismiss)
+                }
+                layout.secondary?.let { bounds ->
+                    WorkspacePane(bounds) { controlPane() }
                 }
             }
         }

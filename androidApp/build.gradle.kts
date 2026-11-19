@@ -56,5 +56,6 @@ androidComponents {
 dependencies {
     implementation(project(":shared"))
     implementation(libs.activity.compose)
+    implementation(libs.window.manager)
     androidTestImplementation(libs.coroutines.core)
 }

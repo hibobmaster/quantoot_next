@@ -33,12 +33,14 @@ import com.quanquan.quantoot.data.mastodonAccountDeletionUrl
 import com.quanquan.quantoot.model.*
 import kotlin.math.roundToLong
 import kotlinx.coroutines.*
+import kotlinx.serialization.Serializable
 
 private const val FEEDBACK_EMAIL = "bobmaster@hibobmaster.com"
 private const val WEBSITE = "https://quantoot.qqs.tw"
 internal const val PRIVACY_POLICY_URL = "$WEBSITE/privacy/"
 private const val SUPPORT_URL = "$WEBSITE/support/"
 
+@Serializable
 enum class SettingsSection(val titleKey: String, val requiresAccount: Boolean) {
     Privacy("mastodon_settings_privacy", true),
     PostingDefaults("mastodon_settings_posting_defaults", true),

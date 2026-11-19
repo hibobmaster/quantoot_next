@@ -200,13 +200,18 @@ data class SearchResults(
     val hashtags: List<Tag> = emptyList(),
 )
 
+@Serializable
 sealed interface Timeline {
+    @Serializable
     data object Home : Timeline
 
+    @Serializable
     data class Public(val local: Boolean = true) : Timeline
 
+    @Serializable
     data class Hashtag(val tag: String) : Timeline
 
+    @Serializable
     data class AccountPosts(
         val accountId: String,
         val onlyMedia: Boolean = false,
@@ -215,8 +220,10 @@ sealed interface Timeline {
         val excludeReblogs: Boolean = false,
     ) : Timeline
 
+    @Serializable
     data object Favourites : Timeline
 
+    @Serializable
     data object Bookmarks : Timeline
 }
 

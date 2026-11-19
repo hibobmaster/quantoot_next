@@ -2,6 +2,10 @@
 
 package com.quanquan.quantoot.platform
 
+import com.quanquan.quantoot.ui.AdaptiveWindow
+import com.quanquan.quantoot.ui.VerticalControls
+import com.quanquan.quantoot.ui.WindowRegion
+
 import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.utils.io.readAvailable
@@ -46,10 +50,12 @@ class IosPlatformServices : PlatformServices {
     private val redirects = Channel<String>(Channel.BUFFERED)
     override val oauthRedirects = redirects.receiveAsFlow()
     override val foreground = MutableStateFlow(true)
+    internal val adaptiveWindow = MutableStateFlow(AdaptiveWindow())
     override val languageTag: String
         get() = NSLocale.preferredLanguages.firstOrNull() as? String ?: "en"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var windowProvider: (() -> UIWindow?)? = null
     private var authorization: ASWebAuthenticationSession? = null
     private var pickerDelegate: PHPickerViewControllerDelegateProtocol? = null
     private val presentation =
@@ -65,6 +71,14 @@ class IosPlatformServices : PlatformServices {
 
     fun setForeground(value: Boolean) {
         foreground.value = value
+    }
+
+    fun updateWindowRegions(regions: List<WindowRegion>, controls: VerticalControls?) {
+        adaptiveWindow.value = AdaptiveWindow(regions, controls)
+    }
+
+    fun setWindowProvider(provider: () -> UIWindow?) {
+        windowProvider = provider
     }
 
     override fun openAuthorization(url: String) {
@@ -107,6 +121,25 @@ class IosPlatformServices : PlatformServices {
             popover.sourceRect = presenter().view.bounds
         }
         presenter().presentViewController(controller, animated = true, completion = null)
+    }
+
+    override suspend fun confirmDiscard(title: String, discard: String, cancel: String): Boolean? {
+        if (windowProvider?.invoke() == null) return null
+        return suspendCancellableCoroutine { continuation ->
+            val alert = UIAlertController.alertControllerWithTitle(title, null, UIAlertControllerStyleAlert)
+            alert.addAction(UIAlertAction.actionWithTitle(cancel, UIAlertActionStyleCancel) {
+                if (continuation.isActive) continuation.resume(false)
+            })
+            alert.addAction(UIAlertAction.actionWithTitle(discard, UIAlertActionStyleDestructive) {
+                if (continuation.isActive) continuation.resume(true)
+            })
+            continuation.invokeOnCancellation {
+                scope.launch {
+                    if (alert.presentingViewController != null) alert.dismissViewControllerAnimated(true, null)
+                }
+            }
+            presenter().presentViewController(alert, animated = true, completion = null)
+        }
     }
 
     override suspend fun pickMedia(limit: Int): List<PickedMedia> =
@@ -299,15 +332,11 @@ class IosPlatformServices : PlatformServices {
     }
 
     private fun window(): UIWindow {
-        val scene =
-            UIApplication.sharedApplication.connectedScenes.firstOrNull { it is UIWindowScene }
-                as? UIWindowScene
-        return scene?.windows?.filterIsInstance<UIWindow>()?.firstOrNull { it.isKeyWindow() }
-            ?: UIApplication.sharedApplication.keyWindow
+        return windowProvider?.invoke()
             ?: error("No application window")
     }
 
-    private fun presenter(): UIViewController {
+    internal fun presenter(): UIViewController {
         var controller = window().rootViewController ?: error("No root view controller")
         while (controller.presentedViewController != null) controller =
             controller.presentedViewController!!

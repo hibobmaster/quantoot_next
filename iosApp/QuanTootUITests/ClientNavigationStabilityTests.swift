@@ -119,8 +119,7 @@ final class ClientNavigationStabilityTests: XCTestCase {
     func testSettingsChildrenUseOneTitleAndOneBackAction() throws {
         continueAfterFailure = false
         let app = launch()
-        XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 15))
-        app.buttons["Settings"].tap()
+        app.openShellAction("Settings")
         for label in ["About this server", "Open source licenses", "Privacy policy", "Privacy and reach",
                       "Posting defaults", "Filters", "Notifications"] {
             let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", label)).firstMatch
@@ -150,8 +149,7 @@ final class ClientNavigationStabilityTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["-app_locale", "zh"]
         app.launch()
-        XCTAssertTrue(app.buttons["设置"].waitForExistence(timeout: 15))
-        app.buttons["设置"].tap()
+        app.openShellAction("设置")
         let server = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "关于此服务器")).firstMatch
         for _ in 0..<6 {
             if server.exists && server.isHittable { break }
@@ -163,7 +161,7 @@ final class ClientNavigationStabilityTests: XCTestCase {
         XCTAssertTrue(title.waitForExistence(timeout: 10))
         XCTAssertLessThan(title.frame.minY, app.frame.height * 0.2)
         XCTAssertFalse(app.buttons["设置"].exists)
-        app.buttons["账号"].firstMatch.tap()
+        app.openShellAction("账号")
         XCTAssertTrue(app.screenHeading("账号").waitForExistence(timeout: 10))
         app.buttons["关闭"].firstMatch.tap()
         XCTAssertTrue(title.waitForExistence(timeout: 10))
@@ -211,8 +209,29 @@ final class ClientNavigationStabilityTests: XCTestCase {
 @MainActor
 extension XCUIApplication {
     func screenHeading(_ title: String) -> XCUIElement {
-        descendants(matching: .any).matching(
+        let nativeTitle = navigationBars.staticTexts[title].firstMatch
+        if nativeTitle.exists { return nativeTitle }
+        let nativeBar = navigationBars[title].firstMatch
+        if nativeBar.exists { return nativeBar }
+        return descendants(matching: .any).matching(
             NSPredicate(format: "identifier == %@ AND label == %@", "screen-title", title)
         ).firstMatch
+    }
+
+    func openShellAction(_ title: String, file: StaticString = #filePath, line: UInt = #line) {
+        let label = NSPredicate(format: "label == %@", title)
+        let action = buttons.matching(label).firstMatch
+        if action.exists && action.isHittable {
+            action.tap()
+            return
+        }
+        let more = buttons.matching(NSPredicate(
+            format: "label IN[c] %@",
+            ["More", "More options", "More actions", "更多", "更多选项", "更多選項"]
+        )).firstMatch
+        if more.waitForExistence(timeout: 5) { more.tap() }
+        let item = descendants(matching: .any).matching(label).firstMatch
+        XCTAssertTrue(item.waitForExistence(timeout: 10), "Missing toolbar action \(title)", file: file, line: line)
+        if item.exists { item.tap() }
     }
 }

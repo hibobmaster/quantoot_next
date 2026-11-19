@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -30,6 +31,7 @@ fun ThreadScreen(ui: UiContext, id: String, focusReplyId: String? = null) {
         }
     }
     var highlightFocus by remember(thread, focusReplyId) { mutableStateOf(false) }
+    var positioned by rememberSaveable(id, focusReplyId) { mutableStateOf(false) }
     val foreground by ui.platform.foreground.collectAsState()
     DisposableEffect(thread) { onDispose { thread.setActive(false) } }
     LaunchedEffect(thread) { ui.events.collect { thread.apply(it) } }
@@ -44,6 +46,7 @@ fun ThreadScreen(ui: UiContext, id: String, focusReplyId: String? = null) {
         }
     }
     LaunchedEffect(thread, focusReplyId) {
+        if (positioned) return@LaunchedEffect
         focusReplyId?.let { ui.statuses.known(it) }?.let(thread::includePublished)
         val index = snapshotFlow {
             if (!thread.loaded) null
@@ -52,6 +55,7 @@ fun ThreadScreen(ui: UiContext, id: String, focusReplyId: String? = null) {
                 .takeIf { it >= 0 }?.let { thread.ancestors.size + 2 + it }
         }.filterNotNull().first()
         listState.scrollToItem(index)
+        positioned = true
         highlightFocus = true
         delay(650)
         highlightFocus = false

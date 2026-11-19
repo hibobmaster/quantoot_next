@@ -13,6 +13,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -27,14 +28,15 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 @Composable
-fun QuanTootApp(platform: PlatformServices) {
+fun QuanTootApp(platform: PlatformServices, window: AdaptiveWindow = AdaptiveWindow()) {
     val store = remember(platform) { AccountStore(platform) }
     val state by store.state.collectAsState()
     val scope = rememberCoroutineScope()
     LaunchedEffect(store) { store.restore() }
     LaunchedEffect(store) { platform.oauthRedirects.collect { store.acceptCallback(it) } }
     CompositionLocalProvider(
-        LocalStrings provides Strings(state.locale ?: "system", platform.languageTag)
+        LocalStrings provides Strings(state.locale ?: "system", platform.languageTag),
+        LocalAdaptiveWindow provides window,
     ) {
         QuanTheme {
             Surface(Modifier.fillMaxSize()) {
@@ -42,21 +44,22 @@ fun QuanTootApp(platform: PlatformServices) {
                     Modifier.fillMaxSize().safeDrawingPadding(),
                     contentAlignment = Alignment.TopCenter,
                 ) {
-                    Box(Modifier.widthIn(max = 900.dp).fillMaxSize()) {
+                    Box(Modifier.fillMaxSize()) {
                         when {
                             !state.restored -> Loading()
-                            state.locale == null ->
+                            state.locale == null -> OnboardingPane {
                                 Column {
                                     ErrorNotice(state.error) { scope.launch { store.restore() } }
                                     Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
                                         LanguageChooser { scope.launch { store.setLocale(it) } }
                                     }
                                 }
-                            state.instance == null -> InstanceScreen(store, state)
+                            }
+                            state.instance == null -> OnboardingPane { InstanceScreen(store, state) }
                             else ->
                                 key(state.activeKey, state.instance, state.authorizationRevision) {
                                     val api = remember { store.client() }
-                                    if (api == null) InstanceScreen(store, state)
+                                    if (api == null) OnboardingPane { InstanceScreen(store, state) }
                                     else {
                                         DisposableEffect(api) { onDispose { api.close() } }
                                         AppShell(api, store, state, platform)
@@ -67,6 +70,13 @@ fun QuanTootApp(platform: PlatformServices) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun OnboardingPane(content: @Composable () -> Unit) {
+    AdaptiveWorkspace(wantsSecondary = false, navigation = false, singleMaxWidth = 520f) { layout ->
+        WorkspacePane(layout.primary) { content() }
     }
 }
 
@@ -139,10 +149,10 @@ private fun AppShell(
         return
     }
     val initialTab = if (publicTimelines.isEmpty()) MainTab.Explore else MainTab.Home
-    var tab by remember { mutableStateOf(initialTab) }
+    var tab by rememberSaveable { mutableStateOf(initialTab) }
     val homeReselected = remember { MutableSharedFlow<Unit>(extraBufferCapacity = 1) }
-    var homeTimeline by remember { mutableStateOf(HomeTimeline.initial(signedIn, publicTimelines)) }
-    val routes = remember { mutableStateListOf<Screen>() }
+    var homeTimeline by rememberSaveable { mutableStateOf(HomeTimeline.initial(signedIn, publicTimelines)) }
+    val routes = rememberSaveable(saver = screenStackSaver) { mutableStateListOf<Screen>() }
     val scope = rememberCoroutineScope()
     val ui =
         remember(api) {
@@ -201,54 +211,143 @@ private fun AppShell(
         if (next == MainTab.Notifications) unread = 0
     }
     val compose: () -> Unit = { ui.requireLogin { ui.navigate(Screen.Compose()) } }
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val rail = maxWidth >= 840.dp && route !is Screen.Compose && route != Screen.EditProfile
-        Row(Modifier.fillMaxSize()) {
-            if (rail) DestinationRail(tab, unread, select, compose)
-            Scaffold(
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentWindowInsets = WindowInsets(0),
-                snackbarHost = { SnackbarHost(snackbar) },
-                topBar = { if (route !is Screen.Compose && route != Screen.EditProfile) ShellHeader(ui, tab, route, rail) },
-                bottomBar = { if (!rail && route == null) DestinationBar(tab, unread, select) },
-                floatingActionButton = {
-                    if (!rail && ((route == null && tab != MainTab.Explore) || route is Screen.Feed || route is Screen.Profile))
-                        NewPostButton(compose)
+    val editing = route is Screen.Compose || route == Screen.EditProfile
+    val readingDetail = route is Screen.Feed || route is Screen.Thread || route is Screen.Profile || route is Screen.People
+    val showExploreAlongsideHome = route == null && tab == MainTab.Home && signedIn
+    val native = LocalNativeNavigation.current
+    DisposableEffect(native) { onDispose { native?.clear() } }
+    AdaptiveWorkspace(readingDetail || showExploreAlongsideHome, navigation = !editing && native == null) { layout ->
+        val rail = layout.rail != null
+        val splitDetail = readingDetail && layout.secondary != null
+        if (native != null) {
+            val split = layout.secondary != null
+            val backTitle = tr("mastodon_close")
+            val composeTitle = tr("mastodon_new_post")
+            val accountsTitle = tr("mastodon_accounts")
+            val settingsTitle = tr("settings_title")
+            val navigationState = NativeNavigationState(
+                destinations = MainTab.entries.map { NativeDestination(it.name, tr(it.titleKey)) },
+                selected = tab.name,
+                unread = unread,
+                title = if (split) "" else screenTitle(tab, route),
+                subtitle = api.instance.takeIf { !split && route == null && tab == MainTab.Home },
+                showsTabs = route == null || readingDetail,
+                editing = editing,
+                actions = buildList {
+                    if (route != null) {
+                        add(NativeToolbarAction(if (editing || splitDetail) NativeAction.Close else NativeAction.Back, backTitle))
+                    }
+                    if (!editing) {
+                        if (route == null || route is Screen.Feed || route is Screen.Profile) {
+                            add(NativeToolbarAction(NativeAction.Compose, composeTitle))
+                        }
+                        if (route != Screen.Accounts) add(NativeToolbarAction(NativeAction.Accounts, accountsTitle))
+                        if (route !is Screen.Settings) add(NativeToolbarAction(NativeAction.Settings, settingsTitle))
+                    }
                 },
-            ) { padding ->
-                Column(Modifier.fillMaxSize().padding(padding)) {
-                    if (route !is Screen.Instance) ErrorNotice(state.error) { store.clearError() }
-                    ErrorNotice(ui.error, ui::retry)
-                    Box(Modifier.weight(1f)) {
-                        key(route, if (route == null) tab else null) {
-                            when (route) {
-                                is Screen.Feed -> FeedScreen(ui, route.source, visit = route.visit)
-                                is Screen.Thread -> ThreadScreen(ui, route.id, route.focusReplyId)
-                                is Screen.Profile -> ProfileScreen(ui, route.id)
-                                is Screen.People -> PeopleScreen(ui, route)
-                                is Screen.Compose -> ComposerScreen(ui, route)
-                                is Screen.Settings -> SettingsScreen(ui, state, route.section)
-                                Screen.Accounts -> AccountsScreen(ui, state)
-                                is Screen.Instance -> InstanceScreen(
-                                    store, state, showHeading = false,
-                                    prefillCurrentInstance = route.prefillCurrentInstance,
-                                ) {
-                                    routes.clear()
-                                    homeTimeline = HomeTimeline.initial(signedIn = false, publicTimelines = publicTimelines)
-                                    tab = initialTab
-                                }
-                                Screen.EditProfile -> EditProfileScreen(ui)
-                                null -> when (tab) {
+            )
+            SideEffect {
+                native.update(navigationState, { id -> MainTab.entries.firstOrNull { it.name == id }?.let(select) }) {
+                    when (it) {
+                        NativeAction.Back, NativeAction.Close -> ui.requestBack()
+                        NativeAction.Compose -> compose()
+                        NativeAction.Accounts -> ui.navigate(Screen.Accounts)
+                        NativeAction.Settings -> ui.navigate(Screen.Settings())
+                        NativeAction.Confirm -> Unit
+                    }
+                }
+            }
+        }
+        layout.rail?.let { bounds ->
+            WorkspacePane(bounds) { DestinationRail(tab, unread, select, compose) }
+        }
+        if (route == null || splitDetail) {
+            key("timeline-pane") {
+                WorkspacePane(layout.primary) {
+                    Scaffold(
+                        contentWindowInsets = WindowInsets(0),
+                        topBar = {
+                            if (native == null || layout.secondary != null) ShellHeader(ui, tab, null, rail, nativeBar = native != null)
+                        },
+                        bottomBar = { if (native == null && !rail) DestinationBar(tab, unread, select) },
+                        snackbarHost = { if (route == null) SnackbarHost(snackbar) },
+                        floatingActionButton = { if (native == null && !rail && tab != MainTab.Explore) NewPostButton(compose) },
+                    ) { padding ->
+                        Column(Modifier.fillMaxSize().padding(padding)) {
+                            if (route == null) {
+                                ErrorNotice(state.error) { store.clearError() }
+                                ErrorNotice(ui.error, ui::retry)
+                            }
+                            Box(Modifier.weight(1f)) {
+                                key(tab) {
+                                    when (tab) {
                                     MainTab.Home -> HomeScreen(ui, homeTimeline, homeReselected, publicTimelines) { homeTimeline = it }
                                     MainTab.Explore -> DiscoveryScreen(ui, discovery, publicTimelines)
                                     MainTab.Notifications -> if (ui.me != null) NotificationsScreen(ui)
                                         else LoginPrompt(ui, "mastodon_notifications_login_title", "mastodon_notifications_login_message", Icons.Default.Notifications)
                                     MainTab.Profile -> ui.me?.let { ProfileScreen(ui, it.id) }
                                         ?: LoginPrompt(ui, "mastodon_profile_login_title", "mastodon_profile_login_message", Icons.Default.Person)
+                                    }
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+        if (route != null) {
+            // This slot stays composed as the same route moves between full width and the detail pane.
+            key("detail-pane") {
+                WorkspacePane(layout.secondary ?: layout.primary) {
+                    Scaffold(
+                        contentWindowInsets = WindowInsets(0),
+                        snackbarHost = { SnackbarHost(snackbar) },
+                        topBar = {
+                            if (!editing && (native == null || splitDetail)) {
+                                ShellHeader(ui, tab, route, rail, detailPane = splitDetail, nativeBar = native != null)
+                            }
+                        },
+                        floatingActionButton = {
+                            if (native == null && !rail && !splitDetail && (route is Screen.Feed || route is Screen.Profile))
+                                NewPostButton(compose)
+                        },
+                    ) { padding ->
+                        Column(Modifier.fillMaxSize().padding(padding)) {
+                            if (route !is Screen.Instance) ErrorNotice(state.error) { store.clearError() }
+                            ErrorNotice(ui.error, ui::retry)
+                            Box(Modifier.weight(1f)) {
+                                key(route) {
+                                    when (route) {
+                                        is Screen.Feed -> FeedScreen(ui, route.source, visit = route.visit)
+                                        is Screen.Thread -> ThreadScreen(ui, route.id, route.focusReplyId)
+                                        is Screen.Profile -> ProfileScreen(ui, route.id)
+                                        is Screen.People -> PeopleScreen(ui, route)
+                                        is Screen.Compose -> ComposerScreen(ui, route)
+                                        is Screen.Settings -> SettingsScreen(ui, state, route.section)
+                                        Screen.Accounts -> AccountsScreen(ui, state)
+                                        is Screen.Instance -> InstanceScreen(
+                                            store, state, showHeading = false,
+                                            prefillCurrentInstance = route.prefillCurrentInstance,
+                                        ) {
+                                            routes.clear()
+                                            homeTimeline = HomeTimeline.initial(signedIn = false, publicTimelines = publicTimelines)
+                                            tab = initialTab
+                                        }
+                                        Screen.EditProfile -> EditProfileScreen(ui)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else if (layout.secondary != null) {
+            WorkspacePane(layout.secondary) {
+                Scaffold(contentWindowInsets = WindowInsets(0), topBar = {
+                    ShellHeader(ui, MainTab.Explore, null, rail, detailPane = true, nativeBar = native != null)
+                }) { padding ->
+                    Box(Modifier.fillMaxSize().padding(padding)) {
+                        DiscoveryScreen(ui, discovery, publicTimelines)
                     }
                 }
             }

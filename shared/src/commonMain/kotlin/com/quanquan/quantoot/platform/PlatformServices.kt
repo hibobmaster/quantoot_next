@@ -31,6 +31,8 @@ interface PlatformServices {
 
     fun share(text: String)
 
+    suspend fun confirmDiscard(title: String, discard: String, cancel: String): Boolean? = null
+
     suspend fun pickMedia(limit: Int = 4): List<PickedMedia>
 
     suspend fun saveMedia(url: String, name: String)

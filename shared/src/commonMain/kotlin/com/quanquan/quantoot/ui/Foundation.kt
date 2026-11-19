@@ -12,6 +12,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,39 +30,59 @@ import com.quanquan.quantoot.platform.PlatformServices
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import kotlinx.serialization.json.Json
 
 val LocalStrings = staticCompositionLocalOf { Strings("en", "en") }
 
 @Composable
 fun tr(key: String, vararg args: Pair<String, String>) = LocalStrings.current.text(key, *args)
 
+@Serializable
 sealed interface Screen {
+    @Serializable
     data class Feed(val source: Timeline, val title: String) : Screen {
+        @Transient
         internal val visit = if (source is Timeline.Hashtag) FeedVisit<Status>() else null
     }
 
+    @Serializable
     data class Thread(val id: String, val focusReplyId: String? = null) : Screen
 
+    @Serializable
     data class Profile(val id: String) : Screen
 
+    @Serializable
     data class People(val id: String, val following: Boolean) : Screen {
+        @Transient
         internal val list = PeopleListState()
     }
 
+    @Serializable
     data class Compose(
         val reply: Status? = null,
         val edit: Status? = null,
         val quote: Status? = null,
     ) : Screen
 
+    @Serializable
     data class Settings(val section: SettingsSection? = null) : Screen
 
+    @Serializable
     data object Accounts : Screen
 
+    @Serializable
     data class Instance(val prefillCurrentInstance: Boolean = true) : Screen
 
+    @Serializable
     data object EditProfile : Screen
 }
+
+internal val screenStackSaver = Saver<SnapshotStateList<Screen>, String>(
+    save = { stack -> Json.encodeToString(stack.toList()).takeIf { it.length < 128_000 } },
+    restore = { saved -> runCatching { Json.decodeFromString<List<Screen>>(saved).toMutableStateList() }.getOrNull() },
+)
 
 class UiContext(
     val api: MastodonApi,
