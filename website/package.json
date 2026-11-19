@@ -1,0 +1,12 @@
+{
+  "name": "quantoot-website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node verify.mjs",
+    "deploy": "wrangler pages deploy dist --project-name quantoot --branch main"
+  },
+  "devDependencies": {
+    "wrangler": "4.165.0"
+  }
+}
