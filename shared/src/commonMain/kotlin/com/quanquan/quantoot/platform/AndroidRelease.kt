@@ -9,6 +9,15 @@ internal const val UPDATE_CHECKSUMS = "SHA256SUMS.txt"
 private val androidAbis = setOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86")
 private val stableVersion = Regex("([0-9]+)\\.([0-9]+)\\.([0-9]+)")
 private val checksumLine = Regex("([a-fA-F0-9]{64}) [ *]([^\\s]+)")
+private val releaseRepository = Regex.escape(ANDROID_RELEASES.removeSuffix("/releases"))
+private val comparisonLink = Regex("""\[[^\n]+]\($releaseRepository/compare/[^\s)]+\)""")
+private val commitReference = Regex(""" \(\[[a-f0-9]{7}]\($releaseRepository/commit/[a-f0-9]{40}\)\)$""")
+private val manifestComment = Regex("""<!-- quantoot-android-manifest: [a-f0-9]{64} -->""")
+private val headingSpacing = Regex("""(?m)^(#{1,6} [^\r\n]+)\r?\n[ \t]*\r?\n""")
+private val markdownHeading = Regex("""^#{1,6}\s+""")
+private val markdownBullet = Regex("""^[-*+]\s+""")
+private val markdownLink = Regex("""(?<!\\)\[([^]\n]+)]\(https?://[^\s)]+\)""")
+private val markdownEscape = Regex("""\\([\\\[\]()*_<>`])""")
 
 @Serializable
 internal data class AndroidRelease(
@@ -16,6 +25,7 @@ internal data class AndroidRelease(
     val draft: Boolean,
     val prerelease: Boolean,
     val assets: List<ReleaseAsset>,
+    val body: String? = null,
 ) {
     fun updateFor(installedVersion: String, supportedAbis: List<String>): AppUpdate? {
         if (draft || prerelease) return null
@@ -35,11 +45,22 @@ internal data class AndroidRelease(
             val name = "QuanToot-$version-$abi.apk"
             val apk = assets.singleOrNull { it.name == name } ?: continue
             if (apk.size !in 1..APK_SIZE_LIMIT) throw InvalidUpdatePackage()
-            return AppUpdate(version, abi, apk.size)
+            return AppUpdate(version, abi, apk.size, formatReleaseNotes(body.orEmpty()))
         }
         throw NoCompatibleUpdate()
     }
 }
+
+private fun formatReleaseNotes(markdown: String): String =
+    markdown.replace(headingSpacing, "$1\n").lineSequence().map(String::trim)
+        .filterNot { it == "## 更新日志" || comparisonLink.matches(it) || manifestComment.matches(it) }
+        .joinToString("\n") { line ->
+            line.replace(commitReference, "")
+                .replace(markdownHeading, "")
+                .replace(markdownBullet, "• ")
+                .replace(markdownLink, "$1")
+                .replace(markdownEscape, "$1")
+        }.replace(Regex("\n{3,}"), "\n\n").trim()
 
 @Serializable
 internal data class ReleaseAsset(val name: String, val size: Long)

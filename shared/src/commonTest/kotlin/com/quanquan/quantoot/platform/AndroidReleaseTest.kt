@@ -32,6 +32,25 @@ class AndroidReleaseTest {
         assertEquals("0.6.10", release.updateFor("0.6.10-rc.1", armAbis)?.version)
     }
 
+    @Test fun displaysReleaseChangesWithoutGeneratedGitReferences() {
+        val repository = ANDROID_RELEASES.removeSuffix("/releases")
+        val hash = "abc01234".repeat(5)
+        val update = release.copy(body = """
+            ## 更新日志
+
+            [查看完整变更]($repository/compare/v0.6.9...v0.6.10)
+
+            ### 功能改进
+
+            - Update the \[profile\] ([${hash.take(7)}]($repository/commit/$hash))
+
+            See the [setup guide](https://example.com/guide).
+
+            <!-- quantoot-android-manifest: ${"a".repeat(64)} -->
+        """.trimIndent()).updateFor("0.6.9", armAbis)
+        assertEquals("功能改进\n• Update the [profile]\n\nSee the setup guide.", update?.releaseNotes)
+    }
+
     @Test fun requiresTheChecksumManifestAndACompatibleAttachment() {
         assertFailsWith<NoCompatibleUpdate> { release.updateFor("0.6.9", listOf("x86_64")) }
         assertFailsWith<InvalidUpdatePackage> { release.copy(assets = release.assets.dropLast(1)).updateFor("0.6.9", armAbis) }

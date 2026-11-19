@@ -14,7 +14,7 @@ interface AppUpdates {
     suspend fun install(update: AppUpdate)
 }
 
-data class AppUpdate(val version: String, val abi: String, val bytes: Long) {
+data class AppUpdate(val version: String, val abi: String, val bytes: Long, val releaseNotes: String = "") {
     val releaseUrl: String get() = "$ANDROID_RELEASES/tag/v$version"
     internal val apkName: String get() = "QuanToot-$version-$abi.apk"
 

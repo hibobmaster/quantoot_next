@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -23,6 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -43,7 +46,6 @@ private sealed interface UpdateStep {
     data class Failed(val message: String, val retry: UpdateStep) : UpdateStep
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun AppUpdateDialog(
     updates: AppUpdates,
@@ -151,7 +153,10 @@ internal fun AppUpdateDialog(
                 when (activeStep) {
                     UpdateStep.Checking, is UpdateStep.Installing -> LinearProgressIndicator(Modifier.fillMaxWidth())
                     UpdateStep.Current -> Unit
-                    is UpdateStep.Available -> UpdateVersionSummary(updates.currentVersion, activeStep.update)
+                    is UpdateStep.Available -> {
+                        UpdateVersionSummary(updates.currentVersion, activeStep.update)
+                        UpdateReleaseNotes(activeStep.update.releaseNotes) { openRelease(activeStep.update.releaseUrl) }
+                    }
                     is UpdateStep.Downloading -> {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -174,26 +179,79 @@ internal fun AppUpdateDialog(
                     is UpdateStep.Failed -> Text(tr(activeStep.message),
                         style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
                 }
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    if (primaryAction != null) {
-                        Button(onClick = primaryAction.second, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                            Text(primaryAction.first)
-                        }
-                    }
-                    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        if (activeStep is UpdateStep.Available) {
-                            TextButton(onClick = { openRelease(activeStep.update.releaseUrl) }) {
-                                Text(tr("settings_update_release_notes"))
-                            }
-                        }
-                        TextButton(
+                val dismissLabel = tr(if (activeStep == UpdateStep.Current) "mastodon_close" else "mastodon_cancel")
+                Row(
+                    Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (primaryAction == null) {
+                        TextButton(onClick = onDismiss) { Text(dismissLabel) }
+                    } else {
+                        val padding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                        OutlinedButton(
                             onClick = onDismiss,
-                            colors = ButtonDefaults.textButtonColors(contentColor = colors.onSurfaceVariant),
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp).fillMaxHeight(),
+                            contentPadding = padding,
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.onSurfaceVariant),
                         ) {
-                            Text(tr(if (activeStep == UpdateStep.Current) "mastodon_close" else "mastodon_cancel"))
+                            Text(dismissLabel, textAlign = TextAlign.Center)
+                        }
+                        Button(
+                            onClick = primaryAction.second,
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp).fillMaxHeight(),
+                            contentPadding = padding,
+                        ) {
+                            Text(primaryAction.first, textAlign = TextAlign.Center)
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun UpdateReleaseNotes(notes: String, openRelease: () -> Unit) {
+    if (notes.isBlank()) {
+        TextButton(onClick = openRelease) { Text(tr("settings_update_release_notes")) }
+        return
+    }
+    var expanded by remember(notes) { mutableStateOf(false) }
+    var canExpand by remember(notes) { mutableStateOf(false) }
+    val colors = MaterialTheme.colorScheme
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                tr("settings_update_release_notes"),
+                Modifier.weight(1f).semantics { heading() },
+                style = MaterialTheme.typography.titleSmall,
+            )
+            TextButton(onClick = openRelease) { Text(tr("settings_update_view_release")) }
+        }
+        val viewport = if (expanded) Modifier.heightIn(max = 180.dp).verticalScroll(rememberScrollState()) else Modifier
+        Text(
+            notes,
+            Modifier.fillMaxWidth().then(viewport),
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.onSurfaceVariant,
+            maxLines = if (expanded) Int.MAX_VALUE else 5,
+            overflow = TextOverflow.Ellipsis,
+            onTextLayout = { if (!expanded) canExpand = it.didOverflowHeight },
+        )
+        if (canExpand || expanded) {
+            TextButton(onClick = { expanded = !expanded }, modifier = Modifier.align(Alignment.Start)) {
+                Text(tr(if (expanded) "settings_update_collapse_notes" else "settings_update_expand_notes"))
+                Spacer(Modifier.width(4.dp))
+                Icon(
+                    if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
             }
         }
     }
