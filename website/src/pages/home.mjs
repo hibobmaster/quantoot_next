@@ -818,7 +818,7 @@ export function renderHomePage() {
             <ul class="apk-list" data-release-apks hidden>
               <li data-abi="arm64-v8a" hidden><a class="apk-link apk-recommended"><strong>arm64-v8a</strong><span ${tr('Recommended · Most Android phones', '推荐 · 绝大多数安卓手机', '推薦 · 絕大多數 Android 手機')}>Recommended · Most Android phones</span></a></li>
               <li data-abi="armeabi-v7a" hidden><a class="apk-link"><strong>armeabi-v7a</strong><span ${tr('32-bit ARM devices', '32 位 ARM 设备', '32 位元 ARM 裝置')}>32-bit ARM devices</span></a></li>
-              <li data-abi="x86_64" hidden><a class="apk-link"><strong>x86_64</strong><span ${tr('64-bit x86 tablets & emulators', '64 位 x86 平板与模拟器', '64 位元 x86 平板與模擬器')}>64-bit x86 tablets &amp; emulators</span></a></li>
+              <li data-abi="x86_64" hidden><a class="apk-link"><strong>x86_64</strong><span ${tr('64-bit x86 devices', '64 位 x86 设备', '64 位元 x86 裝置')}>64-bit x86 devices</span></a></li>
               <li data-abi="x86" hidden><a class="apk-link"><strong>x86</strong><span ${tr('32-bit x86 devices', '32 位 x86 设备', '32 位元 x86 裝置')}>32-bit x86 devices</span></a></li>
             </ul>
             <noscript><p>Enable JavaScript to load direct signed APK links, or browse all releases on Forgejo below.</p></noscript>
