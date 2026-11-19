@@ -214,7 +214,8 @@ fun StatusCard(
                 PostActions(
                     ui, status,
                     Modifier.fillMaxWidth().padding(start = 16.dp + rail, end = 16.dp, bottom = 2.dp),
-                    onViewReplies ?: openThread,
+                    centerButtons = focal,
+                    onViewReplies = onViewReplies ?: openThread,
                 )
                 HorizontalDivider(thickness = Dp.Hairline, color = colors.outlineVariant)
             }
@@ -326,7 +327,13 @@ private fun PostMetadata(status: Status) {
 }
 
 @Composable
-private fun PostActions(ui: UiContext, status: Status, modifier: Modifier, onViewReplies: () -> Unit) {
+private fun PostActions(
+    ui: UiContext,
+    status: Status,
+    modifier: Modifier,
+    centerButtons: Boolean,
+    onViewReplies: () -> Unit,
+) {
     val pending = remember(status.id) { mutableStateListOf<StatusAction>() }
     fun toggle(action: StatusAction, desired: Boolean) {
         ui.requireLogin {
@@ -342,28 +349,31 @@ private fun PostActions(ui: UiContext, status: Status, modifier: Modifier, onVie
         }
     }
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        val alignment = if (centerButtons) Alignment.CenterHorizontally else Alignment.Start
+        val padding = if (centerButtons) PaddingValues(horizontal = 3.dp) else PaddingValues(end = 6.dp)
+        val buttonSlot = Modifier.weight(1f).padding(padding).wrapContentWidth(alignment)
         PostAction(
             PostIcons.Replies, tr("mastodon_view_replies", "count" to status.repliesCount.toString()),
-            Modifier.weight(1f), count = status.repliesCount, onClick = onViewReplies,
+            buttonSlot, alignment, count = status.repliesCount, onClick = onViewReplies,
         )
         PostAction(
             PostIcons.Boost,
             tr(if (status.reblogged) "mastodon_undo_boost_count" else "mastodon_boost_count",
                 "count" to status.reblogsCount.toString()),
-            Modifier.weight(1f), count = status.reblogsCount, active = status.reblogged,
+            buttonSlot, alignment, count = status.reblogsCount, active = status.reblogged,
             busy = StatusAction.Reblog in pending, enabled = status.visibility != "direct" && status.visibility != "private",
         ) { toggle(StatusAction.Reblog, !status.reblogged) }
         PostAction(
             if (status.favourited) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
             tr(if (status.favourited) "mastodon_undo_favorite_count" else "mastodon_favorite_count",
                 "count" to status.favouritesCount.toString()),
-            Modifier.weight(1f), count = status.favouritesCount, active = status.favourited,
+            buttonSlot, alignment, count = status.favouritesCount, active = status.favourited,
             busy = StatusAction.Favourite in pending,
         ) { toggle(StatusAction.Favourite, !status.favourited) }
         PostAction(
             if (status.bookmarked) PostIcons.Bookmarked else PostIcons.Bookmark,
             tr(if (status.bookmarked) "mastodon_remove_bookmark" else "mastodon_save_bookmark"),
-            Modifier.weight(1f), active = status.bookmarked, busy = StatusAction.Bookmark in pending,
+            buttonSlot, alignment, active = status.bookmarked, busy = StatusAction.Bookmark in pending,
         ) { toggle(StatusAction.Bookmark, !status.bookmarked) }
     }
 }
@@ -373,6 +383,7 @@ private fun PostAction(
     icon: ImageVector,
     label: String,
     modifier: Modifier,
+    alignment: Alignment.Horizontal,
     count: Int = 0,
     active: Boolean = false,
     busy: Boolean = false,
@@ -386,13 +397,11 @@ private fun PostAction(
         else -> colors.onSurfaceVariant
     }
     Row(
-        modifier.padding(end = 6.dp)
-            .wrapContentWidth(Alignment.Start)
-            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+        modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)
             .clickable(enabled = enabled && !busy, role = Role.Button, onClick = onClick)
             .semantics { contentDescription = label }
             .padding(horizontal = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp, alignment),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (busy) CircularProgressIndicator(Modifier.size(18.dp), color = tint, strokeWidth = 2.dp)
