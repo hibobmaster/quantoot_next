@@ -25,7 +25,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 
 class AndroidPlatformServices(private val activity: ComponentActivity) : PlatformServices {
-    override val preferences: KeyValueStore = AndroidPreferences(activity.applicationContext)
+    override val preferences: AppPreferences = AndroidPreferences(activity.applicationContext)
     override val secureStorage: KeyValueStore = AndroidSecureStorage(activity.applicationContext)
     private val redirects = Channel<String>(Channel.BUFFERED)
     override val oauthRedirects = redirects.receiveAsFlow()

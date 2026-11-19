@@ -580,7 +580,7 @@ private fun PrivacyPolicy(ui: UiContext) {
             "Photos and media" to
                 "QuanToot uses the system picker when you choose media to upload, so the app receives only the items you select. When you explicitly save media, the app may write that item to your device's gallery.",
             "Your choices and data deletion" to
-                "Remove an account to clear its saved credentials and use Clear media cache to remove cached media. On iOS, remove saved accounts before uninstalling to clear credentials that may remain in Keychain. To delete the account and its server-held data, use Settings → Delete Mastodon account. The server handles confirmation and retention.",
+                "Remove an account to clear its saved credentials, cached timelines, and notifications. Use Clear media cache to remove cached media. On iOS, remove saved accounts before uninstalling to clear credentials that may remain in Keychain. To delete the account and its server-held data, use Settings → Delete Mastodon account. The server handles confirmation and retention.",
             "Changes to this policy" to
                 "This policy may be updated when QuanToot's features or legal requirements change. The date above identifies the latest version.",
         )

@@ -14,7 +14,7 @@ kotlin {
         compileSdk = 37
         minSdk = 26
         androidResources { enable = true }
-        withHostTest {}
+        withHostTest { isIncludeAndroidResources = true }
         compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
     }
     listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
@@ -52,6 +52,13 @@ kotlin {
             implementation(libs.coroutines.test)
             implementation(libs.ktor.mock)
         }
+        named("androidHostTest") {
+            dependencies {
+                implementation(libs.compose.ui.test.junit4)
+                implementation(libs.compose.ui.test.manifest)
+                implementation(libs.robolectric)
+            }
+        }
     }
 }
 
@@ -63,4 +70,5 @@ compose.resources {
 tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
     // Match Ktor's dispatcher switching on iOS, which is opt-in on JVM.
     systemProperty("io.ktor.client.statement.useEngineDispatcher", "true")
+    systemProperty("robolectric.dependency.repo.url", "https://repo.maven.apache.org/maven2")
 }

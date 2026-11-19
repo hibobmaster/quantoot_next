@@ -17,7 +17,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-class AndroidPreferences(context: Context) : KeyValueStore {
+class AndroidPreferences(context: Context) : AppPreferences {
     private val preferences =
         context.getSharedPreferences("quantoot_preferences", Context.MODE_PRIVATE)
     private val flutterPreferences =
@@ -38,6 +38,12 @@ class AndroidPreferences(context: Context) : KeyValueStore {
                     "Could not remove migrated preferences"
                 }
         }
+
+    override suspend fun removeByPrefix(prefix: String) = withContext(Dispatchers.IO) {
+        val editor = preferences.edit()
+        preferences.all.keys.filter { it.startsWith(prefix) }.forEach { editor.remove(it) }
+        check(editor.commit()) { "Could not remove cached preferences" }
+    }
 }
 
 class AndroidSecureStorage(context: Context) : KeyValueStore {

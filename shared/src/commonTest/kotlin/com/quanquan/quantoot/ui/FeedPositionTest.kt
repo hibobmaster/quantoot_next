@@ -149,15 +149,4 @@ class FeedPositionTest {
         assertEquals(Timeline.Public(local = true), HomeTimeline.Local.source)
         assertEquals(Timeline.Public(local = false), HomeTimeline.Federated.source)
     }
-
-    @Test
-    fun cacheIdentityStillSeparatesAccountInstanceAndProfileFilters() {
-        val source = Timeline.AccountPosts("person", excludeReplies = true)
-        val key = feedCacheKey("example.social", "account", source.toString())
-        assertEquals(key, feedCacheKey("EXAMPLE.SOCIAL", "account", source.toString()))
-        assertNotEquals(key, feedCacheKey("elsewhere.social", "account", source.toString()))
-        assertNotEquals(key, feedCacheKey("example.social", "other-account", source.toString()))
-        assertNotEquals(key, feedCacheKey("example.social", null, source.toString()))
-        assertNotEquals(key, feedCacheKey("example.social", "account", source.copy(excludeReplies = false).toString()))
-    }
 }

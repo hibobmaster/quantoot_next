@@ -1,5 +1,6 @@
 package com.quanquan.quantoot.auth
 
+import com.quanquan.quantoot.data.FeedCacheStorage
 import com.quanquan.quantoot.data.MastodonApi
 import com.quanquan.quantoot.data.normalizeInstance
 import com.quanquan.quantoot.model.Account
@@ -16,11 +17,13 @@ import kotlin.io.encoding.Base64
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -82,6 +85,9 @@ class AccountStore(
 ) {
     private val mutableState = MutableStateFlow(SessionState())
     val state: StateFlow<SessionState> = mutableState.asStateFlow()
+    internal val feedCache = FeedCacheStorage(platform.preferences) { key ->
+        state.value.sessions.any { it.key == key }
+    }
     private val mutex = Mutex()
     private var snapshot = AuthSnapshot()
     private var guestInstance: String? = null
@@ -264,12 +270,17 @@ class AccountStore(
     }
 
     suspend fun removeAccount(key: String) = operation {
+        val session = snapshot.sessions.firstOrNull { it.key == key } ?: return@operation
         val remaining = snapshot.sessions.filterNot { it.key == key }
         val nextActive =
             if (snapshot.activeKey == key) remaining.firstOrNull()?.key else snapshot.activeKey
         val next = snapshot.copy(sessions = remaining, activeKey = nextActive)
-        persist(next)
-        publish(next)
+        feedCache.removeAccount(session.instance, session.key) {
+            withContext(NonCancellable) {
+                persist(next)
+                publish(next)
+            }
+        }
     }
 
     suspend fun setLocale(code: String) = operation {

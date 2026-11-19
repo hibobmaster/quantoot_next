@@ -25,7 +25,7 @@ import platform.Foundation.NSUserDefaults
 import platform.Foundation.create
 import platform.Security.*
 
-class IosPreferences : KeyValueStore {
+class IosPreferences : AppPreferences {
     private val defaults = NSUserDefaults.standardUserDefaults
 
     override suspend fun read(key: String): String? =
@@ -36,6 +36,12 @@ class IosPreferences : KeyValueStore {
             defaults.removeObjectForKey(key)
             defaults.removeObjectForKey("flutter.$key")
         } else defaults.setObject(value, forKey = key)
+    }
+
+    override suspend fun removeByPrefix(prefix: String) {
+        defaults.dictionaryRepresentation().keys.filterIsInstance<String>()
+            .filter { it.startsWith(prefix) }
+            .forEach { defaults.removeObjectForKey(it) }
     }
 }
 

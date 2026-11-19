@@ -45,7 +45,7 @@ import platform.posix.memcpy
 
 class IosPlatformServices : PlatformServices {
     override val hideSensitivePosts = true
-    override val preferences: KeyValueStore = IosPreferences()
+    override val preferences: AppPreferences = IosPreferences()
     override val secureStorage: KeyValueStore = IosSecureStorage()
     private val redirects = Channel<String>(Channel.BUFFERED)
     override val oauthRedirects = redirects.receiveAsFlow()

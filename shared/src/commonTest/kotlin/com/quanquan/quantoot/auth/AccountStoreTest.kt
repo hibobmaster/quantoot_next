@@ -1,9 +1,12 @@
 package com.quanquan.quantoot.auth
 
 import com.quanquan.quantoot.model.Account
-import com.quanquan.quantoot.platform.KeyValueStore
+import com.quanquan.quantoot.model.Status
+import com.quanquan.quantoot.platform.AppPreferences
 import com.quanquan.quantoot.platform.PickedMedia
 import com.quanquan.quantoot.platform.PlatformServices
+import com.quanquan.quantoot.ui.FeedCache
+import com.quanquan.quantoot.ui.FeedSnapshot
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.*
 import io.ktor.client.engine.mock.respond
@@ -141,6 +144,59 @@ class AccountStoreTest {
         val restored = fixture.newStore()
         restored.restore()
         assertEquals("guest.social", restored.state.value.instance)
+    }
+
+    @Test
+    fun removingAnAccountPurgesItsCacheAndRetainsTheOtherAccountsReadingPosition() = runTest {
+        val fixture = Fixture(this)
+        val store = fixture.store
+        val preferences = fixture.platform.preferences
+        preferences.values["feed_cache_v1_unowned"] = "old cache"
+        store.login("same.social")
+        store.acceptCallback(fixture.callback("one"))
+        val first = store.state.value.activeSession!!
+        store.login("same.social")
+        store.acceptCallback(fixture.callback("two"))
+        val second = store.state.value.activeSession!!
+        val firstCache = store.feedCache.forSession(first.instance, first.key)
+        val secondCache = store.feedCache.forSession(second.instance.uppercase(), second.key)
+        val guest = store.feedCache.forSession(first.instance, null)
+        val position = FeedSnapshot(listOf(Status(id = "27")), offset = 85, nextCursor = "27")
+        FeedCache(secondCache, "home", Status.serializer()).write(position)
+        firstCache.write("home", "Private test post")
+        firstCache.write("notifications", "Private test notification")
+        guest.write("home", "Public cache")
+        assertNull(preferences.values["feed_cache_v1_unowned"])
+
+        val writeStarted = CompletableDeferred<Unit>()
+        val finishWrite = CompletableDeferred<Unit>()
+        preferences.beforeWrite = { _, value ->
+            if (value == "late snapshot") {
+                writeStarted.complete(Unit)
+                finishWrite.await()
+            }
+        }
+        val outgoing = async { firstCache.write("home", "late snapshot") }
+        writeStarted.await()
+        val removal = async { store.removeAccount(first.key) }
+        finishWrite.complete(Unit)
+        outgoing.await()
+        removal.await()
+        assertEquals(second.key, store.state.value.activeKey)
+        assertFalse(preferences.values.values.any { it.contains("Private test") || it == "late snapshot" })
+        assertEquals("Public cache", guest.read("home"))
+        assertEquals(position, FeedCache(secondCache, "home", Status.serializer()).read())
+        assertNull(secondCache.read("home with replies"))
+        assertNull(store.feedCache.forSession("elsewhere.social", second.key).read("home"))
+
+        store.login(first.instance)
+        store.acceptCallback(fixture.callback("one"))
+        firstCache.write("home", "stale write after a new login")
+        val newCache = store.feedCache.forSession(first.instance, first.key)
+        assertNull(newCache.read("home"))
+        assertNull(newCache.read("notifications"))
+        newCache.write("home", "new snapshot")
+        assertEquals("new snapshot", newCache.read("home"))
     }
 
     @Test
@@ -339,10 +395,11 @@ class AccountStoreTest {
     }
 }
 
-private class MemoryStore : KeyValueStore {
+internal class MemoryStore : AppPreferences {
     val values = mutableMapOf<String, String>()
     var failRead = false
     var failWrite = false
+    var beforeWrite: suspend (String, String?) -> Unit = { _, _ -> }
 
     override suspend fun read(key: String): String? {
         if (failRead) error("storage-secret")
@@ -351,11 +408,17 @@ private class MemoryStore : KeyValueStore {
 
     override suspend fun write(key: String, value: String?) {
         if (failWrite) error("storage-secret")
+        beforeWrite(key, value)
         if (value == null) values.remove(key) else values[key] = value
+    }
+
+    override suspend fun removeByPrefix(prefix: String) {
+        if (failWrite) error("storage-secret")
+        values.keys.removeAll { it.startsWith(prefix) }
     }
 }
 
-private class FakePlatform : PlatformServices {
+internal class FakePlatform : PlatformServices {
     override val preferences = MemoryStore()
     override val secureStorage = MemoryStore()
     override val oauthRedirects = MutableSharedFlow<String>()

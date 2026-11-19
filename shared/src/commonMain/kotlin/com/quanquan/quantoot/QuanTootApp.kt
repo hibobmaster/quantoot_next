@@ -21,6 +21,7 @@ import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.quanquan.quantoot.auth.*
+import com.quanquan.quantoot.data.GuestTimelineAccess
 import com.quanquan.quantoot.model.*
 import com.quanquan.quantoot.platform.PlatformServices
 import com.quanquan.quantoot.ui.*
@@ -30,6 +31,12 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 @Composable
 fun QuanTootApp(platform: PlatformServices, window: AdaptiveWindow = AdaptiveWindow()) {
     val store = remember(platform) { AccountStore(platform) }
+    QuanTootApp(store, window)
+}
+
+@Composable
+internal fun QuanTootApp(store: AccountStore, window: AdaptiveWindow) {
+    val platform = store.platform
     val state by store.state.collectAsState()
     val scope = rememberCoroutineScope()
     LaunchedEffect(store) { store.restore() }
@@ -128,30 +135,24 @@ private fun AppShell(
     platform: PlatformServices,
 ) {
     val signedIn = state.activeSession != null
-    val availableTimelines by produceState<List<HomeTimeline>?>(if (signedIn) HomeTimeline.publicFeeds else null, api) {
+    val publicTimelines by produceState(if (signedIn) HomeTimeline.publicFeeds else emptyList(), api) {
         if (!signedIn) {
-            val server = try {
-                withTimeoutOrNull(2_500) { api.serverInfo() }
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                null
+            fun GuestTimelineAccess.timelines() = buildList {
+                if (local) add(HomeTimeline.Local)
+                if (federated) add(HomeTimeline.Federated)
             }
-            val assumePublic = api.instance != DEFAULT_INSTANCE
-            value = buildList {
-                if (server?.guestLocalFeedAvailable ?: assumePublic) add(HomeTimeline.Local)
-                if (server?.guestFederatedFeedAvailable ?: assumePublic) add(HomeTimeline.Federated)
-            }
+            val cached = GuestTimelineAccess.restore(platform.preferences, api.instance)
+            if (cached != null) value = cached.timelines()
+            val refreshed = GuestTimelineAccess.refresh(platform.preferences, api, api.instance != DEFAULT_INSTANCE, cached)
+            if (refreshed != null) value = refreshed.timelines()
         }
     }
-    val publicTimelines = availableTimelines ?: run {
-        Loading()
-        return
-    }
-    val initialTab = if (publicTimelines.isEmpty()) MainTab.Explore else MainTab.Home
+    val initialTab = if (signedIn) MainTab.Home else MainTab.Explore
     var tab by rememberSaveable { mutableStateOf(initialTab) }
     val homeReselected = remember { MutableSharedFlow<Unit>(extraBufferCapacity = 1) }
-    var homeTimeline by rememberSaveable { mutableStateOf(HomeTimeline.initial(signedIn, publicTimelines)) }
+    var homeSelection by rememberSaveable { mutableStateOf<HomeTimeline?>(null) }
+    val homeTimeline = homeSelection?.takeIf { it == HomeTimeline.Home || it in publicTimelines }
+        ?: HomeTimeline.initial(signedIn, publicTimelines)
     val routes = rememberSaveable(saver = screenStackSaver) { mutableStateListOf<Screen>() }
     val scope = rememberCoroutineScope()
     val ui =
@@ -161,13 +162,14 @@ private fun AppShell(
                 platform,
                 store,
                 state.activeSession?.account,
+                state.activeKey,
                 scope,
                 { screen ->
                     val next = navigateTo(routes.toList(), screen)
                     routes.clear()
                     routes.addAll(next)
                 },
-                { if (routes.isNotEmpty()) routes.removeLast() },
+                { if (routes.isNotEmpty()) routes.removeAt(routes.lastIndex) },
                 { compose, status ->
                     val next = routesAfterPublish(routes.toList(), compose, status)
                     routes.clear()
@@ -281,7 +283,7 @@ private fun AppShell(
                             Box(Modifier.weight(1f)) {
                                 key(tab) {
                                     when (tab) {
-                                    MainTab.Home -> HomeScreen(ui, homeTimeline, homeReselected, publicTimelines) { homeTimeline = it }
+                                    MainTab.Home -> HomeScreen(ui, homeTimeline, homeReselected, publicTimelines) { homeSelection = it }
                                     MainTab.Explore -> DiscoveryScreen(ui, discovery, publicTimelines)
                                     MainTab.Notifications -> if (ui.me != null) NotificationsScreen(ui)
                                         else LoginPrompt(ui, "mastodon_notifications_login_title", "mastodon_notifications_login_message", Icons.Default.Notifications)
@@ -330,7 +332,7 @@ private fun AppShell(
                                             prefillCurrentInstance = route.prefillCurrentInstance,
                                         ) {
                                             routes.clear()
-                                            homeTimeline = HomeTimeline.initial(signedIn = false, publicTimelines = publicTimelines)
+                                            homeSelection = null
                                             tab = initialTab
                                         }
                                         Screen.EditProfile -> EditProfileScreen(ui)

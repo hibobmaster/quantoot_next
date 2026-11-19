@@ -184,12 +184,7 @@ private fun <T> rememberFeedPager(
     visit: FeedVisit<T>? = null,
     fetch: suspend (String?) -> Page<T>,
 ): FeedPager<T> {
-    val accountKey = ui.store.state.value.activeKey
-    val cacheKey =
-        remember(ui.api, accountKey, identity) {
-            feedCacheKey(ui.api.instance, accountKey, identity)
-        }
-    return key(cache, cacheKey, viewport) {
+    return key(cache, identity, viewport) {
         val scope = rememberCoroutineScope()
         var restored by remember { mutableStateOf(false) }
         var attachment by remember { mutableStateOf<FeedCacheSession<T>.Attachment?>(null) }
@@ -209,7 +204,7 @@ private fun <T> rememberFeedPager(
             }, fetch = fetch)
         }
         DisposableEffect(pager) {
-            val current = cache.attach(cacheKey)
+            val current = cache.attach(identity)
             attachment = current
             scope.launch {
                 val savedVisit = visit?.snapshot

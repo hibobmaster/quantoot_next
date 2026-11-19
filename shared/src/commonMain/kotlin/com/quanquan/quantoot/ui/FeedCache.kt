@@ -3,7 +3,6 @@ package com.quanquan.quantoot.ui
 import androidx.compose.runtime.*
 import com.quanquan.quantoot.model.*
 import com.quanquan.quantoot.platform.KeyValueStore
-import com.quanquan.quantoot.platform.sha256
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collect
@@ -20,17 +19,6 @@ internal data class FeedSnapshot<T>(
     val continuationKnown: Boolean = false,
     val leadingOffset: Int? = null,
 )
-
-internal fun feedCacheKey(instance: String, accountKey: String?, timeline: String): String {
-    val identity =
-        listOf(instance.lowercase(), accountKey ?: "guest", timeline).joinToString("") {
-            "${it.length}:$it"
-        }
-    return "feed_cache_v1_" +
-        sha256(identity.encodeToByteArray()).joinToString("") {
-            (it.toInt() and 255).toString(16).padStart(2, '0')
-        }
-}
 
 internal class FeedCache<T>(
     private val preferences: KeyValueStore,

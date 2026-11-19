@@ -89,6 +89,7 @@ class UiContext(
     val platform: PlatformServices,
     val store: AccountStore,
     initialMe: Account?,
+    accountKey: String?,
     val scope: CoroutineScope,
     val navigate: (Screen) -> Unit,
     val back: () -> Unit,
@@ -105,8 +106,9 @@ class UiContext(
     var message by mutableStateOf<String?>(null)
     var revision by mutableIntStateOf(0)
     internal val statuses = StatusProjection()
-    internal val statusFeedCache = FeedCacheSession(platform.preferences, Status.serializer(), scope)
-    internal val notificationFeedCache = FeedCacheSession(platform.preferences, Notification.serializer(), scope)
+    private val feedCache = store.feedCache.forSession(api.instance, accountKey)
+    internal val statusFeedCache = FeedCacheSession(feedCache, Status.serializer(), scope)
+    internal val notificationFeedCache = FeedCacheSession(feedCache, Notification.serializer(), scope)
     val drafts = mutableMapOf<String, ComposerDraft>()
     private val eventBus = MutableSharedFlow<StreamEvent>(extraBufferCapacity = 32)
     val events = eventBus.asSharedFlow()

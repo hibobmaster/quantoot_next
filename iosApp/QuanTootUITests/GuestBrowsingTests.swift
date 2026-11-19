@@ -62,12 +62,16 @@ final class GuestBrowsingTests: XCTestCase {
         let browse = app.buttons["Browse Public Posts"]
         XCTAssertTrue(browse.isEnabled)
         browse.tap()
-        XCTAssertTrue(app.buttons["Home"].firstMatch.waitForExistence(timeout: 10))
+        let home = app.buttons["Home"].firstMatch
+        XCTAssertTrue(home.waitForExistence(timeout: 10))
+        home.tap()
         let account = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "@")).firstMatch
         XCTAssertTrue(account.waitForExistence(timeout: 25))
         app.buttons["New post"].tap()
         XCTAssertTrue(browse.waitForExistence(timeout: 5))
         browse.tap()
+        XCTAssertTrue(home.waitForExistence(timeout: 10))
+        home.tap()
         let local = app.buttons["Local"].firstMatch
         XCTAssertTrue(local.waitForExistence(timeout: 10))
         XCTAssertTrue(local.isSelected)

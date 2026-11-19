@@ -12,10 +12,14 @@ interface KeyValueStore {
     @Throws(Exception::class) suspend fun write(key: String, value: String?)
 }
 
+interface AppPreferences : KeyValueStore {
+    @Throws(Exception::class) suspend fun removeByPrefix(prefix: String)
+}
+
 data class PickedMedia(val name: String, val mimeType: String, val bytes: ByteArray)
 
 interface PlatformServices {
-    val preferences: KeyValueStore
+    val preferences: AppPreferences
     val secureStorage: KeyValueStore
     val oauthRedirects: Flow<String>
     val foreground: StateFlow<Boolean>

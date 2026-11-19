@@ -29,8 +29,9 @@ the photo library, QuanToot requests the access needed for that action.
 
 ## Your choices and retention
 
-Use **Accounts → Remove account** to remove a saved session and its token. Clear
-cached media in app settings. Removing the app clears its app container. iOS
+Use **Accounts → Remove account** to remove a saved session, its token, and its
+cached timelines and notifications. Clear cached media in app settings. Removing
+the app clears its app container. iOS
 Keychain items can outlive an uninstall, so remove saved accounts before
 uninstalling if you want to clear their credentials. For permanent account
 deletion and server-held data, use **Settings → Delete Mastodon account** or

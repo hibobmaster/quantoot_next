@@ -19,12 +19,14 @@ The implementation combines both sketches' account-scoped screen lifetimes and d
 - Compose UI is shared, while media, browser authorization and storage use native APIs.
 - Serializable immutable models also represent the API projection. Unknown server fields are ignored. Maintaining parallel wire and domain models would duplicate the same data without protecting another consumer.
 - The root discards account-specific navigation and drafts on switching accounts. The composer asks before discarding unsent work.
-- Blank instance input uses `m.qqs.tw`, following the client's later onboarding requirement. Explicit hosts still pass normalization and HTTPS validation.
+- Blank instance input uses `mastodon.social`. Explicit hosts pass normalization and HTTPS validation. Guests enter Explore immediately. A background request refreshes public timeline capabilities independently of the selected tab, and the last successful result is cached per instance.
 - Android requires API 26. iOS requires 15.0, matching the source iOS floor.
 
 ## Verification
 
-Shared tests use Ktor MockEngine to inspect requests and exercise host validation, response bounds, account restoration, OAuth state, posting and pagination. Android and iOS builds verify both native adapters. Runtime checks inspect actual instance selection, guest navigation and preference restoration. Authenticated writes and device photo permissions require a supplied test account or device.
+Shared tests use Ktor MockEngine to inspect requests and exercise host validation, response bounds, account restoration, OAuth state, posting and pagination. Android and iOS builds verify both native adapters. Runtime checks inspect actual instance selection, guest navigation and preference restoration. Live-server write tests use a supplied test account, and system photo permissions are checked on a device.
+
+`./scripts/verify.sh` also runs Android Compose host tests with Robolectric and a local MockEngine fixture. These tests cover draft retention on window resize, cancel and discard, private-post publication and profile edits, and guest navigation during slow or unavailable instance metadata requests. They use fixed local records and require no Mastodon server, credentials, or emulator. The foldable device and system multitasking checks remain part of device QA.
 
 ## Implementation reconciliation
 
@@ -37,6 +39,8 @@ Profile uses a naturally measured header, pinned category row and one lazy body.
 `FeedViewport` adapts ordinary lists and Profile to the shared status-pager lifecycle. Profile keeps status indices separate from legacy leading pixels, and a footer has a safe cached status position independent of whether the reader is deferring arrivals. A selected body's captured attachment and motion revision reject obsolete cache restores. Closing a ready pager checkpoints its final position before detaching and cancels its source work.
 
 `UiContext` owns separate typed Status and Notification cache sessions. Each key has an attachment epoch, immediate bounded memory snapshot and one ordered disk writer with a 400ms debounce. Unchanged row payloads are reused during scrolling. Snapshots remain limited to 100 items and 512KiB; clean inactive entries release after persistence. Dirty keys may accumulate while storage is blocked, and account/process teardown remains best effort. FeedPager owns membership and cursors; StatusProjection owns content freshness and deletion.
+
+Timeline and notification snapshots use a prefix derived from the instance and saved account. Account removal serializes deletion with snapshot writes, invalidates old writers, and preserves other accounts' snapshots and reading positions. On first cache use after upgrade, legacy v1 snapshots are cleared because their keys cannot be attributed to accounts. This also resets reading positions saved under those keys.
 
 Settings children are typed `Screen.Settings(section)` routes. `SettingsSection` supplies the localized title key and account requirement. The shell owns the title and standard back action; navigating directly to a child inserts the index below it, and sibling children replace each other. Existing composer back interception remains in force. Profile's selected category is local to its route and starts on Posts when that route is recreated.
 
