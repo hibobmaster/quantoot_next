@@ -29,7 +29,7 @@ final class ClientExperienceTests: XCTestCase {
         XCTAssertEqual(field.value as? String ?? "", "")
         XCTAssertTrue(app.buttons["Continue to Log In"].isEnabled)
         XCTAssertTrue(app.buttons["Browse Public Posts"].isEnabled)
-        XCTAssertTrue(app.staticTexts["Leave blank to log in to mastodon.social or browse m.qqs.tw as a guest."].exists)
+        XCTAssertTrue(app.staticTexts["Leave blank to use mastodon.social."].exists)
         capture("Blank default instance", app)
         app.buttons["Close"].firstMatch.tap()
         app.buttons["Close"].firstMatch.tap()

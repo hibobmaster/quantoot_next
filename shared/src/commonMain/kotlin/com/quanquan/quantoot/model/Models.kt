@@ -286,6 +286,8 @@ data class ServerInfo(
     val contactEmail: String = "",
     val contactAccount: Account? = null,
     val rules: List<ServerRule> = emptyList(),
+    val guestLocalFeedAvailable: Boolean? = null,
+    val guestFederatedFeedAvailable: Boolean? = null,
 )
 
 @Serializable

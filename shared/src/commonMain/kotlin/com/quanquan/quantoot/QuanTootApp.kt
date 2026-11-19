@@ -117,9 +117,31 @@ private fun AppShell(
     state: SessionState,
     platform: PlatformServices,
 ) {
-    var tab by remember { mutableStateOf(MainTab.Home) }
+    val signedIn = state.activeSession != null
+    val availableTimelines by produceState<List<HomeTimeline>?>(if (signedIn) HomeTimeline.publicFeeds else null, api) {
+        if (!signedIn) {
+            val server = try {
+                withTimeoutOrNull(2_500) { api.serverInfo() }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                null
+            }
+            val assumePublic = api.instance != DEFAULT_INSTANCE
+            value = buildList {
+                if (server?.guestLocalFeedAvailable ?: assumePublic) add(HomeTimeline.Local)
+                if (server?.guestFederatedFeedAvailable ?: assumePublic) add(HomeTimeline.Federated)
+            }
+        }
+    }
+    val publicTimelines = availableTimelines ?: run {
+        Loading()
+        return
+    }
+    val initialTab = if (publicTimelines.isEmpty()) MainTab.Explore else MainTab.Home
+    var tab by remember { mutableStateOf(initialTab) }
     val homeReselected = remember { MutableSharedFlow<Unit>(extraBufferCapacity = 1) }
-    var homeTimeline by remember { mutableStateOf(HomeTimeline.initial(state.activeSession != null)) }
+    var homeTimeline by remember { mutableStateOf(HomeTimeline.initial(signedIn, publicTimelines)) }
     val routes = remember { mutableStateListOf<Screen>() }
     val scope = rememberCoroutineScope()
     val ui =
@@ -213,13 +235,13 @@ private fun AppShell(
                                     prefillCurrentInstance = route.prefillCurrentInstance,
                                 ) {
                                     routes.clear()
-                                    homeTimeline = HomeTimeline.Local
-                                    tab = MainTab.Home
+                                    homeTimeline = HomeTimeline.initial(signedIn = false, publicTimelines = publicTimelines)
+                                    tab = initialTab
                                 }
                                 Screen.EditProfile -> EditProfileScreen(ui)
                                 null -> when (tab) {
-                                    MainTab.Home -> HomeScreen(ui, homeTimeline, homeReselected) { homeTimeline = it }
-                                    MainTab.Explore -> DiscoveryScreen(ui, discovery)
+                                    MainTab.Home -> HomeScreen(ui, homeTimeline, homeReselected, publicTimelines) { homeTimeline = it }
+                                    MainTab.Explore -> DiscoveryScreen(ui, discovery, publicTimelines)
                                     MainTab.Notifications -> if (ui.me != null) NotificationsScreen(ui)
                                         else LoginPrompt(ui, "mastodon_notifications_login_title", "mastodon_notifications_login_message", Icons.Default.Notifications)
                                     MainTab.Profile -> ui.me?.let { ProfileScreen(ui, it.id) }

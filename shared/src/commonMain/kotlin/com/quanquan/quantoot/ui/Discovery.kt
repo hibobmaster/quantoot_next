@@ -100,10 +100,12 @@ internal class DiscoveryState(private val ui: UiContext) {
                         val posts = trendRequest { ui.statuses.read({ ui.api.trends() }) { it } }
                         val topics = tags.await()
                         ensureActive()
-                        results = SearchResults(
+                        val loaded = SearchResults(
                             hashtags = topics.getOrDefault(results.hashtags),
                             statuses = posts.getOrDefault(results.statuses),
                         )
+                        if (results == SearchResults() && loaded != results) list.requestScrollToItem(0)
+                        results = loaded
                         if (posts.isSuccess || topics.isSuccess) trends = results
                         error = posts.exceptionOrNull() ?: topics.exceptionOrNull()
                     }
@@ -144,7 +146,7 @@ private suspend fun <T> trendRequest(fetch: suspend () -> List<T>): Result<List<
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun DiscoveryScreen(ui: UiContext, state: DiscoveryState) {
+internal fun DiscoveryScreen(ui: UiContext, state: DiscoveryState, publicTimelines: List<HomeTimeline>) {
     val keyboard = LocalSoftwareKeyboardController.current
     val searchLabel = tr("mastodon_search_instance", "instance" to ui.api.instance)
     val colors = MaterialTheme.colorScheme
@@ -256,9 +258,9 @@ internal fun DiscoveryScreen(ui: UiContext, state: DiscoveryState) {
                     when {
                         state.refreshing -> Unit
                         state.busy -> Loading()
-                        results == SearchResults() && trending -> {
+                        results == SearchResults() && trending && publicTimelines.isNotEmpty() -> {
                             DiscoveryHeading(tr("discovery_timelines"))
-                            listOf(HomeTimeline.Local, HomeTimeline.Federated).forEach { source ->
+                            publicTimelines.forEach { source ->
                                 val name = tr(if (source == HomeTimeline.Local) "mastodon_local" else "mastodon_federated")
                                 Row(Modifier.fillMaxWidth().clickable(role = Role.Button) { ui.navigate(Screen.Feed(source.source, name)) }
                                     .heightIn(min = 60.dp).padding(horizontal = 18.dp),
@@ -271,6 +273,7 @@ internal fun DiscoveryScreen(ui: UiContext, state: DiscoveryState) {
                             }
                         }
                         state.error != null -> Unit
+                        results == SearchResults() && trending -> Empty(tr("mastodon_empty_timeline"))
                         results == SearchResults() -> Empty(tr("discovery_no_matches", "query" to state.submitted))
                         state.hasMore -> TextButton(onClick = state::load, modifier = Modifier.fillMaxWidth()) {
                             Text(tr("discovery_more"))

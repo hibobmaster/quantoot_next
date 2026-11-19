@@ -645,6 +645,21 @@ class MastodonApi(
                 }
         val contact = info["contact"] as? JsonObject
         val usage = (info["usage"] as? JsonObject)?.get("users") as? JsonObject
+        val timelines = config?.get("timelines_access") as? JsonObject
+        val liveFeeds = timelines?.get("live_feeds") as? JsonObject
+        fun guestAccess(name: String) = when (liveFeeds?.string(name)) {
+            "public" -> true
+            "authenticated", "disabled" -> false
+            else -> null
+        }
+        val guestLocal = guestAccess("local")
+        val guestRemote = guestAccess("remote")
+        // The Federated feed requests the combined public timeline.
+        val guestFederated = when {
+            guestLocal == false || guestRemote == false -> false
+            guestLocal == true && guestRemote == true -> true
+            else -> null
+        }
         return ServerInfo(
                 info.string("title"),
                 info.string("description"),
@@ -658,6 +673,8 @@ class MastodonApi(
                 contactEmail = contact?.string("email").orEmpty(),
                 contactAccount = (contact?.get("account") as? JsonObject)?.let { decodeApi<Account>(it) },
                 rules = (info["rules"] as? JsonArray)?.let { decodeApi<List<ServerRule>>(it) }.orEmpty(),
+                guestLocalFeedAvailable = guestLocal,
+                guestFederatedFeedAvailable = guestFederated,
             )
             .also { cachedServer = it }
     }

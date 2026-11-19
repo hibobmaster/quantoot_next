@@ -141,7 +141,7 @@ private fun english0(): Map<String, String> = mapOf(
 )
 
 private fun english1(): Map<String, String> = mapOf(
-    "mastodon_instance_default_hint" to "Leave blank to log in to {login} or browse {guest} as a guest.",
+    "mastodon_instance_default_hint" to "Leave blank to use {instance}.",
     "mastodon_previous_media" to "Previous attachment",
     "mastodon_next_media" to "Next attachment",
     "mastodon_zoom_in" to "Zoom in",
@@ -381,7 +381,7 @@ private fun english2(): Map<String, String> = mapOf(
 
 private fun english3(): Map<String, String> = mapOf(
     "discovery_login_title" to "Log in to search",
-    "discovery_login_message" to "This server limits search to signed-in accounts. You can browse its public timelines from Home.",
+    "discovery_login_message" to "This server limits search to signed-in accounts. Clear your search to return to Explore.",
     "mastodon_conversation" to "Conversation",
     "discovery_clear" to "Clear search",
     "discovery_people" to "People",
@@ -536,7 +536,7 @@ private fun chinese0(): Map<String, String> = mapOf(
 )
 
 private fun chinese1(): Map<String, String> = mapOf(
-    "mastodon_instance_default_hint" to "留空时，登录使用 {login}，访客浏览使用 {guest}。",
+    "mastodon_instance_default_hint" to "留空则使用 {instance}。",
     "mastodon_previous_media" to "上一个附件",
     "mastodon_next_media" to "下一个附件",
     "mastodon_zoom_in" to "放大",
@@ -776,7 +776,7 @@ private fun chinese2(): Map<String, String> = mapOf(
 
 private fun chinese3(): Map<String, String> = mapOf(
     "discovery_login_title" to "登录后搜索",
-    "discovery_login_message" to "此服务器仅向已登录的用户开放搜索。你可以从主页浏览公共时间线。",
+    "discovery_login_message" to "此实例仅向已登录的用户开放搜索。清空搜索词可返回探索。",
     "mastodon_conversation" to "对话",
     "discovery_clear" to "清除搜索",
     "discovery_people" to "用户",
@@ -931,7 +931,7 @@ private fun traditional0(): Map<String, String> = mapOf(
 )
 
 private fun traditional1(): Map<String, String> = mapOf(
-    "mastodon_instance_default_hint" to "留空時，登入使用 {login}，訪客瀏覽使用 {guest}。",
+    "mastodon_instance_default_hint" to "留空則使用 {instance}。",
     "mastodon_previous_media" to "上一個附件",
     "mastodon_next_media" to "下一個附件",
     "mastodon_zoom_in" to "放大",
@@ -1171,7 +1171,7 @@ private fun traditional2(): Map<String, String> = mapOf(
 
 private fun traditional3(): Map<String, String> = mapOf(
     "discovery_login_title" to "登入後搜尋",
-    "discovery_login_message" to "此伺服器僅向已登入的使用者開放搜尋。你可以從首頁瀏覽公開時間軸。",
+    "discovery_login_message" to "此站台僅向已登入的使用者開放搜尋。清空搜尋詞可返回探索。",
     "mastodon_conversation" to "對話",
     "discovery_clear" to "清除搜尋",
     "discovery_people" to "使用者",

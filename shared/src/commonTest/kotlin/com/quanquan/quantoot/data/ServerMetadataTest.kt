@@ -28,7 +28,10 @@ class ServerMetadataTest {
             "usage":{"users":{"active_month":123}},
             "contact":{"email":"admin@social.example","account":{"id":"admin","username":"admin"}},
             "rules":[{"id":"1","text":"Be kind","hint":"Respect other people"}],
-            "configuration":{"statuses":{"max_characters":700}}
+            "configuration":{
+                "statuses":{"max_characters":700},
+                "timelines_access":{"live_feeds":{"local":"public","remote":"authenticated"}}
+            }
         }""")
         try {
             val server = api.serverInfo()
@@ -39,6 +42,8 @@ class ServerMetadataTest {
             assertEquals("admin", server.contactAccount?.id)
             assertEquals("Be kind", server.rules.single().text)
             assertEquals("Respect other people", server.rules.single().hint)
+            assertEquals(true, server.guestLocalFeedAvailable)
+            assertEquals(false, server.guestFederatedFeedAvailable)
         } finally { api.close() }
     }
 
@@ -51,6 +56,8 @@ class ServerMetadataTest {
             assertTrue(server.rules.isEmpty())
             assertNull(server.thumbnail)
             assertNull(server.contactAccount)
+            assertNull(server.guestLocalFeedAvailable)
+            assertNull(server.guestFederatedFeedAvailable)
         } finally { api.close() }
     }
 }

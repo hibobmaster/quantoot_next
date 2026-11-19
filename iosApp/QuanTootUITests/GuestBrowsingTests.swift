@@ -12,6 +12,15 @@ final class GuestBrowsingTests: XCTestCase {
             throw XCTSkip("Run the guest Settings test on an isolated simulator without a selected instance.")
         }
         browse.tap()
+        let explore = app.buttons["Explore"].firstMatch
+        XCTAssertTrue(explore.waitForExistence(timeout: 15))
+        XCTAssertTrue(explore.isSelected)
+        let search = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS %@", "mastodon.social")).firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 10))
+        let trending = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label IN %@", ["Trending posts", "Trending topics"])).firstMatch
+        XCTAssertTrue(trending.waitForExistence(timeout: 15))
         XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 15))
         app.buttons["Settings"].tap()
         for label in ["Privacy and reach", "Posting defaults", "Filters"] {

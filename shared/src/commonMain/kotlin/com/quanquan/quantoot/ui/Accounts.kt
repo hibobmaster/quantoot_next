@@ -46,8 +46,7 @@ import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
 import kotlinx.coroutines.*
 
-private const val DEFAULT_LOGIN_INSTANCE = "mastodon.social"
-private const val DEFAULT_GUEST_INSTANCE = "m.qqs.tw"
+internal const val DEFAULT_INSTANCE = "mastodon.social"
 
 @Composable
 fun InstanceScreen(
@@ -104,10 +103,8 @@ fun InstanceScreen(
                     enabled = !state.busy,
                     label = { Text(tr("mastodon_instance_label")) },
                     leadingIcon = { Icon(PostIcons.Public, null, Modifier.size(20.dp)) },
-                    placeholder = { Text(DEFAULT_LOGIN_INSTANCE) },
-                    supportingText = {
-                        Text(tr("mastodon_instance_default_hint", "login" to DEFAULT_LOGIN_INSTANCE, "guest" to DEFAULT_GUEST_INSTANCE))
-                    },
+                    placeholder = { Text(DEFAULT_INSTANCE) },
+                    supportingText = { Text(tr("mastodon_instance_default_hint", "instance" to DEFAULT_INSTANCE)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         autoCorrectEnabled = false,
@@ -126,7 +123,7 @@ fun InstanceScreen(
             }
             Spacer(Modifier.height(if (compact) 4.dp else 16.dp))
             Button(
-                onClick = { scope.launch { store.login(instance.ifBlank { DEFAULT_LOGIN_INSTANCE }) } },
+                onClick = { scope.launch { store.login(instance.ifBlank { DEFAULT_INSTANCE }) } },
                 enabled = !state.busy,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp),
             ) { Text(tr("mastodon_continue_login")) }
@@ -134,7 +131,7 @@ fun InstanceScreen(
             TextButton(
                 onClick = {
                     scope.launch {
-                        store.browse(instance.ifBlank { DEFAULT_GUEST_INSTANCE })
+                        store.browse(instance.ifBlank { DEFAULT_INSTANCE })
                         if (store.state.value.error == null) onBrowse()
                     }
                 },

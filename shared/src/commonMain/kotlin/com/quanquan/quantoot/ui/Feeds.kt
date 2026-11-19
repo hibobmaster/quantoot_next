@@ -34,7 +34,10 @@ internal enum class HomeTimeline(val source: Timeline) {
     Federated(Timeline.Public(false));
 
     companion object {
-        fun initial(signedIn: Boolean) = if (signedIn) Home else Local
+        val publicFeeds = listOf(Local, Federated)
+
+        fun initial(signedIn: Boolean, publicTimelines: List<HomeTimeline> = publicFeeds) =
+            if (signedIn) Home else publicTimelines.firstOrNull() ?: Home
     }
 }
 
@@ -43,11 +46,21 @@ internal fun HomeScreen(
     ui: UiContext,
     selection: HomeTimeline,
     reselected: SharedFlow<Unit>,
+    publicTimelines: List<HomeTimeline>,
     onSelect: (HomeTimeline) -> Unit,
 ) {
-    val labels = listOf(tr("mastodon_home"), tr("mastodon_local"), tr("mastodon_federated"))
     Column {
-        HomeTimelineSelector(labels, selection.ordinal) { onSelect(HomeTimeline.entries[it]) }
+        if (publicTimelines.isNotEmpty()) {
+            val timelines = listOf(HomeTimeline.Home) + publicTimelines
+            val labels = timelines.map {
+                when (it) {
+                    HomeTimeline.Home -> tr("mastodon_home")
+                    HomeTimeline.Local -> tr("mastodon_local")
+                    HomeTimeline.Federated -> tr("mastodon_federated")
+                }
+            }
+            HomeTimelineSelector(labels, timelines.indexOf(selection)) { onSelect(timelines[it]) }
+        }
         key(selection) {
             if (selection == HomeTimeline.Home && ui.me == null) {
                 com.quanquan.quantoot.LoginPrompt(ui, "mastodon_home_timeline_login_title",
