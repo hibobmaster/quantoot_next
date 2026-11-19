@@ -28,3 +28,6 @@ COPY signer.py /opt/quantoot/signer.py
 ENTRYPOINT ["python3", "/opt/quantoot/signer.py"]
 
 FROM android-sdk AS runner
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y zstd \
+    && rm -rf /var/lib/apt/lists/*

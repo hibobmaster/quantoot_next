@@ -10,6 +10,7 @@ Group=quantoot-runner
 SupplementaryGroups=docker
 StateDirectory=quantoot-ci
 WorkingDirectory=/var/lib/quantoot-ci
+ExecStartPre=+/opt/quantoot-ci/cache-firewall.sh
 ExecStart=/opt/quantoot-ci/bin/forgejo-runner daemon -c /opt/quantoot-ci/runner.yml
 Restart=on-failure
 RestartSec=5

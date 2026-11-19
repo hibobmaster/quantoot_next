@@ -14,6 +14,14 @@ docker network create quantoot-ci
 
 在 Forgejo 仓库设置中启用 Actions，并创建仓库级 Runner。将 Forgejo 提供的 `server.connections` 合并到 `runner.example.yml`，将配置以 `root:quantoot-runner`、`0640` 安装为 `/opt/quantoot-ci/runner.yml`。部署使用 `quantoot-runner` 系统账户，由随附的 systemd 单元启动 `/opt/quantoot-ci/bin/forgejo-runner`。Runner 使用独立 Docker 网络，禁用任意宿主机卷和任务容器里的 Docker socket。
 
+工作流复用 Gradle Wrapper、下载的依赖和依赖解析元数据。缓存键随 Wrapper、版本目录和仓库配置变化。只有 `main` 推送的成功测试任务写入共享缓存，PR 和版本标签任务可以读取。Runner v13.2.1 会清理 7 天未使用或创建超过 30 天的条目。缓存位于 VPS 的 `/var/lib/quantoot-ci/cache`。
+
+启用缓存前，将 `cache.host` 设为 `quantoot-ci` Docker 网络的网关。安装 `nftables`，并以 `root:root`、`0755` 将 `cache-firewall.sh` 安装为 `/opt/quantoot-ci/cache-firewall.sh`。systemd 单元在 Runner 启动前限制端口访问，代理端口 `49231` 面向构建容器，内部缓存端口 `49232` 供宿主机回环访问。可以用下列命令查看网关。
+
+```sh
+docker network inspect -f '{{range .IPAM.Config}}{{.Gateway}}{{end}}' quantoot-ci
+```
+
 签名容器以 UID/GID `10001:10001` 运行。将 `keystore.jks`、`store-password`、`key-password` 三个文件放到宿主机的私有目录并由该 UID 读。密码文件只保存密码本身。当前密钥别名为 `upload`，证书指纹见下方。以下命令中的签名目录在 VPS 上的 `/opt/quantoot-ci/private/signing`。
 
 ```sh

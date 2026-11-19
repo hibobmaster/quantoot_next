@@ -5,7 +5,11 @@ runner:
     - android-ci:docker://quantoot-android-ci:37
 
 cache:
-  enabled: false
+  enabled: true
+  dir: /var/lib/quantoot-ci/cache
+  host: 172.23.0.1 # Gateway of the quantoot-ci Docker network.
+  port: 49232
+  proxy_port: 49231
 
 container:
   network: quantoot-ci

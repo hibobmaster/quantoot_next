@@ -20,7 +20,27 @@ jobs:
       - uses: https://data.forgejo.org/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+      - name: Restore Gradle dependencies
+        id: gradle_cache
+        uses: https://data.forgejo.org/actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        continue-on-error: true
+        with:
+          path: |
+            ~/.gradle/wrapper/dists
+            ~/.gradle/caches/modules-2/files-2.1
+            ~/.gradle/caches/modules-2/metadata-*
+          key: quantoot-gradle-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties', 'gradle/libs.versions.toml', 'settings.gradle.kts') }}
       - run: ./scripts/verify.sh
+      - name: Save Gradle dependencies from main
+        if: success() && forgejo.event_name == 'push' && forgejo.ref == 'refs/heads/main' && steps.gradle_cache.outputs.cache-hit != 'true' && steps.gradle_cache.outputs.cache-primary-key != ''
+        uses: https://data.forgejo.org/actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        continue-on-error: true
+        with:
+          path: |
+            ~/.gradle/wrapper/dists
+            ~/.gradle/caches/modules-2/files-2.1
+            ~/.gradle/caches/modules-2/metadata-*
+          key: ${{ steps.gradle_cache.outputs.cache-primary-key }}
       - uses: https://data.forgejo.org/forgejo/upload-artifact@16871d9e8cfcf27ff31822cac382bbb5450f1e1e # Forgejo v4
         if: always()
         with:
@@ -40,6 +60,15 @@ jobs:
           persist-credentials: false
       - name: Check that this tag points into main
         run: git merge-base --is-ancestor HEAD refs/remotes/origin/main
+      - name: Restore Gradle dependencies
+        uses: https://data.forgejo.org/actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        continue-on-error: true
+        with:
+          path: |
+            ~/.gradle/wrapper/dists
+            ~/.gradle/caches/modules-2/files-2.1
+            ~/.gradle/caches/modules-2/metadata-*
+          key: quantoot-gradle-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties', 'gradle/libs.versions.toml', 'settings.gradle.kts') }}
       - name: Build release APKs
         run: ./gradlew --no-daemon -PsplitApks=true :shared:testAndroidHostTest :androidApp:assembleRelease --console=plain
       - name: Sign and verify the four APKs
