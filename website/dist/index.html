@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f4ec">
-  <meta name="description" content="QuanToot is an independent Mastodon client for iOS and Android. Choose your server and read the social web at your pace.">
+  <meta name="description" content="QuanToot is an independent Mastodon client for iOS and Android. Choose your server and read the social web at your pace." data-translate="content" data-zh-hans="QuanToot 是独立的 Mastodon 客户端，适用于 iOS 和 Android。选择自己的实例，按自己的节奏浏览。" data-zh-hant="QuanToot 是獨立的 Mastodon 用戶端，適用於 iOS 和 Android。選擇自己的站台，按自己的步調瀏覽。">
   <meta property="og:title" content="QuanToot — The social web, at your pace">
   <meta property="og:description" content="An independent Mastodon client for iOS and Android.">
   <meta property="og:type" content="website">
@@ -13,107 +13,125 @@
   <link rel="icon" href="/assets/quantoot.png" type="image/png">
   <link rel="stylesheet" href="/assets/site.css">
   <script src="/assets/site.js" defer></script>
-  <title>QuanToot — The social web, at your pace</title>
+  <title data-zh-hans="QuanToot · 开放社交，自在一点" data-zh-hant="QuanToot · 開放社交，自在一點">QuanToot — The social web, at your pace</title>
 </head>
 <body>
-  <a class="skip" href="#main" data-zh="跳到正文">Skip to content</a>
+  <a class="skip" href="#main" data-zh-hans="跳到正文" data-zh-hant="跳至主要內容">Skip to content</a>
   <header class="top">
     <div class="wrap nav">
       <a class="brand" href="/" aria-label="QuanToot"><img src="/assets/quantoot.png" width="38" height="38" alt="">QuanToot</a>
-      <nav aria-label="Main navigation">
-        <a href="#features" data-zh="功能">Features</a>
-        <a href="/support/" data-zh="支持">Support</a>
-        <button class="locale" type="button" data-toggle-lang aria-label="切换到简体中文">中文</button>
+      <nav aria-label="Main navigation" data-translate="aria-label" data-zh-hans="主导航" data-zh-hant="主要導覽">
+        <a href="#features" data-zh-hans="功能" data-zh-hant="功能">Features</a>
+        <a href="/support/" data-zh-hans="支持" data-zh-hant="支援">Support</a>
+        <select class="locale" data-select-language aria-label="Language" data-translate="aria-label" data-zh-hans="语言" data-zh-hant="語言" hidden>
+          <option value="en" lang="en">English</option>
+          <option value="zh-Hans" lang="zh-Hans">简体中文</option>
+          <option value="zh-Hant" lang="zh-Hant">繁體中文</option>
+        </select>
       </nav>
     </div>
   </header>
   <main id="main">
     <section class="wrap hero">
       <div class="hero-copy">
-        <p class="eyebrow" data-zh="独立 Mastodon 客户端">An independent Mastodon client</p>
-        <h1><span data-zh="开放社交，">The social web,</span><em data-zh="自在一点。">at your pace.</em></h1>
-        <p class="intro" data-zh="选择自己的实例，关注你喜欢的人。用 QuanToot 阅读长帖、探索话题，也给日常发现留一点空间。">Choose your server, follow good people, and make room for the things you came to read.</p>
+        <p class="eyebrow" data-zh-hans="独立 Mastodon 客户端" data-zh-hant="獨立 Mastodon 用戶端">An independent Mastodon client</p>
+        <h1><span data-zh-hans="开放社交，" data-zh-hant="開放社交，">The social web,</span><em data-zh-hans="自在一点。" data-zh-hant="自在一點。">at your pace.</em></h1>
+        <p class="intro" data-zh-hans="选择自己的实例，关注你喜欢的人。用 QuanToot 阅读长帖、探索话题，也给日常发现留一点空间。" data-zh-hant="選擇自己的站台，追蹤你喜歡的人。用 QuanToot 閱讀長文、探索話題，也給日常發現留一點空間。">Choose your server, follow good people, and make room for the things you came to read.</p>
         <div class="actions">
-          <a class="button primary" href="https://git.qqs.tw/bobmaster/quantoot_next/releases/latest" data-zh="下载 Android 版">Download for Android</a>
-          <a class="button secondary" href="#ios" data-zh="了解 iOS 版">QuanToot for iOS</a>
+          <a class="button primary" href="#android" data-zh-hans="下载 Android 版" data-zh-hant="下載 Android 版">Download for Android</a>
+          <a class="button secondary" href="#ios" data-zh-hans="了解 iOS 版" data-zh-hant="了解 iOS 版">QuanToot for iOS</a>
         </div>
-        <p class="platforms" data-zh="Android 8.0 或更高版本 · 支持 iPhone 和 iPad">Android 8.0 or later · Built for iPhone and iPad</p>
+        <p class="platforms" data-zh-hans="Android 8.0 或更高版本 · 支持 iPhone 和 iPad" data-zh-hant="Android 8.0 或更新版本 · 支援 iPhone 和 iPad">Android 8.0 or later · Built for iPhone and iPad</p>
       </div>
-      <figure class="showcase" aria-label="Illustrative preview of the QuanToot timeline">
-        <div class="showcase-caption"><span data-zh="时间线演示">TIMELINE PREVIEW</span></div>
+      <figure class="showcase" aria-label="Illustrative preview of the QuanToot timeline" data-translate="aria-label" data-zh-hans="QuanToot 时间线演示" data-zh-hant="QuanToot 時間軸預覽">
+        <div class="showcase-caption"><span data-zh-hans="时间线演示" data-zh-hant="時間軸預覽">TIMELINE PREVIEW</span></div>
         <div class="phone" aria-hidden="true">
           <div class="phone-screen">
             <div class="phone-status"><span>9:41</span><i></i><span>▰</span></div>
             <div class="app-heading"><img src="/assets/quantoot.png" alt=""><div><strong>QuanToot</strong><small>m.qqs.tw</small></div><span>⚙</span></div>
-            <div class="app-tabs"><b data-zh="首页">Home</b><span data-zh="本地">Local</span><span data-zh="联邦">Federated</span></div>
+            <div class="app-tabs"><b data-zh-hans="首页" data-zh-hant="首頁">Home</b><span data-zh-hans="本地" data-zh-hant="本地">Local</span><span data-zh-hans="联邦" data-zh-hant="聯邦">Federated</span></div>
             <div class="app-post"><div class="avatar">L</div><div class="post-copy">
-              <div class="post-by"><strong>Lina</strong><time>2h</time></div><small>@lina@studio.example</small>
-              <p data-zh="雾沿着山坡落下，湖边只剩脚步声。">Morning field notes. The lake was quiet enough to hear the mist move.</p>
+              <div class="post-by"><strong>Lina</strong><time data-zh-hans="2 小时" data-zh-hant="2 小時">2h</time></div><small>@lina@studio.example</small>
+              <p data-zh-hans="雾沿着山坡落下，湖边只剩脚步声。" data-zh-hant="霧沿著山坡落下，湖邊只剩腳步聲。">Morning field notes. The lake was quiet enough to hear the mist move.</p>
               <img class="post-photo" src="/assets/lake.jpg" width="800" height="450" alt="">
               <div class="post-actions"><span>◯ 3</span><span>⇄</span><span>♡ 18</span><span>♧</span></div>
             </div></div>
             <div class="app-post second-post"><div class="avatar second">A</div><div class="post-copy">
-              <div class="post-by"><strong>Amir</strong><time>4h</time></div><small>@amir@journal.example</small>
-              <p data-zh="今天的发现：从来没注意过街角那家独立书店。">Today’s small discovery: an independent bookstore around the corner.</p>
+              <div class="post-by"><strong>Amir</strong><time data-zh-hans="4 小时" data-zh-hant="4 小時">4h</time></div><small>@amir@journal.example</small>
+              <p data-zh-hans="今天的发现：从来没注意过街角那家独立书店。" data-zh-hant="今天的發現是街角那家以前沒留意過的獨立書店。">Today’s small discovery: an independent bookstore around the corner.</p>
             </div></div>
-            <div class="app-dock"><span><i>⌂</i>Home</span><span><i>⌕</i>Explore</span><span><i>◌</i>Notifications</span><span><i>♙</i>Profile</span></div>
+            <div class="app-dock"><span><i>⌂</i><small data-zh-hans="首页" data-zh-hant="首頁">Home</small></span><span><i>⌕</i><small data-zh-hans="探索" data-zh-hant="探索">Explore</small></span><span><i>◌</i><small data-zh-hans="通知" data-zh-hant="通知">Notifications</small></span><span><i>♙</i><small data-zh-hans="个人资料" data-zh-hant="個人資料">Profile</small></span></div>
           </div>
         </div>
       </figure>
     </section>
-    <div class="wrap facts" aria-label="Product highlights">
-      <span data-zh="使用你的 Mastodon 账号">Use your Mastodon account</span>
-      <span data-zh="支持公开浏览">Browse public posts as a guest</span>
-      <span data-zh="无广告和追踪 SDK">No ads or tracking SDKs</span>
+    <div class="wrap facts" aria-label="Product highlights" data-translate="aria-label" data-zh-hans="产品亮点" data-zh-hant="產品特色">
+      <span data-zh-hans="使用你的 Mastodon 账号" data-zh-hant="使用你的 Mastodon 帳號">Use your Mastodon account</span>
+      <span data-zh-hans="支持公开浏览" data-zh-hant="支援公開瀏覽">Browse public posts as a guest</span>
+      <span data-zh-hans="无广告和追踪 SDK" data-zh-hant="無廣告與追蹤 SDK">No ads or tracking SDKs</span>
     </div>
     <section id="features" class="wrap features">
       <div class="section-head">
-        <p class="eyebrow" data-zh="功能">The experience</p>
-        <h2 data-zh="按自己的节奏读、写、发现。">A place to read, write, and wander.</h2>
+        <p class="eyebrow" data-zh-hans="功能" data-zh-hant="功能">The experience</p>
+        <h2 data-zh-hans="按自己的节奏读、写、发现。" data-zh-hant="按自己的步調閱讀、書寫、探索。">A place to read, write, and wander.</h2>
       </div>
       <div class="feature-layout">
         <article class="feature lead-feature">
           <div class="feature-copy">
-            <h3 data-zh="从你选择的实例出发">Start on your own server</h3>
-            <p data-zh="已有 Mastodon 账号就可以登录。可在首页、本地和联邦时间线之间切换，也能同时管理多个账号。">Sign in with an existing Mastodon account. Switch between Home, Local, and Federated timelines, or keep several accounts together on one device.</p>
+            <h3 data-zh-hans="从你选择的实例出发" data-zh-hant="從你選擇的站台出發">Start on your own server</h3>
+            <p data-zh-hans="已有 Mastodon 账号就可以登录。可在首页、本地和联邦时间线之间切换，也能同时管理多个账号。" data-zh-hant="使用現有的 Mastodon 帳號登入。可在首頁、本地和聯邦時間軸之間切換，也能同時管理多個帳號。">Sign in with an existing Mastodon account. Switch between Home, Local, and Federated timelines, or keep several accounts together on one device.</p>
           </div>
           <div class="feed-sample" aria-hidden="true">
-            <div class="sample-tabs"><b>Home</b><span>Local</span><span>Federated</span></div>
+            <div class="sample-tabs"><b data-zh-hans="首页" data-zh-hant="首頁">Home</b><span data-zh-hans="本地" data-zh-hant="本地">Local</span><span data-zh-hans="联邦" data-zh-hant="聯邦">Federated</span></div>
             <p><span class="sample-avatar">M</span><span><strong>Mika</strong><br><small>@mika@studio.example</small></span></p>
             <div class="sample-lines"><i></i><i></i><i></i></div>
           </div>
         </article>
         <article class="feature note-feature">
           <div class="feature-mark" aria-hidden="true">#</div>
-          <h3 data-zh="顺着话题继续读">Follow a thread of thought</h3>
-          <p data-zh="在应用内打开话题时间线。用书签留住值得回看的帖子，用关键词过滤调整你看到的内容。">Open hashtag timelines inside the app. Bookmark posts for later and use keyword filters to shape what you see.</p>
+          <h3 data-zh-hans="顺着话题继续读" data-zh-hant="順著話題繼續讀">Follow a thread of thought</h3>
+          <p data-zh-hans="在应用内打开话题时间线。用书签留住值得回看的帖子，用关键词过滤调整你看到的内容。" data-zh-hant="在應用程式內開啟主題標籤的時間軸。用書籤收藏想再看的貼文，也可用關鍵字篩選看到的內容。">Open hashtag timelines inside the app. Bookmark posts for later and use keyword filters to shape what you see.</p>
         </article>
         <article class="feature write-feature">
           <div class="feature-mark" aria-hidden="true">✎</div>
-          <h3 data-zh="写下值得分享的东西">Put something into words</h3>
-          <p data-zh="分享照片或视频，为图片补上替代文本，或发个投票。发帖时可以选择内容的可见范围。">Share a photo, add an image description, or start a poll. Choose who can see each post when you publish it.</p>
+          <h3 data-zh-hans="写下值得分享的东西" data-zh-hant="寫下值得分享的內容">Put something into words</h3>
+          <p data-zh-hans="分享照片或视频，为图片补上替代文本，或发个投票。发帖时可以选择内容的可见范围。" data-zh-hant="分享照片或影片、為圖片補上替代文字，或發起投票。發文時可以選擇內容的可見範圍。">Share a photo, add an image description, or start a poll. Choose who can see each post when you publish it.</p>
         </article>
       </div>
     </section>
-    <section id="ios" class="wrap availability">
-      <div>
-        <p class="eyebrow" data-zh="下载">Availability</p>
-        <h2 data-zh="把 QuanToot 带在身边。">Take QuanToot with you.</h2>
-      </div>
-      <div>
-        <p data-zh="Android 安装包及校验值可在 Forgejo 下载。iPhone 和 iPad 版本正在准备 App Store 发布。">Signed Android packages and checksums are available on Forgejo. The iPhone and iPad app is being prepared for App Store submission.</p>
-        <div class="actions">
-          <a class="button primary" href="https://git.qqs.tw/bobmaster/quantoot_next/releases" data-zh="查看 Android 版本">Android releases</a>
-          <a class="button secondary" href="/support/" data-zh="获取帮助">Get support</a>
+    <div class="wrap availability">
+      <section id="android" aria-labelledby="android-title" data-android-downloads>
+        <h2 id="android-title" data-zh-hans="Android 下载" data-zh-hant="Android 下載">Download for Android</h2>
+        <p role="status" class="release-status">
+          <span data-release-loading data-zh-hans="正在获取最新正式版…" data-zh-hant="正在取得最新正式版…" hidden>Checking for the latest stable release…</span>
+          <span data-release-ready hidden><span data-zh-hans="最新正式版" data-zh-hant="最新正式版">Latest stable release</span> <strong data-release-version></strong></span>
+          <span data-release-missing data-zh-hans="暂时没有可下载的正式版 APK。" data-zh-hant="目前沒有可下載的正式版 APK。" hidden>There is no stable APK available right now.</span>
+          <span data-release-error data-zh-hans="暂时无法获取最新版本，可在 Forgejo 查看所有版本。" data-zh-hant="暫時無法取得最新版本，可在 Forgejo 查看所有版本。" hidden>Couldn’t load the latest release. You can browse releases on Forgejo.</span>
+        </p>
+        <ul class="apk-list" data-release-apks hidden>
+          <li data-abi="arm64-v8a" hidden><a class="button primary apk"><strong>arm64-v8a</strong><span data-zh-hans="适合大多数安卓手机" data-zh-hant="適合大多數 Android 手機">Most Android phones</span></a></li>
+          <li data-abi="armeabi-v7a" hidden><a class="button secondary apk"><strong>armeabi-v7a</strong><span data-zh-hans="32 位 ARM 设备" data-zh-hant="32 位元 ARM 裝置">32-bit ARM devices</span></a></li>
+          <li data-abi="x86_64" hidden><a class="button secondary apk"><strong>x86_64</strong><span data-zh-hans="64 位 x86 设备" data-zh-hant="64 位元 x86 裝置">64-bit x86 devices</span></a></li>
+          <li data-abi="x86" hidden><a class="button secondary apk"><strong>x86</strong><span data-zh-hans="32 位 x86 设备" data-zh-hant="32 位元 x86 裝置">32-bit x86 devices</span></a></li>
+        </ul>
+        <noscript><p>Enable JavaScript to show direct APK downloads, or browse releases on Forgejo below.</p></noscript>
+        <div class="release-links">
+          <a data-release-checksums data-zh-hans="SHA-256 校验值" data-zh-hant="SHA-256 校驗值" hidden>SHA-256 checksums</a>
+          <a href="https://git.qqs.tw/bobmaster/quantoot_next/releases" data-zh-hans="在 Forgejo 查看所有版本" data-zh-hant="在 Forgejo 查看所有版本">All releases on Forgejo</a>
         </div>
-      </div>
-    </section>
+      </section>
+      <section id="ios" aria-labelledby="ios-title">
+        <h2 id="ios-title" data-zh-hans="QuanToot iOS 版" data-zh-hant="QuanToot iOS 版">QuanToot for iOS</h2>
+        <p data-zh-hans="iPhone 和 iPad 版正在准备提交至 App Store。" data-zh-hant="iPhone 和 iPad 版正在準備提交至 App Store。">The iPhone and iPad app is being prepared for App Store submission.</p>
+        <a class="button secondary" href="/support/" data-zh-hans="获取帮助" data-zh-hant="取得支援">Get support</a>
+      </section>
+    </div>
   </main>
   <footer class="footer">
     <div class="wrap foot">
       <a class="brand" href="/"><img src="/assets/quantoot.png" width="32" height="32" alt="">QuanToot</a>
-      <div><a href="/privacy/" data-zh="隐私政策">Privacy</a><a href="/support/" data-zh="支持">Support</a><a href="https://git.qqs.tw/bobmaster/quantoot_next" data-zh="源代码">Source</a></div>
-      <small data-zh="由 BobMaster 开发">Made by BobMaster</small>
+      <div><a href="/privacy/" data-zh-hans="隐私政策" data-zh-hant="隱私權政策">Privacy</a><a href="/support/" data-zh-hans="支持" data-zh-hant="支援">Support</a><a href="https://git.qqs.tw/bobmaster/quantoot_next" data-zh-hans="源代码" data-zh-hant="原始碼">Source</a></div>
+      <small data-zh-hans="由 BobMaster 开发" data-zh-hant="由 BobMaster 開發">Made by BobMaster</small>
     </div>
   </footer>
 </body>

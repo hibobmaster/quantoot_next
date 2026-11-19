@@ -3,22 +3,29 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f8f5ed">
-  <meta name="description" content="How QuanToot handles app data, Mastodon account data, media, and support messages.">
+  <meta name="description" content="How QuanToot handles app data, Mastodon account data, media, and support messages." data-translate="content" data-zh-hans="了解 QuanToot 如何处理应用数据、Mastodon 账号数据、媒体和反馈邮件。" data-zh-hant="了解 QuanToot 如何處理應用程式資料、Mastodon 帳號資料、媒體和支援郵件。">
   <link rel="canonical" href="https://quantoot.qqs.tw/privacy/">
   <link rel="icon" href="/assets/quantoot.png" type="image/png"><link rel="stylesheet" href="/assets/site.css">
-  <script defer src="/assets/site.js"></script><title>Privacy policy · QuanToot</title>
+  <script defer src="/assets/site.js"></script><title data-zh-hans="隐私政策 · QuanToot" data-zh-hant="隱私權政策 · QuanToot">Privacy policy · QuanToot</title>
 </head>
 <body>
-  <a class="skip" href="#main" data-zh="跳到正文">Skip to content</a>
+  <a class="skip" href="#main" data-zh-hans="跳到正文" data-zh-hant="跳至主要內容">Skip to content</a>
   <header class="top"><div class="wrap nav">
     <a class="brand" href="/"><img src="/assets/quantoot.png" width="38" height="38" alt="">QuanToot</a>
-    <nav aria-label="Main navigation"><a href="/support/" data-zh="支持">Support</a><button class="locale" type="button" data-toggle-lang aria-label="切换到简体中文">中文</button></nav>
+    <nav aria-label="Main navigation" data-translate="aria-label" data-zh-hans="主导航" data-zh-hant="主要導覽">
+      <a href="/support/" data-zh-hans="支持" data-zh-hant="支援">Support</a>
+      <select class="locale" data-select-language aria-label="Language" data-translate="aria-label" data-zh-hans="语言" data-zh-hant="語言" hidden>
+        <option value="en" lang="en">English</option>
+        <option value="zh-Hans" lang="zh-Hans">简体中文</option>
+        <option value="zh-Hant" lang="zh-Hant">繁體中文</option>
+      </select>
+    </nav>
   </div></header>
   <main class="document" id="main">
     <p class="eyebrow">QuanToot</p>
-    <h1 data-zh="隐私政策">Privacy policy</h1>
-    <p data-zh="更新日期：2026 年 11 月 19 日">Updated November 19, 2026</p>
-    <section data-language="en">
+    <h1 data-zh-hans="隐私政策" data-zh-hant="隱私權政策">Privacy policy</h1>
+    <p data-zh-hans="更新日期：2026 年 11 月 19 日" data-zh-hant="更新日期為 2026 年 11 月 19 日">Updated November 19, 2026</p>
+    <section lang="en" data-language="en">
       <p class="document-intro">QuanToot is an independent Mastodon client developed by BobMaster. This policy covers the iOS and Android apps and this website.</p>
       <h2>Data on your device</h2>
       <p>QuanToot stores your selected server, app preferences, and cached timelines and media on the device. Your Mastodon session and access token are stored with OS-provided secure storage. The app has no advertising, analytics, or tracking SDKs. QuanToot does not operate a social network or collect this local app data on a developer backend.</p>
@@ -33,7 +40,7 @@
       <h2>Contact</h2>
       <p>BobMaster · <a href="mailto:bobmaster@hibobmaster.com">bobmaster@hibobmaster.com</a></p>
     </section>
-    <section data-language="zh" hidden>
+    <section lang="zh-Hans" data-language="zh-Hans" hidden>
       <p class="document-intro">QuanToot 是 BobMaster 开发的独立 Mastodon 客户端。本政策适用于 iOS、Android 应用和此网站。</p>
       <h2>保存在设备上的数据</h2>
       <p>QuanToot 会在设备上保存所选实例、应用偏好、时间线和媒体缓存。Mastodon 登录会话和访问令牌由系统安全存储保护。应用不包含广告、分析或追踪 SDK，开发者未运营社交网络或收集这些本地应用数据的后端。</p>
@@ -48,11 +55,26 @@
       <h2>联系开发者</h2>
       <p>BobMaster · <a href="mailto:bobmaster@hibobmaster.com">bobmaster@hibobmaster.com</a></p>
     </section>
+    <section lang="zh-Hant" data-language="zh-Hant" hidden>
+      <p class="document-intro">QuanToot 是 BobMaster 開發的獨立 Mastodon 用戶端。本政策適用於 iOS、Android 應用程式和本網站。</p>
+      <h2>儲存在裝置上的資料</h2>
+      <p>QuanToot 會在裝置上儲存所選站台、應用程式偏好，以及時間軸和媒體快取。Mastodon 登入工作階段和存取權杖由作業系統提供的安全儲存機制保護。應用程式不含廣告、分析或追蹤 SDK。QuanToot 未營運社群網路，開發者也未架設後端收集這些本機資料。</p>
+      <h2>站台、內容與下載</h2>
+      <p>QuanToot 會與你選擇的 Mastodon 站台通訊。站台營運者可能依其政策處理你的 IP 位址、帳號資料、貼文、媒體、互動和活動紀錄。載入遠端媒體或開啟連結時，相關網站可能會收到一般連線資訊。你在 Android 上主動檢查更新時，應用程式會向 Forgejo 請求版本資訊或安裝套件。</p>
+      <h2>照片與媒體</h2>
+      <p>附加或上傳媒體時，應用程式會透過系統選擇器讀取你選取的項目。你上傳時，所選檔案會傳送至你的站台。你主動將檔案儲存到照片圖庫時，QuanToot 會請求所需權限。</p>
+      <h2>資料清除與帳號刪除</h2>
+      <p>使用<strong>帳號 → 移除帳號</strong>可移除已儲存的登入工作階段、權杖及該帳號的時間軸與通知快取。你也可以在應用程式設定中清除媒體快取。解除安裝會清除應用程式容器，但 iOS 鑰匙圈項目可能保留。若要清除登入憑證，請先在應用程式內移除帳號。若要永久刪除帳號及站台保有的資料，請使用<strong>設定 → 刪除 Mastodon 帳號</strong>或聯絡站台營運者。<a href="/support/#account">查看帳號刪除步驟</a>。</p>
+      <h2>網站與支援郵件</h2>
+      <p>本網站會在瀏覽器的工作階段儲存空間記住所選語言，並且不載入分析指令碼。代管業者可能會處理提供頁面及保護服務所需的一般請求資訊。你寄信尋求支援時，BobMaster 會收到你的電子郵件地址、信件內容和你提供的資料，並依回覆及後續處理所需保留。你可以透過電子郵件提出刪除申請。</p>
+      <h2>聯絡開發者</h2>
+      <p>BobMaster · <a href="mailto:bobmaster@hibobmaster.com">bobmaster@hibobmaster.com</a></p>
+    </section>
   </main>
   <footer class="footer"><div class="wrap foot">
     <a class="brand" href="/"><img src="/assets/quantoot.png" width="32" height="32" alt="">QuanToot</a>
-    <div><a href="/support/" data-zh="支持">Support</a><a href="https://git.qqs.tw/bobmaster/quantoot_next" data-zh="源代码">Source</a></div>
-    <small data-zh="由 BobMaster 开发">Made by BobMaster</small>
+    <div><a href="/support/" data-zh-hans="支持" data-zh-hant="支援">Support</a><a href="https://git.qqs.tw/bobmaster/quantoot_next" data-zh-hans="源代码" data-zh-hant="原始碼">Source</a></div>
+    <small data-zh-hans="由 BobMaster 开发" data-zh-hant="由 BobMaster 開發">Made by BobMaster</small>
   </div></footer>
 </body>
 </html>

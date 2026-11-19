@@ -1,16 +1,24 @@
 # QuanToot website
 
-Serve the static files in `dist/`. The homepage offers English and Simplified
-Chinese and uses fictional posts for its timeline demo.
+The homepage, privacy policy, and support pages are available in English,
+Simplified Chinese, and Traditional Chinese. The homepage uses fictional posts
+for its timeline demo.
 
-Run `npm run check` here to check pages and asset paths. Preview locally with
-`python3 -m http.server 4173 --bind 127.0.0.1 --directory dist`.
+Run `npm run check` here to check pages and asset paths. Run `npm ci` and then
+`npx wrangler pages dev dist --port 4173` to preview locally with the download API.
 
 | Route | Purpose |
 | --- | --- |
 | [quantoot.qqs.tw](https://quantoot.qqs.tw/) | Product overview and downloads |
 | [/privacy/](https://quantoot.qqs.tw/privacy/) | App Store privacy policy URL |
 | [/support/](https://quantoot.qqs.tw/support/) | App Store support URL and account deletion help |
+
+## Android downloads
+
+The homepage queries the `/api/android` Pages Function. It reads the latest
+stable release from the public Forgejo API and returns the official APK and
+checksum links. Successful responses can be cached for five minutes. APKs are
+served by Forgejo, and new stable releases appear without a website deployment.
 
 ## Cloudflare Pages
 
