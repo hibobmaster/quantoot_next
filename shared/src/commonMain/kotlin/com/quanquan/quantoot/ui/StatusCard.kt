@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Favorite
@@ -29,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.quanquan.quantoot.data.*
 import com.quanquan.quantoot.model.*
+import com.quanquan.quantoot.platform.formatLocalDateTime
+import kotlin.time.Instant
 
 enum class StatusPresentation { Full, Focal, Quoted }
 
@@ -420,24 +423,44 @@ private fun PostAction(
 fun PollView(ui: UiContext, initial: Poll) {
     var poll by remember(initial) { mutableStateOf(initial) }
     var selected by remember(poll.id) { mutableStateOf<Set<Int>>(emptySet()) }
-    var busy by remember { mutableStateOf(false) }
+    var busy by remember(poll.id) { mutableStateOf(false) }
+    val showResults = poll.voted || poll.expired
+    val strings = LocalStrings.current
+    val expiresAt = poll.expiresAt
+    val deadline = if (poll.expired) {
+        tr("mastodon_poll_ended")
+    } else {
+        val languageTag = strings.locale.takeUnless { it == "system" }
+        val date = remember(expiresAt, languageTag, strings.systemLanguage) {
+            expiresAt?.let { runCatching { Instant.parse(it) }.getOrNull() }
+                ?.let { formatLocalDateTime(it, languageTag) }
+        }
+        date?.let { tr("mastodon_poll_ends_at", "time" to it) }
+    }
+    val count = poll.votersCount ?: poll.votesCount
     Column {
         poll.options.forEachIndexed { i, option ->
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                if (!poll.voted && !poll.expired)
-                    Checkbox(
-                        i in selected,
-                        { checked ->
-                            selected =
-                                if (poll.multiple) {
-                                    if (checked) selected + i else selected - i
-                                } else setOf(i)
-                        },
-                    )
+            val checked = i in selected
+            val row = Modifier.fillMaxWidth()
+            Row(
+                if (showResults) row else row
+                    .toggleable(checked, enabled = !busy, role = Role.Checkbox) { nextChecked ->
+                        selected = when {
+                            !nextChecked -> selected - i
+                            poll.multiple -> selected + i
+                            else -> setOf(i)
+                        }
+                    }
+                    .heightIn(min = 48.dp)
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                if (!showResults) Checkbox(checked, onCheckedChange = null, enabled = !busy)
                 Text(option.title, Modifier.weight(1f))
-                if (poll.voted || poll.expired) Text("${option.votesCount ?: 0}")
+                if (showResults) Text("${option.votesCount ?: 0}")
             }
-            if (poll.voted || poll.expired)
+            if (showResults)
                 LinearProgressIndicator(
                     progress = {
                         (option.votesCount ?: 0).toFloat() / poll.votesCount.coerceAtLeast(1)
@@ -446,17 +469,21 @@ fun PollView(ui: UiContext, initial: Poll) {
                 )
         }
         Text(
-            "${poll.votersCount ?: poll.votesCount} · ${poll.expiresAt.orEmpty()}",
+            deadline?.let { "$count · $it" } ?: count.toString(),
             style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        if (!poll.voted && !poll.expired)
+        if (!showResults)
             TextButton(
                 onClick = {
                     ui.requireLogin {
-                        busy = true
+                        val pollId = poll.id
+                        val choices = selected.toList()
                         ui.run {
+                            if (busy) return@run
+                            busy = true
                             try {
-                                poll = ui.api.vote(poll.id, selected.toList())
+                                poll = ui.api.vote(pollId, choices)
                             } finally {
                                 busy = false
                             }
@@ -465,7 +492,7 @@ fun PollView(ui: UiContext, initial: Poll) {
                 },
                 enabled = selected.isNotEmpty() && !busy,
             ) {
-                Text(tr("mastodon_publish"))
+                Text(tr("mastodon_vote"))
             }
     }
 }

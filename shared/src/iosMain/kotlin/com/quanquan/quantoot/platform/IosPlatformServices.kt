@@ -11,6 +11,7 @@ import io.ktor.client.statement.bodyAsChannel
 import io.ktor.utils.io.readAvailable
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.time.Instant
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.reinterpret
@@ -42,6 +43,13 @@ import platform.UIKit.*
 import platform.UniformTypeIdentifiers.UTType
 import platform.darwin.NSObject
 import platform.posix.memcpy
+
+internal actual fun formatLocalDateTime(time: Instant, languageTag: String?): String =
+    NSDateFormatter().apply {
+        dateStyle = NSDateFormatterMediumStyle
+        timeStyle = NSDateFormatterShortStyle
+        languageTag?.let { locale = NSLocale(localeIdentifier = it) }
+    }.stringFromDate(NSDate.dateWithTimeIntervalSince1970(time.toEpochMilliseconds() / 1000.0))
 
 class IosPlatformServices : PlatformServices {
     override val hideSensitivePosts = true

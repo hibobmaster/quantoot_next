@@ -13,11 +13,14 @@ import com.quanquan.quantoot.auth.AccountStore
 import com.quanquan.quantoot.auth.FakePlatform
 import com.quanquan.quantoot.auth.Session
 import com.quanquan.quantoot.model.Account
+import com.quanquan.quantoot.model.Poll
+import com.quanquan.quantoot.model.PollOption
 import com.quanquan.quantoot.model.Status
 import com.quanquan.quantoot.ui.AdaptiveWindow
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
+import java.util.TimeZone
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json
@@ -117,6 +120,49 @@ class OfflineAppTest {
         compose.onNodeWithText("Federated").assertDoesNotExist()
     }
 
+    @Test
+    fun singleChoicePollCanBeClearedBeforeVotingAndShowsLocalDeadline() {
+        val server = OfflineMastodon()
+        val deadline = "2099-11-27T23:30:45.000Z"
+        val poll = Poll(
+            id = "9", expiresAt = deadline,
+            options = listOf(PollOption("Open source"), PollOption("Microsoft 365")),
+        )
+        server.posts.value = listOf(
+            Status(id = "42", account = server.account.value, content = "Which tool would you use?", poll = poll),
+        )
+        val previousTimeZone = TimeZone.getDefault()
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"))
+        try {
+            openApp(server)
+            compose.onNode(waitFor(hasContentDescription("View replies, 0 replies"))).performClick()
+            compose.onNode(waitFor(hasText("Conversation"))).assertIsDisplayed()
+            compose.onNode(hasText("Ends Nov 28, 2099", substring = true) and hasText("7:30", substring = true))
+                .assertIsDisplayed()
+            compose.onNodeWithText(deadline, substring = true).assertDoesNotExist()
+
+            val first = compose.onNode(hasText("Open source") and isToggleable())
+            val second = compose.onNode(hasText("Microsoft 365") and isToggleable())
+            val vote = compose.onNodeWithText("Vote")
+            vote.assertIsNotEnabled()
+            first.performTouchInput { click(center) }.assertIsOn()
+            vote.assertIsEnabled()
+            first.performTouchInput { click(center) }.assertIsOff()
+            vote.assertIsNotEnabled()
+            assertEquals(emptyList<Int>(), server.posts.value.single().poll?.ownVotes)
+
+            first.performClick().assertIsOn()
+            second.performClick().assertIsOn()
+            first.assertIsOff()
+            vote.performClick()
+            compose.waitUntil(5_000) { server.posts.value.single().poll?.voted == true }
+            assertEquals(listOf(1), server.posts.value.single().poll?.ownVotes)
+            compose.waitUntil(5_000) { compose.onAllNodesWithText("Vote").fetchSemanticsNodes().isEmpty() }
+        } finally {
+            TimeZone.setDefault(previousTimeZone)
+        }
+    }
+
     private val width = mutableIntStateOf(390)
 
     private fun openApp(server: OfflineMastodon, initialWidth: Int = 390, signedIn: Boolean = true) {
@@ -167,6 +213,20 @@ private class OfflineMastodon(private val metadata: CompletableDeferred<String>?
         val body = when (path) {
             "/api/v2/instance" -> metadata?.await() ?: PUBLIC_TIMELINES
             "/api/v1/accounts/1", "/api/v1/accounts/verify_credentials" -> Json.encodeToString(account.value)
+            "/api/v1/timelines/home" -> Json.encodeToString(
+                posts.value.takeUnless { request.url.parameters["max_id"] != null }.orEmpty()
+            )
+            "/api/v1/statuses/42" -> Json.encodeToString(posts.value.single())
+            "/api/v1/statuses/42/context" -> "{}"
+            "/api/v1/polls/9/votes" -> {
+                check(request.method == HttpMethod.Post)
+                val choices = parseQueryString(request.body.toByteArray().decodeToString())
+                    .getAll("choices[]").orEmpty().map(String::toInt)
+                val post = posts.value.single()
+                val poll = checkNotNull(post.poll).copy(voted = true, ownVotes = choices)
+                posts.value = listOf(post.copy(poll = poll))
+                Json.encodeToString(poll)
+            }
             "/api/v1/accounts/1/statuses" -> Json.encodeToString(
                 posts.value.takeUnless { request.url.parameters["pinned"] == "true" ||
                     request.url.parameters["max_id"] != null }.orEmpty()

@@ -14,8 +14,11 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.text.DateFormat
+import java.util.Date
 import java.util.Locale
 import kotlin.coroutines.resume
+import kotlin.time.Instant
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -23,6 +26,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+
+internal actual fun formatLocalDateTime(time: Instant, languageTag: String?): String {
+    val locale = languageTag?.let(Locale::forLanguageTag) ?: Locale.getDefault(Locale.Category.FORMAT)
+    return DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, locale)
+        .format(Date(time.toEpochMilliseconds()))
+}
 
 class AndroidPlatformServices(private val activity: ComponentActivity) : PlatformServices {
     override val preferences: AppPreferences = AndroidPreferences(activity.applicationContext)

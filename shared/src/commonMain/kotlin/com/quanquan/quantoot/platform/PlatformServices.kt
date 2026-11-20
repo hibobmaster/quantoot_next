@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.time.Instant
 
 interface KeyValueStore {
     @Throws(Exception::class) suspend fun read(key: String): String?
@@ -49,5 +50,7 @@ expect fun createHttpClient(): HttpClient
 expect fun secureRandomBytes(size: Int): ByteArray
 
 expect fun sha256(bytes: ByteArray): ByteArray
+
+internal expect fun formatLocalDateTime(time: Instant, languageTag: String?): String
 
 @Composable expect fun NativeVideoPlayer(url: String, modifier: Modifier, onError: () -> Unit)
