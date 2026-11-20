@@ -15,8 +15,8 @@ android {
         minSdk = 26
         targetSdk = 37
         // Reserve the last digit for per-ABI release APKs.
-        versionCode = 2020 * 10
-        versionName = "0.6.8"
+        versionCode = 2021 * 10
+        versionName = "0.6.9"
         testInstrumentationRunner = "com.quanquan.quantoot.StorageInstrumentation"
     }
     compileOptions {
