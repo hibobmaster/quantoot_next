@@ -182,9 +182,19 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1600;
 				TargetAttributes = {
+					1232DF6B6A022AD74BD8A286 = {
+						DevelopmentTeam = 2GF2Q682QZ;
+						ProvisioningStyle = Automatic;
+					};
+					E0777175CC3F6C19D708B7C4 = {
+						DevelopmentTeam = 2GF2Q682QZ;
+						ProvisioningStyle = Automatic;
+					};
 					E54D881DFA5535A0BAE13619 = {
+						DevelopmentTeam = 2GF2Q682QZ;
+						ProvisioningStyle = Automatic;
 						TestTargetID = 1232DF6B6A022AD74BD8A286;
 					};
 				};
@@ -240,7 +250,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" = \"YES\" ]; then\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
+			shellScript = "set -eu\nif [ \"${OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED:-}\" = \"YES\" ]; then\n  exit 0\nfi\nif [ \"${CI_XCODE_CLOUD:-}\" = \"TRUE\" ]; then\n  . \"$SRCROOT/ci_scripts/java-home.sh\"\n  if ! JAVA_HOME=$(quantoot_java_home); then\n    echo \"error: JDK 17 is missing from the Xcode Cloud worker.\" >&2\n    exit 1\n  fi\n  export JAVA_HOME\nfi\ncd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -362,9 +372,11 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 19;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 2GF2Q682QZ;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -480,9 +492,11 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 19;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 2GF2Q682QZ;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
