@@ -43,6 +43,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
+  flex-shrink: 0;
   font-size: 1.15rem;
   font-weight: 740;
   letter-spacing: -0.04em;
@@ -72,6 +73,7 @@
   font-weight: 530;
   color: var(--ink-muted);
   text-decoration: none;
+  white-space: nowrap;
   transition: color var(--dur-fast) var(--ease-smooth), background-color var(--dur-fast) var(--ease-smooth);
 }
 
@@ -84,6 +86,7 @@
   display: flex;
   align-items: center;
   gap: 0.42rem;
+  flex-shrink: 0;
 }
 
 .control-pill {
@@ -99,6 +102,7 @@
   color: var(--ink-secondary);
   font-size: 0.82rem;
   font-weight: 560;
+  white-space: nowrap;
   cursor: pointer;
   transition:
     background-color var(--dur-fast) var(--ease-smooth),
@@ -114,6 +118,7 @@
 .theme-btn {
   width: 2.25rem;
   padding: 0;
+  flex-shrink: 0;
 }
 
 .theme-btn svg {
@@ -124,6 +129,7 @@
 /* Custom Editorial Language Popover */
 .lang-picker {
   position: relative;
+  flex-shrink: 0;
 }
 
 .lang-trigger {
@@ -275,12 +281,19 @@
 }
 
 .nav-download-link {
-  padding: 0.42rem 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.25rem;
+  padding: 0 0.95rem;
   border-radius: var(--radius-pill);
   background: var(--ink);
   color: var(--bg-elevated);
   font-size: 0.84rem;
   font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
   text-decoration: none;
   transition: background-color var(--dur-fast) var(--ease-smooth), transform var(--dur-fast) var(--ease-spring);
 }
@@ -290,6 +303,7 @@
   width: 2.25rem;
   height: 2.25rem;
   padding: 0;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-pill);
@@ -485,6 +499,25 @@
   .footer-col a:hover,
   .footer-bottom a:hover {
     color: var(--vermilion);
+  }
+}
+
+@media (max-width: 1080px) {
+  .nav-shell {
+    gap: 0.55rem;
+  }
+  .nav-links {
+    gap: 0.05rem;
+  }
+  .nav-links a {
+    padding: 0.42rem 0.62rem;
+    font-size: 0.85rem;
+  }
+  .nav-controls {
+    gap: 0.35rem;
+  }
+  .nav-download-link {
+    padding: 0 0.82rem;
   }
 }
 
