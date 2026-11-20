@@ -16,6 +16,7 @@ iosApp/*.xcodeproj/xcuserdata/
 .audit/kmp-migration.tsv
 .audit/client-polish/*.log
 .audit/client-polish/ui-*/
+key.properties
 
 # Keep UI audit images out of Git history.
 /.audit/**/*.png
