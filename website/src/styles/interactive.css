@@ -10,6 +10,11 @@
   align-items: start;
 }
 
+/* Mobile Chapter Switcher (hidden on desktop) */
+.story-mobile-tabs {
+  display: none;
+}
+
 /* Left Column: Narrative Chapters */
 .story-chapters {
   display: grid;
@@ -45,11 +50,6 @@
   transition: background-color var(--dur-med) var(--ease-smooth), transform var(--dur-med) var(--ease-out);
   transform: scaleY(0.38);
   transform-origin: top center;
-}
-
-.story-chapter:hover {
-  opacity: 0.9;
-  background: var(--bg-subtle);
 }
 
 .story-chapter.is-active {
@@ -292,10 +292,6 @@
   transition: transform var(--dur-fast) var(--ease-spring), filter var(--dur-fast) var(--ease-smooth);
 }
 
-.sim-pending-pill:hover {
-  transform: translateY(-1.5px);
-}
-
 .sim-pending-pill svg {
   width: 0.82rem;
   height: 0.82rem;
@@ -348,11 +344,6 @@
   flex-shrink: 0;
 }
 
-.sim-cw-btn:hover {
-  background: var(--app-primary-container);
-  color: var(--app-on-primary-container);
-}
-
 .sim-actions-row {
   display: flex;
   align-items: center;
@@ -373,11 +364,6 @@
   font-weight: 600;
   cursor: pointer;
   transition: color var(--dur-fast) var(--ease-smooth), background-color var(--dur-fast) var(--ease-smooth), transform var(--dur-fast) var(--ease-spring);
-}
-
-.sim-action-btn:hover {
-  background: var(--app-container-low);
-  color: var(--app-ink);
 }
 
 .sim-action-btn:active {
@@ -600,10 +586,6 @@
   transition: transform 420ms var(--ease-out);
 }
 
-.sim-media-trigger:hover img {
-  transform: scale(1.04);
-}
-
 /* Fullscreen Gallery Overlay inside Phone */
 .sim-lightbox {
   position: absolute;
@@ -695,17 +677,170 @@
   font-weight: 740;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .story-chapter:hover {
+    opacity: 0.9;
+    background: var(--bg-subtle);
+  }
+  .sim-pending-pill:hover {
+    transform: translateY(-1.5px);
+  }
+  .sim-cw-btn:hover {
+    background: var(--app-primary-container);
+    color: var(--app-on-primary-container);
+  }
+  .sim-action-btn:hover {
+    background: var(--app-container-low);
+    color: var(--app-ink);
+  }
+  .sim-media-trigger:hover img {
+    transform: scale(1.04);
+  }
+}
+
 @media (max-width: 960px) {
   .story-grid {
     grid-template-columns: minmax(0, 1fr);
+    gap: 1.15rem;
   }
   .story-sticky-col {
     position: static;
   }
+  .story-mobile-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.4rem;
+    padding: 0.32rem;
+    border-radius: var(--radius-lg);
+    background: var(--bg-subtle);
+    border: 1px solid var(--line);
+  }
+  .story-mobile-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 2.75rem;
+    padding: 0.45rem 0.5rem;
+    border: 0;
+    border-radius: calc(var(--radius-lg) - 0.32rem);
+    background: transparent;
+    color: var(--ink-muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      background-color var(--dur-fast) var(--ease-smooth),
+      color var(--dur-fast) var(--ease-smooth),
+      box-shadow var(--dur-fast) var(--ease-smooth);
+  }
+  .story-mobile-tab[aria-selected="true"] {
+    background: var(--bg-elevated);
+    color: var(--ink);
+    font-weight: 680;
+    box-shadow: var(--shadow-sm);
+  }
+  .story-mobile-num {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--ink-faint);
+  }
+  .story-mobile-tab[aria-selected="true"] .story-mobile-num {
+    color: var(--vermilion);
+  }
+  .story-chapter:not(.is-active) {
+    display: none;
+  }
+  .story-chapter.is-active {
+    padding: 1.15rem 1.15rem 1.15rem 1.55rem;
+    cursor: default;
+  }
+  .story-chapter.is-active::before {
+    left: 0.65rem;
+    top: 1.15rem;
+    bottom: 1.15rem;
+  }
+  .story-chapter h3 {
+    font-size: 1.28rem;
+    margin-bottom: 0.45rem;
+  }
+  .story-chapter p {
+    font-size: 0.92rem;
+  }
+  .chapter-cue {
+    margin-top: 0.72rem;
+  }
+  .sim-screen-body {
+    overscroll-behavior: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 @media (max-width: 560px) {
+  .story-section {
+    padding-block: 3.25rem;
+  }
+  .story-mobile-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .sim-plinth {
+    padding: 0.95rem 0.7rem 1.05rem;
+    border-radius: var(--radius-lg);
+    gap: 0.9rem;
+  }
+  .sim-mode-tag {
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+  }
+  .sim-phone {
+    width: 100%;
+    max-width: 22rem;
+    padding: 6px;
+    border-radius: 2.3rem;
+  }
   .sim-screen {
-    height: 33.5rem;
+    height: min(33rem, 68dvh);
+    min-height: 25rem;
+    border-radius: 1.9rem;
+  }
+  .sim-theme-btn {
+    min-height: 2.25rem;
+    padding: 0.34rem 0.75rem;
+  }
+  .sim-feed-tab {
+    min-height: 2.65rem;
+  }
+  .sim-pending-pill {
+    min-height: 2.35rem;
+    padding: 0.45rem 1rem;
+  }
+  .sim-cw-btn {
+    min-height: 2.1rem;
+    padding: 0.3rem 0.75rem;
+  }
+  .sim-action-btn {
+    min-height: 2.25rem;
+    min-width: 2.25rem;
+    justify-content: center;
+  }
+  .sim-chip {
+    min-height: 2.2rem;
+    padding: 0.36rem 0.75rem;
+  }
+  .sim-poll-opt {
+    min-height: 2.55rem;
+    padding: 0.55rem 0.72rem;
+  }
+  .sim-publish-btn {
+    min-height: 2.15rem;
+    padding: 0.38rem 0.95rem;
+  }
+  .sim-lightbox-btn {
+    min-height: 2.35rem;
+    padding: 0.38rem 0.85rem;
+  }
+  .sim-dock-btn {
+    min-height: 2.85rem;
   }
 }

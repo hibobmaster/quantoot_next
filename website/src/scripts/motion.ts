@@ -22,6 +22,7 @@ export function initMotion(): void {
   // 2. Scroll-Triggered Staggered Reveals
   const revealNodes = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
   if ('IntersectionObserver' in window && revealNodes.length > 0) {
+    const isCompact = window.innerWidth < 768;
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -31,7 +32,10 @@ export function initMotion(): void {
           }
         }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -42px 0px' }
+      {
+        threshold: isCompact ? 0.04 : 0.1,
+        rootMargin: isCompact ? '0px 0px -12px 0px' : '0px 0px -42px 0px',
+      }
     );
     revealNodes.forEach((node) => observer.observe(node));
   } else {

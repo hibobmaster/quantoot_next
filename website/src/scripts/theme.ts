@@ -3,16 +3,18 @@ export function initThemeToggle(): void {
   const metaTheme = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
   const sunIcon = toggle?.querySelector<SVGElement>('[data-icon-sun]');
   const moonIcon = toggle?.querySelector<SVGElement>('[data-icon-moon]');
+  const colorQuery = window.matchMedia?.('(prefers-color-scheme: dark)');
 
-  let isDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+  let isDark = colorQuery?.matches ?? false;
+  let manualOverride = false;
 
   function render(): void {
     if (isDark) {
       document.documentElement.dataset.theme = 'dark';
-      if (metaTheme) metaTheme.content = '#121311';
+      if (metaTheme) metaTheme.content = '#111311';
     } else {
       delete document.documentElement.dataset.theme;
-      if (metaTheme) metaTheme.content = '#f8f5ed';
+      if (metaTheme) metaTheme.content = '#f6f2e9';
     }
 
     if (toggle) {
@@ -26,9 +28,16 @@ export function initThemeToggle(): void {
 
   render();
 
+  colorQuery?.addEventListener('change', (event) => {
+    if (manualOverride) return;
+    isDark = event.matches;
+    render();
+  });
+
   if (toggle) {
     toggle.hidden = false;
     toggle.addEventListener('click', () => {
+      manualOverride = true;
       isDark = !isDark;
       render();
     });

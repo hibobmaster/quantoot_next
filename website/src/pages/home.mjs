@@ -181,7 +181,7 @@ export function renderHomePage() {
                       <span class="qt-handle">@mika@notes.example</span>
                       <p class="qt-post-text" ${tr('Sun-lit corner table and an hour of quiet.', '午后阳光书桌，安静的一小时。', '午後陽光書桌，安靜的一小時。')}>Sun-lit corner table and an hour of quiet.</p>
                       <div class="qt-media-wrap">
-                        <img src="/assets/bookshop.jpg" width="960" height="540" alt="">
+                        <img src="/assets/bookshop.jpg" width="960" height="540" loading="lazy" decoding="async" alt="">
                         <span class="qt-alt-tag">ALT</span>
                       </div>
                     </div>
@@ -239,12 +239,30 @@ export function renderHomePage() {
           <h2><span ${tr('Scroll the story, or ', '随滚动流转，也可', '隨捲動流轉，也可')}>Scroll the story, or </span><em ${tr('touch the glass.', '亲手点开试试。', '親手點開試試。')}>touch the glass.</em></h2>
           <p class="section-lead" ${tr(
             'Every control inside the preview responds just like the app — switch timelines, reveal new posts, fold Content Warnings, vote in a poll, or open photographs full-screen.',
-            '右侧设备内的交互完全可点按体验：切换时间线、展开新嘟文、打开内容警告、参与投票，或点开照片细看 ALT 描述。',
-            '右側裝置內的互動完全可點按體驗：切換時間軸、展開新嘟文、開啟內容警告、參與投票，或點開照片細看 ALT 描述。'
+            '设备内的交互完全可点按体验：切换时间线、展开新嘟文、打开内容警告、参与投票，或点开照片细看 ALT 描述。',
+            '裝置內的互動完全可點按體驗：切換時間軸、展開新嘟文、開啟內容警告、參與投票，或點開照片細看 ALT 描述。'
           )}>Every control inside the preview responds just like the app — switch timelines, reveal new posts, fold Content Warnings, vote in a poll, or open photographs full-screen.</p>
         </div>
 
         <div class="story-grid">
+          <div class="story-mobile-tabs" role="tablist" aria-label="Interactive walkthrough chapters" data-translate="aria-label" ${tr('Interactive walkthrough chapters', '交互体验章节', '互動體驗章節')}>
+            <button class="story-mobile-tab" type="button" role="tab" data-story-tab="timelines" aria-selected="true">
+              <span class="story-mobile-num">01</span>
+              <span ${tr('Timelines', '时间线', '時間軸')}>Timelines</span>
+            </button>
+            <button class="story-mobile-tab" type="button" role="tab" data-story-tab="threads" aria-selected="false">
+              <span class="story-mobile-num">02</span>
+              <span ${tr('Threads', '对话', '對話')}>Threads</span>
+            </button>
+            <button class="story-mobile-tab" type="button" role="tab" data-story-tab="composer" aria-selected="false">
+              <span class="story-mobile-num">03</span>
+              <span ${tr('Composer', '撰写', '撰寫')}>Composer</span>
+            </button>
+            <button class="story-mobile-tab" type="button" role="tab" data-story-tab="explore" aria-selected="false">
+              <span class="story-mobile-num">04</span>
+              <span ${tr('Gallery', '画廊', '畫廊')}>Gallery</span>
+            </button>
+          </div>
           <div class="story-chapters">
             <button class="story-chapter is-active" type="button" data-story-chapter="timelines" aria-pressed="true">
               <span class="chapter-num">01</span>
@@ -475,11 +493,11 @@ export function renderHomePage() {
                           <p class="qt-post-text" ${tr('Two quiet corners from this week — afternoon tea and a lantern at dusk.', '这周最喜欢的两个安静角落：午后书桌与暮色提灯。', '這週最喜歡的兩個安靜角落：午後書桌與暮色提燈。')}>Two quiet corners from this week — afternoon tea and a lantern at dusk.</p>
                           <div class="sim-photo-pair">
                             <button class="sim-media-trigger" type="button" data-open-photo="bookshop" aria-label="Open bookshop photograph full-screen">
-                              <img src="/assets/bookshop.jpg" width="960" height="540" alt="Open hardcover book and steaming teacup on a sunlit wooden table">
+                              <img src="/assets/bookshop.jpg" width="960" height="540" loading="lazy" decoding="async" alt="Open hardcover book and steaming teacup on a sunlit wooden table">
                               <span class="qt-alt-tag">ALT</span>
                             </button>
                             <button class="sim-media-trigger" type="button" data-open-photo="twilight" aria-label="Open twilight pier photograph full-screen">
-                              <img src="/assets/twilight.jpg" width="960" height="540" alt="Timber boardwalk beside calm twilight water with a single glowing lantern">
+                              <img src="/assets/twilight.jpg" width="960" height="540" loading="lazy" decoding="async" alt="Timber boardwalk beside calm twilight water with a single glowing lantern">
                               <span class="qt-alt-tag">ALT</span>
                             </button>
                           </div>
@@ -495,7 +513,7 @@ export function renderHomePage() {
                       <button class="sim-lightbox-btn" type="button" data-close-lightbox ${tr('Close', '关闭', '關閉')}>Close</button>
                     </div>
                     <div class="sim-lightbox-img-wrap">
-                      <img class="sim-lightbox-img" data-lightbox-img src="/assets/bookshop.jpg" width="960" height="540" alt="">
+                      <img class="sim-lightbox-img" data-lightbox-img src="/assets/bookshop.jpg" width="960" height="540" loading="lazy" decoding="async" alt="">
                     </div>
                     <div class="sim-lightbox-alt">
                       <strong>ALT · </strong>
@@ -562,7 +580,7 @@ export function renderHomePage() {
                       <div><strong>Lina</strong><div class="pane-post-muted">@lina@studio.example · 14m</div></div>
                     </div>
                     <p ${tr('Morning field notes. The lake was quiet enough to hear the mist move.', '清晨笔记：湖面静得连雾气流动的声音都听得见。', '清晨筆記：湖面靜得連霧氣流動的聲音都聽得見。')}>Morning field notes. The lake was quiet enough to hear the mist move.</p>
-                    <div class="pane-photo"><img src="/assets/lake.jpg" width="800" height="450" alt=""></div>
+                    <div class="pane-photo"><img src="/assets/lake.jpg" width="800" height="450" loading="lazy" decoding="async" alt=""></div>
                   </div>
                 </div>
                 <div class="pane-bottom-nav">
@@ -588,7 +606,7 @@ export function renderHomePage() {
                       <div><strong>Mika</strong><div class="pane-post-muted">@mika@notes.example · 22m</div></div>
                     </div>
                     <p ${tr('Unfolding a thread beside your timeline turns social reading into a two-page journal spread.', '在时间线旁并排展开讨论，让日常浏览拥有如翻开纸本画报般的从容节奏。', '在時間軸旁並排展開討論，讓日常瀏覽擁有如翻開紙本畫報般的從容節奏。')}>Unfolding a thread beside your timeline turns social reading into a two-page journal spread.</p>
-                    <div class="pane-photo"><img src="/assets/bookshop.jpg" width="960" height="540" alt=""></div>
+                    <div class="pane-photo"><img src="/assets/bookshop.jpg" width="960" height="540" loading="lazy" decoding="async" alt=""></div>
                   </div>
                 </div>
                 <div class="adaptive-reply-bar">
@@ -682,7 +700,7 @@ export function renderHomePage() {
               <p ${tr('Read full ALT descriptions right over any photograph, zoom in cleanly, watch video natively, and save original photos with add-only library access.', '随时展开完整 ALT 图片描述、顺滑放大细节、原生播放视频，并仅按需请求写入权限保存原图。', '隨時展開完整 ALT 圖片描述、順滑放大細節、原生播放影片，並僅按需請求寫入權限儲存原圖。')}>Read full ALT descriptions right over any photograph, zoom in cleanly, watch video natively, and save original photos with add-only library access.</p>
             </div>
             <div class="alt-frame" data-alt-frame>
-              <img src="/assets/twilight.jpg" width="960" height="540" alt="Timber boardwalk beside calm twilight water with a single glowing lantern">
+              <img src="/assets/twilight.jpg" width="960" height="540" loading="lazy" decoding="async" alt="Timber boardwalk beside calm twilight water with a single glowing lantern">
               <div class="alt-lens-sheet" data-alt-sheet hidden ${tr(
                 'A weathered timber boardwalk extending alongside misty pine trees overlooking calm blue-green twilight water, lit by a single warm lantern.',
                 '暮色薄雾中的常青林畔，一座木质长廊伸向平静的蓝绿色湖面，尽头亮着一盏温暖提灯。',

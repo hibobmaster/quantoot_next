@@ -2,7 +2,7 @@
 <html lang="en" data-page="support">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f6f2e9">
   <meta name="description" content="Get help with QuanToot, contact the developer, report abuse, or learn how to delete a Mastodon account." data-translate="content" data-zh-hans="获取 QuanToot 帮助、联系开发者、举报违规内容，或了解如何删除 Mastodon 账号。" data-zh-hant="取得 QuanToot 支援、聯絡開發者、檢舉違規內容，或了解如何刪除 Mastodon 帳號。">
   <meta property="og:title" content="Support &amp; safety · QuanToot">
@@ -24,6 +24,7 @@
   <div class="scroll-progress" data-scroll-progress aria-hidden="true"></div>
   <a class="skip" href="#main" data-zh-hans="跳到正文" data-zh-hant="跳至主要內容">Skip to content</a>
   <header class="site-header" data-site-header>
+    <div class="mobile-drawer-backdrop" data-mobile-backdrop hidden aria-hidden="true"></div>
     <div class="wrap">
       <div class="nav-shell">
         <a class="brand" href="/" aria-label="QuanToot">
@@ -45,6 +46,7 @@
             <button class="control-pill lang-trigger" type="button" data-lang-trigger aria-haspopup="menu" aria-expanded="false" aria-controls="lang-menu" aria-label="Language" data-translate="aria-label" data-zh-hans="语言" data-zh-hant="語言">
               <span class="lang-globe"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.2"/><path d="M3.2 10h13.6M10 2.8a10.5 10.5 0 0 1 0 14.4M10 2.8a10.5 10.5 0 0 0 0 14.4"/></svg></span>
               <span class="lang-current" data-lang-current>English</span>
+              <span class="lang-current-short" data-lang-current-short aria-hidden="true">EN</span>
               <svg class="lang-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5.5 7.75 4.5 4.5 4.5-4.5"/></svg>
             </button>
             <div id="lang-menu" class="lang-menu" role="menu" data-lang-menu aria-label="Choose language" data-translate="aria-label" data-zh-hans="选择语言" data-zh-hant="選擇語言" hidden>
@@ -64,19 +66,20 @@
           </div>
           <a class="nav-download-link" href="/#android" data-zh-hans="获取应用" data-zh-hant="取得應用">Get QuanToot</a>
           <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu" data-translate="aria-label" data-zh-hans="打开菜单" data-zh-hant="開啟選單">
-            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M3.5 6.5h13M3.5 13.5h13"/></svg>
+            <span data-menu-icon-open><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M3.5 6.5h13M3.5 13.5h13"/></svg></span>
+            <span data-menu-icon-close hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="m5.5 5.5 9 9M14.5 5.5l-9 9"/></svg></span>
           </button>
         </div>
       </div>
+      <nav id="mobile-nav" class="mobile-drawer" data-mobile-drawer aria-label="Mobile navigation" hidden>
+        <a href="/#experience" data-zh-hans="阅读体验" data-zh-hant="閱讀體驗">The reading experience</a>
+        <a href="/#screens" data-zh-hans="手机、折叠屏与平板" data-zh-hant="手機、摺疊螢幕與平板">Phones, foldables &amp; iPad</a>
+        <a href="/#details" data-zh-hans="细腻之处" data-zh-hant="細膩之處">Crafted details</a>
+        <a href="/privacy/" data-zh-hans="隐私政策" data-zh-hant="隱私權政策">Privacy policy</a>
+        <a href="/support/" aria-current="page" data-zh-hans="支持与安全" data-zh-hant="支援與安全">Support &amp; safety</a>
+        <a class="mobile-drawer-cta" href="/#android"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5v9M6.5 9.5 10 13l3.5-3.5M4 15.5h12"/></svg><span data-zh-hans="下载 Android 与 iOS 版" data-zh-hant="下載 Android 與 iOS 版">Download for Android &amp; iOS</span></a>
+      </nav>
     </div>
-    <nav id="mobile-nav" class="mobile-drawer" data-mobile-drawer aria-label="Mobile navigation" hidden>
-      <a href="/#experience" data-zh-hans="阅读体验" data-zh-hant="閱讀體驗">The reading experience</a>
-      <a href="/#screens" data-zh-hans="手机、折叠屏与平板" data-zh-hant="手機、摺疊螢幕與平板">Phones, foldables &amp; iPad</a>
-      <a href="/#details" data-zh-hans="细腻之处" data-zh-hant="細膩之處">Crafted details</a>
-      <a href="/#android" data-zh-hans="下载 Android 与 iOS 版" data-zh-hant="下載 Android 與 iOS 版">Download for Android &amp; iOS</a>
-      <a href="/privacy/" data-zh-hans="隐私政策" data-zh-hant="隱私權政策">Privacy policy</a>
-      <a href="/support/" data-zh-hans="支持与安全" data-zh-hant="支援與安全">Support &amp; safety</a>
-    </nav>
   </header>
   
   <main class="doc-main" id="main">

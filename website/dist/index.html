@@ -2,7 +2,7 @@
 <html lang="en" data-page="home">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f6f2e9">
   <meta name="description" content="QuanToot is an independent Mastodon client for iPhone, iPad, Android, and foldables. Choose your server and read the social web at your pace." data-translate="content" data-zh-hans="QuanToot 是独立的 Mastodon 客户端，适用于 iPhone、iPad、Android 与折叠屏。选择自己的实例，按自己的节奏浏览。" data-zh-hant="QuanToot 是獨立的 Mastodon 用戶端，適用於 iPhone、iPad、Android 與摺疊螢幕。選擇自己的站台，按自己的步調瀏覽。">
   <meta property="og:title" content="QuanToot — The social web, at your pace">
@@ -24,6 +24,7 @@
   <div class="scroll-progress" data-scroll-progress aria-hidden="true"></div>
   <a class="skip" href="#main" data-zh-hans="跳到正文" data-zh-hant="跳至主要內容">Skip to content</a>
   <header class="site-header" data-site-header>
+    <div class="mobile-drawer-backdrop" data-mobile-backdrop hidden aria-hidden="true"></div>
     <div class="wrap">
       <div class="nav-shell">
         <a class="brand" href="/" aria-label="QuanToot">
@@ -45,6 +46,7 @@
             <button class="control-pill lang-trigger" type="button" data-lang-trigger aria-haspopup="menu" aria-expanded="false" aria-controls="lang-menu" aria-label="Language" data-translate="aria-label" data-zh-hans="语言" data-zh-hant="語言">
               <span class="lang-globe"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.2"/><path d="M3.2 10h13.6M10 2.8a10.5 10.5 0 0 1 0 14.4M10 2.8a10.5 10.5 0 0 0 0 14.4"/></svg></span>
               <span class="lang-current" data-lang-current>English</span>
+              <span class="lang-current-short" data-lang-current-short aria-hidden="true">EN</span>
               <svg class="lang-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5.5 7.75 4.5 4.5 4.5-4.5"/></svg>
             </button>
             <div id="lang-menu" class="lang-menu" role="menu" data-lang-menu aria-label="Choose language" data-translate="aria-label" data-zh-hans="选择语言" data-zh-hant="選擇語言" hidden>
@@ -64,19 +66,20 @@
           </div>
           <a class="nav-download-link" href="#android" data-zh-hans="获取应用" data-zh-hant="取得應用">Get QuanToot</a>
           <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu" data-translate="aria-label" data-zh-hans="打开菜单" data-zh-hant="開啟選單">
-            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M3.5 6.5h13M3.5 13.5h13"/></svg>
+            <span data-menu-icon-open><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M3.5 6.5h13M3.5 13.5h13"/></svg></span>
+            <span data-menu-icon-close hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="m5.5 5.5 9 9M14.5 5.5l-9 9"/></svg></span>
           </button>
         </div>
       </div>
+      <nav id="mobile-nav" class="mobile-drawer" data-mobile-drawer aria-label="Mobile navigation" hidden>
+        <a href="#experience" data-zh-hans="阅读体验" data-zh-hant="閱讀體驗">The reading experience</a>
+        <a href="#screens" data-zh-hans="手机、折叠屏与平板" data-zh-hant="手機、摺疊螢幕與平板">Phones, foldables &amp; iPad</a>
+        <a href="#details" data-zh-hans="细腻之处" data-zh-hant="細膩之處">Crafted details</a>
+        <a href="/privacy/" data-zh-hans="隐私政策" data-zh-hant="隱私權政策">Privacy policy</a>
+        <a href="/support/" data-zh-hans="支持与安全" data-zh-hant="支援與安全">Support &amp; safety</a>
+        <a class="mobile-drawer-cta" href="#android"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5v9M6.5 9.5 10 13l3.5-3.5M4 15.5h12"/></svg><span data-zh-hans="下载 Android 与 iOS 版" data-zh-hant="下載 Android 與 iOS 版">Download for Android &amp; iOS</span></a>
+      </nav>
     </div>
-    <nav id="mobile-nav" class="mobile-drawer" data-mobile-drawer aria-label="Mobile navigation" hidden>
-      <a href="#experience" data-zh-hans="阅读体验" data-zh-hant="閱讀體驗">The reading experience</a>
-      <a href="#screens" data-zh-hans="手机、折叠屏与平板" data-zh-hant="手機、摺疊螢幕與平板">Phones, foldables &amp; iPad</a>
-      <a href="#details" data-zh-hans="细腻之处" data-zh-hant="細膩之處">Crafted details</a>
-      <a href="#android" data-zh-hans="下载 Android 与 iOS 版" data-zh-hant="下載 Android 與 iOS 版">Download for Android &amp; iOS</a>
-      <a href="/privacy/" data-zh-hans="隐私政策" data-zh-hant="隱私權政策">Privacy policy</a>
-      <a href="/support/" data-zh-hans="支持与安全" data-zh-hant="支援與安全">Support &amp; safety</a>
-    </nav>
   </header>
   
   <main id="main">
@@ -254,7 +257,7 @@
                       <span class="qt-handle">@mika@notes.example</span>
                       <p class="qt-post-text" data-zh-hans="午后阳光书桌，安静的一小时。" data-zh-hant="午後陽光書桌，安靜的一小時。">Sun-lit corner table and an hour of quiet.</p>
                       <div class="qt-media-wrap">
-                        <img src="/assets/bookshop.jpg" width="960" height="540" alt="">
+                        <img src="/assets/bookshop.jpg" width="960" height="540" loading="lazy" decoding="async" alt="">
                         <span class="qt-alt-tag">ALT</span>
                       </div>
                     </div>
@@ -310,10 +313,28 @@
         <div class="section-head" data-reveal>
           <p class="kicker"><span class="kicker-rule" aria-hidden="true"></span><span data-zh-hans="阅读与书写体验" data-zh-hant="閱讀與書寫體驗">The reading experience</span></p>
           <h2><span data-zh-hans="随滚动流转，也可" data-zh-hant="隨捲動流轉，也可">Scroll the story, or </span><em data-zh-hans="亲手点开试试。" data-zh-hant="親手點開試試。">touch the glass.</em></h2>
-          <p class="section-lead" data-zh-hans="右侧设备内的交互完全可点按体验：切换时间线、展开新嘟文、打开内容警告、参与投票，或点开照片细看 ALT 描述。" data-zh-hant="右側裝置內的互動完全可點按體驗：切換時間軸、展開新嘟文、開啟內容警告、參與投票，或點開照片細看 ALT 描述。">Every control inside the preview responds just like the app — switch timelines, reveal new posts, fold Content Warnings, vote in a poll, or open photographs full-screen.</p>
+          <p class="section-lead" data-zh-hans="设备内的交互完全可点按体验：切换时间线、展开新嘟文、打开内容警告、参与投票，或点开照片细看 ALT 描述。" data-zh-hant="裝置內的互動完全可點按體驗：切換時間軸、展開新嘟文、開啟內容警告、參與投票，或點開照片細看 ALT 描述。">Every control inside the preview responds just like the app — switch timelines, reveal new posts, fold Content Warnings, vote in a poll, or open photographs full-screen.</p>
         </div>
 
         <div class="story-grid">
+          <div class="story-mobile-tabs" role="tablist" aria-label="Interactive walkthrough chapters" data-translate="aria-label" data-zh-hans="交互体验章节" data-zh-hant="互動體驗章節">
+            <button class="story-mobile-tab" type="button" role="tab" data-story-tab="timelines" aria-selected="true">
+              <span class="story-mobile-num">01</span>
+              <span data-zh-hans="时间线" data-zh-hant="時間軸">Timelines</span>
+            </button>
+            <button class="story-mobile-tab" type="button" role="tab" data-story-tab="threads" aria-selected="false">
+              <span class="story-mobile-num">02</span>
+              <span data-zh-hans="对话" data-zh-hant="對話">Threads</span>
+            </button>
+            <button class="story-mobile-tab" type="button" role="tab" data-story-tab="composer" aria-selected="false">
+              <span class="story-mobile-num">03</span>
+              <span data-zh-hans="撰写" data-zh-hant="撰寫">Composer</span>
+            </button>
+            <button class="story-mobile-tab" type="button" role="tab" data-story-tab="explore" aria-selected="false">
+              <span class="story-mobile-num">04</span>
+              <span data-zh-hans="画廊" data-zh-hant="畫廊">Gallery</span>
+            </button>
+          </div>
           <div class="story-chapters">
             <button class="story-chapter is-active" type="button" data-story-chapter="timelines" aria-pressed="true">
               <span class="chapter-num">01</span>
@@ -544,11 +565,11 @@
                           <p class="qt-post-text" data-zh-hans="这周最喜欢的两个安静角落：午后书桌与暮色提灯。" data-zh-hant="這週最喜歡的兩個安靜角落：午後書桌與暮色提燈。">Two quiet corners from this week — afternoon tea and a lantern at dusk.</p>
                           <div class="sim-photo-pair">
                             <button class="sim-media-trigger" type="button" data-open-photo="bookshop" aria-label="Open bookshop photograph full-screen">
-                              <img src="/assets/bookshop.jpg" width="960" height="540" alt="Open hardcover book and steaming teacup on a sunlit wooden table">
+                              <img src="/assets/bookshop.jpg" width="960" height="540" loading="lazy" decoding="async" alt="Open hardcover book and steaming teacup on a sunlit wooden table">
                               <span class="qt-alt-tag">ALT</span>
                             </button>
                             <button class="sim-media-trigger" type="button" data-open-photo="twilight" aria-label="Open twilight pier photograph full-screen">
-                              <img src="/assets/twilight.jpg" width="960" height="540" alt="Timber boardwalk beside calm twilight water with a single glowing lantern">
+                              <img src="/assets/twilight.jpg" width="960" height="540" loading="lazy" decoding="async" alt="Timber boardwalk beside calm twilight water with a single glowing lantern">
                               <span class="qt-alt-tag">ALT</span>
                             </button>
                           </div>
@@ -564,7 +585,7 @@
                       <button class="sim-lightbox-btn" type="button" data-close-lightbox data-zh-hans="关闭" data-zh-hant="關閉">Close</button>
                     </div>
                     <div class="sim-lightbox-img-wrap">
-                      <img class="sim-lightbox-img" data-lightbox-img src="/assets/bookshop.jpg" width="960" height="540" alt="">
+                      <img class="sim-lightbox-img" data-lightbox-img src="/assets/bookshop.jpg" width="960" height="540" loading="lazy" decoding="async" alt="">
                     </div>
                     <div class="sim-lightbox-alt">
                       <strong>ALT · </strong>
@@ -631,7 +652,7 @@
                       <div><strong>Lina</strong><div class="pane-post-muted">@lina@studio.example · 14m</div></div>
                     </div>
                     <p data-zh-hans="清晨笔记：湖面静得连雾气流动的声音都听得见。" data-zh-hant="清晨筆記：湖面靜得連霧氣流動的聲音都聽得見。">Morning field notes. The lake was quiet enough to hear the mist move.</p>
-                    <div class="pane-photo"><img src="/assets/lake.jpg" width="800" height="450" alt=""></div>
+                    <div class="pane-photo"><img src="/assets/lake.jpg" width="800" height="450" loading="lazy" decoding="async" alt=""></div>
                   </div>
                 </div>
                 <div class="pane-bottom-nav">
@@ -657,7 +678,7 @@
                       <div><strong>Mika</strong><div class="pane-post-muted">@mika@notes.example · 22m</div></div>
                     </div>
                     <p data-zh-hans="在时间线旁并排展开讨论，让日常浏览拥有如翻开纸本画报般的从容节奏。" data-zh-hant="在時間軸旁並排展開討論，讓日常瀏覽擁有如翻開紙本畫報般的從容節奏。">Unfolding a thread beside your timeline turns social reading into a two-page journal spread.</p>
-                    <div class="pane-photo"><img src="/assets/bookshop.jpg" width="960" height="540" alt=""></div>
+                    <div class="pane-photo"><img src="/assets/bookshop.jpg" width="960" height="540" loading="lazy" decoding="async" alt=""></div>
                   </div>
                 </div>
                 <div class="adaptive-reply-bar">
@@ -751,7 +772,7 @@
               <p data-zh-hans="随时展开完整 ALT 图片描述、顺滑放大细节、原生播放视频，并仅按需请求写入权限保存原图。" data-zh-hant="隨時展開完整 ALT 圖片描述、順滑放大細節、原生播放影片，並僅按需請求寫入權限儲存原圖。">Read full ALT descriptions right over any photograph, zoom in cleanly, watch video natively, and save original photos with add-only library access.</p>
             </div>
             <div class="alt-frame" data-alt-frame>
-              <img src="/assets/twilight.jpg" width="960" height="540" alt="Timber boardwalk beside calm twilight water with a single glowing lantern">
+              <img src="/assets/twilight.jpg" width="960" height="540" loading="lazy" decoding="async" alt="Timber boardwalk beside calm twilight water with a single glowing lantern">
               <div class="alt-lens-sheet" data-alt-sheet hidden data-zh-hans="暮色薄雾中的常青林畔，一座木质长廊伸向平静的蓝绿色湖面，尽头亮着一盏温暖提灯。" data-zh-hant="暮色薄霧中的常青林畔，一座木質長廊伸向平靜的藍綠色湖面，盡頭亮著一盞溫暖提燈。">A weathered timber boardwalk extending alongside misty pine trees overlooking calm blue-green twilight water, lit by a single warm lantern.</div>
               <button class="alt-lens-btn" type="button" data-alt-lens aria-expanded="false" data-zh-hans="ALT · 查看描述" data-zh-hant="ALT · 檢視描述">ALT · Inspect</button>
             </div>

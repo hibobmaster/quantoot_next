@@ -9,6 +9,12 @@ const LANGUAGE_LABELS: Record<Language, string> = {
   'zh-Hant': '繁體中文',
 };
 
+const LANGUAGE_SHORT_LABELS: Record<Language, string> = {
+  en: 'EN',
+  'zh-Hans': '简',
+  'zh-Hant': '繁',
+};
+
 interface TranslationBinding {
   node: HTMLElement;
   attribute: string | undefined;
@@ -54,6 +60,7 @@ export function initI18n(): void {
   const picker = document.querySelector<HTMLElement>('[data-lang-picker]');
   const trigger = picker?.querySelector<HTMLButtonElement>('[data-lang-trigger]');
   const currentLabel = picker?.querySelector<HTMLElement>('[data-lang-current]');
+  const currentShortLabel = picker?.querySelector<HTMLElement>('[data-lang-current-short]');
   const menu = picker?.querySelector<HTMLElement>('[data-lang-menu]');
   const options = Array.from(picker?.querySelectorAll<HTMLButtonElement>('[data-lang-option]') ?? []);
 
@@ -75,6 +82,9 @@ export function initI18n(): void {
 
   function setMenuOpen(open: boolean, returnFocus = false): void {
     if (!trigger || !menu) return;
+    if (open) {
+      window.dispatchEvent(new CustomEvent('quantoot:overlay-open', { detail: 'lang' }));
+    }
     menu.hidden = !open;
     trigger.setAttribute('aria-expanded', String(open));
     if (open) {
@@ -89,6 +99,7 @@ export function initI18n(): void {
     currentLanguage = lang;
     document.documentElement.lang = lang;
     if (currentLabel) currentLabel.textContent = LANGUAGE_LABELS[lang];
+    if (currentShortLabel) currentShortLabel.textContent = LANGUAGE_SHORT_LABELS[lang];
 
     options.forEach((opt) => {
       opt.setAttribute('aria-checked', String(opt.dataset.langOption === lang));
@@ -182,6 +193,12 @@ export function initI18n(): void {
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && !menu.hidden) {
         setMenuOpen(false, true);
+      }
+    });
+
+    window.addEventListener('quantoot:overlay-open', (event) => {
+      if ((event as CustomEvent<string>).detail !== 'lang' && !menu.hidden) {
+        setMenuOpen(false, false);
       }
     });
   }

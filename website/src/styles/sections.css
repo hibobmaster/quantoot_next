@@ -81,12 +81,6 @@
   transition: transform var(--dur-med) var(--ease-out), box-shadow var(--dur-med) var(--ease-out), border-color var(--dur-fast) var(--ease-smooth);
 }
 
-.specimen:hover {
-  transform: translateY(-3px);
-  border-color: var(--line-strong);
-  box-shadow: var(--shadow-md);
-}
-
 .spec-7 { grid-column: span 7; }
 .spec-5 { grid-column: span 5; }
 .spec-6 { grid-column: span 6; }
@@ -151,10 +145,13 @@
   display: flex;
   align-items: center;
   gap: 0.7rem;
+  min-width: 0;
+  flex: 1;
 }
 
 .avatar-stack {
   display: flex;
+  flex-shrink: 0;
 }
 
 .avatar-stack span {
@@ -250,15 +247,12 @@
   transition: background-color var(--dur-fast) var(--ease-smooth), transform var(--dur-fast) var(--ease-spring);
 }
 
-.alt-lens-btn:hover {
-  background: var(--vermilion);
-  border-color: var(--vermilion);
-}
-
 .alt-lens-sheet {
   position: absolute;
   inset: auto 0.9rem 3.4rem 0.9rem;
   z-index: 2;
+  max-height: calc(100% - 4.2rem);
+  overflow-y: auto;
   padding: 0.9rem 1rem;
   border-radius: var(--radius-md);
   background: rgba(16, 19, 17, 0.84);
@@ -295,10 +289,6 @@
     transform var(--dur-fast) var(--ease-spring);
 }
 
-.sanctuary-card:hover {
-  background: rgba(246, 242, 231, 0.11);
-}
-
 .sanctuary-card[aria-pressed="true"] {
   background: #f6f2e7;
   border-color: #f6f2e7;
@@ -310,6 +300,13 @@
   display: flex;
   align-items: center;
   gap: 0.7rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.sanctuary-meta {
+  min-width: 0;
+  flex: 1;
 }
 
 .sanctuary-meta strong {
@@ -322,6 +319,9 @@
   font-family: var(--font-mono);
   font-size: 0.72rem;
   opacity: 0.74;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sanctuary-pill {
@@ -332,6 +332,7 @@
   letter-spacing: 0.04em;
   background: rgba(183, 64, 41, 0.14);
   color: #9e311d;
+  flex-shrink: 0;
 }
 
 .sanctuary-card[aria-pressed="false"] .sanctuary-pill {
@@ -479,19 +480,10 @@
   color: #15211d;
 }
 
-.btn-on-dark:hover {
-  background: #ffffff;
-  transform: translateY(-2px);
-}
-
 .btn-on-dark-ghost {
   background: transparent;
   border-color: rgba(246, 242, 231, 0.28);
   color: #f6f2e7;
-}
-
-.btn-on-dark-ghost:hover {
-  background: rgba(246, 242, 231, 0.1);
 }
 
 .privacy-constellation {
@@ -567,6 +559,11 @@
 @keyframes flow-dash {
   from { background-position: 0 0; }
   to { background-position: 24px 0; }
+}
+
+@keyframes flow-dash-vertical {
+  from { background-position: 0 0; }
+  to { background-position: 0 24px; }
 }
 
 .flow-label {
@@ -654,11 +651,18 @@
   min-height: 1.65rem;
 }
 
+[data-release-ready] {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .release-version-pill {
   display: inline-flex;
   align-items: center;
   padding: 0.14rem 0.65rem;
-  margin-left: 0.45rem;
+  margin-left: 0;
   border-radius: var(--radius-pill);
   background: rgba(248, 244, 232, 0.16);
   border: 1px solid rgba(248, 244, 232, 0.25);
@@ -695,20 +699,10 @@
     border-color var(--dur-fast) var(--ease-smooth);
 }
 
-.apk-link:hover {
-  transform: translateY(-2px);
-  background: rgba(248, 244, 232, 0.16);
-  border-color: rgba(248, 244, 232, 0.46);
-}
-
 .apk-link.apk-recommended {
   background: #f5ecda;
   border-color: #f5ecda;
   color: #16221d;
-}
-
-.apk-link.apk-recommended:hover {
-  background: #fff9eb;
 }
 
 .apk-link strong {
@@ -733,12 +727,11 @@
 }
 
 .release-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.35rem;
   color: #f8f4e8;
   opacity: 0.88;
-}
-
-.release-links a:hover {
-  opacity: 1;
 }
 
 .ios-specs {
@@ -754,8 +747,9 @@
 
 .ios-specs li {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.15rem 1rem;
 }
 
 .ios-specs span { color: var(--ink-muted); }
@@ -767,6 +761,39 @@
   gap: 0.72rem;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .specimen:hover {
+    transform: translateY(-3px);
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-md);
+  }
+  .alt-lens-btn:hover {
+    background: var(--vermilion);
+    border-color: var(--vermilion);
+  }
+  .sanctuary-card:hover {
+    background: rgba(246, 242, 231, 0.11);
+  }
+  .btn-on-dark:hover {
+    background: #ffffff;
+    transform: translateY(-2px);
+  }
+  .btn-on-dark-ghost:hover {
+    background: rgba(246, 242, 231, 0.1);
+  }
+  .apk-link:hover {
+    transform: translateY(-2px);
+    background: rgba(248, 244, 232, 0.16);
+    border-color: rgba(248, 244, 232, 0.46);
+  }
+  .apk-link.apk-recommended:hover {
+    background: #fff9eb;
+  }
+  .release-links a:hover {
+    opacity: 1;
+  }
+}
+
 @media (max-width: 1024px) {
   .pause-pillars { grid-template-columns: 1fr; }
   .spec-7, .spec-5, .spec-6 { grid-column: span 12; }
@@ -774,11 +801,104 @@
 }
 
 @media (max-width: 680px) {
+  .editorial-pause {
+    padding-block: 2.75rem;
+  }
+  .pause-quote {
+    text-align: left;
+    font-size: clamp(1.38rem, 5.4vw, 1.75rem);
+    line-height: 1.38;
+  }
+  .pause-pillars {
+    margin-top: 1.75rem;
+    padding-top: 1.35rem;
+    gap: 1.15rem;
+  }
   .flow-nodes { grid-template-columns: 1fr; }
   .flow-line {
     width: 2px;
     height: 2.2rem;
     background: repeating-linear-gradient(180deg, #ff9c82 0 6px, transparent 6px 12px);
+    background-size: 2px 24px;
+    animation-name: flow-dash-vertical;
   }
   .apk-list { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .specimens-section,
+  .privacy-band,
+  .download-section {
+    padding-block: 3.25rem;
+  }
+  .specimen-grid {
+    gap: 1rem;
+  }
+  .specimen {
+    padding: 1.35rem 1.15rem;
+    border-radius: var(--radius-lg);
+    gap: 1.25rem;
+  }
+  .req-btn {
+    min-height: 2.4rem;
+    padding: 0.42rem 0.92rem;
+  }
+  .alt-frame img {
+    aspect-ratio: 4 / 3;
+  }
+  .alt-lens-btn {
+    left: 0.65rem;
+    bottom: 0.65rem;
+    min-height: 2.35rem;
+    padding: 0.4rem 0.85rem;
+  }
+  .alt-lens-sheet {
+    inset: auto 0.65rem 3.55rem 0.65rem;
+    padding: 0.72rem 0.85rem;
+    font-size: 0.78rem;
+  }
+  .sanctuary-card {
+    padding: 0.82rem 0.85rem;
+    gap: 0.6rem;
+  }
+  .sanctuary-card[aria-pressed="true"] {
+    transform: none;
+  }
+  .filter-demo {
+    padding: 0.9rem 0.95rem;
+  }
+  .privacy-constellation {
+    padding: 1.25rem;
+    border-radius: var(--radius-lg);
+    gap: 1.1rem;
+  }
+  .privacy-links,
+  .ios-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .download-card {
+    padding: 1.5rem 1.25rem;
+    border-radius: var(--radius-lg);
+    gap: 1.35rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .req-actions {
+    width: 100%;
+  }
+  .req-actions .req-btn {
+    flex: 1;
+  }
+  .flow-absent {
+    flex-wrap: wrap;
+    gap: 0.6rem 1rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .ios-specs strong {
+    text-align: left;
+  }
 }

@@ -62,7 +62,7 @@ export function renderPage({
 <html lang="en" data-page="${pageId}">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f6f2e9">
   <meta name="description" content="${escapeAttr(descEn)}" data-translate="content" ${tr(descEn, descZhHans, descZhHant)}>
   <meta property="og:title" content="${escapeAttr(ogTitle ?? titleEn)}">
@@ -84,6 +84,7 @@ export function renderPage({
   <div class="scroll-progress" data-scroll-progress aria-hidden="true"></div>
   <a class="skip" href="#main" ${tr('Skip to content', '跳到正文', '跳至主要內容')}>Skip to content</a>
   <header class="site-header" data-site-header>
+    <div class="mobile-drawer-backdrop" data-mobile-backdrop hidden aria-hidden="true"></div>
     <div class="wrap">
       <div class="nav-shell">
         <a class="brand" href="/" aria-label="QuanToot">
@@ -105,6 +106,7 @@ export function renderPage({
             <button class="control-pill lang-trigger" type="button" data-lang-trigger aria-haspopup="menu" aria-expanded="false" aria-controls="lang-menu" aria-label="Language" data-translate="aria-label" ${tr('Language', '语言', '語言')}>
               <span class="lang-globe">${icons.globe}</span>
               <span class="lang-current" data-lang-current>English</span>
+              <span class="lang-current-short" data-lang-current-short aria-hidden="true">EN</span>
               ${icons.chevronDown}
             </button>
             <div id="lang-menu" class="lang-menu" role="menu" data-lang-menu aria-label="Choose language" data-translate="aria-label" ${tr('Choose language', '选择语言', '選擇語言')} hidden>
@@ -124,19 +126,20 @@ export function renderPage({
           </div>
           <a class="nav-download-link" href="${anchor('#android')}" ${tr('Get QuanToot', '获取应用', '取得應用')}>Get QuanToot</a>
           <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu" data-translate="aria-label" ${tr('Open menu', '打开菜单', '開啟選單')}>
-            ${icons.menu}
+            <span data-menu-icon-open>${icons.menu}</span>
+            <span data-menu-icon-close hidden>${icons.close}</span>
           </button>
         </div>
       </div>
+      <nav id="mobile-nav" class="mobile-drawer" data-mobile-drawer aria-label="Mobile navigation" hidden>
+        <a href="${anchor('#experience')}" ${tr('The reading experience', '阅读体验', '閱讀體驗')}>The reading experience</a>
+        <a href="${anchor('#screens')}" ${tr('Phones, foldables & iPad', '手机、折叠屏与平板', '手機、摺疊螢幕與平板')}>Phones, foldables &amp; iPad</a>
+        <a href="${anchor('#details')}" ${tr('Crafted details', '细腻之处', '細膩之處')}>Crafted details</a>
+        <a href="/privacy/"${pageId === 'privacy' ? ' aria-current="page"' : ''} ${tr('Privacy policy', '隐私政策', '隱私權政策')}>Privacy policy</a>
+        <a href="/support/"${pageId === 'support' ? ' aria-current="page"' : ''} ${tr('Support & safety', '支持与安全', '支援與安全')}>Support &amp; safety</a>
+        <a class="mobile-drawer-cta" href="${anchor('#android')}">${icons.download}<span ${tr('Download for Android & iOS', '下载 Android 与 iOS 版', '下載 Android 與 iOS 版')}>Download for Android &amp; iOS</span></a>
+      </nav>
     </div>
-    <nav id="mobile-nav" class="mobile-drawer" data-mobile-drawer aria-label="Mobile navigation" hidden>
-      <a href="${anchor('#experience')}" ${tr('The reading experience', '阅读体验', '閱讀體驗')}>The reading experience</a>
-      <a href="${anchor('#screens')}" ${tr('Phones, foldables & iPad', '手机、折叠屏与平板', '手機、摺疊螢幕與平板')}>Phones, foldables &amp; iPad</a>
-      <a href="${anchor('#details')}" ${tr('Crafted details', '细腻之处', '細膩之處')}>Crafted details</a>
-      <a href="${anchor('#android')}" ${tr('Download for Android & iOS', '下载 Android 与 iOS 版', '下載 Android 與 iOS 版')}>Download for Android &amp; iOS</a>
-      <a href="/privacy/" ${tr('Privacy policy', '隐私政策', '隱私權政策')}>Privacy policy</a>
-      <a href="/support/" ${tr('Support & safety', '支持与安全', '支援與安全')}>Support &amp; safety</a>
-    </nav>
   </header>
   ${body}
   <footer class="site-footer">

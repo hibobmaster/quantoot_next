@@ -43,6 +43,11 @@ const REQ_FEEDBACK: Record<'approved' | 'rejected', Record<Language, string>> = 
   rejected: { en: 'Rejected', 'zh-Hans': '已拒绝', 'zh-Hant': '已拒絕' },
 };
 
+const SANCTUARY_PILLS: Record<'active' | 'switch', Record<Language, string>> = {
+  active: { en: 'Active', 'zh-Hans': '当前', 'zh-Hant': '目前' },
+  switch: { en: 'Switch', 'zh-Hans': '切换', 'zh-Hant': '切換' },
+};
+
 const LIGHTBOX_PHOTOS: Record<string, { src: string; alt: Record<Language, string> }> = {
   bookshop: {
     src: '/assets/bookshop.jpg',
@@ -65,6 +70,7 @@ const LIGHTBOX_PHOTOS: Record<string, { src: string; alt: Record<Language, strin
 export function initInteractiveApp(): void {
   // 1. Scroll-Synchronized + Clickable Narrative Chapters
   const chapters = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-story-chapter]'));
+  const mobileTabs = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-story-tab]'));
   const panels = Array.from(document.querySelectorAll<HTMLElement>('[data-sim-panel]'));
   const dockButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-sim-dock]'));
   let activeChapter = 'timelines';
@@ -80,6 +86,9 @@ export function initInteractiveApp(): void {
       btn.classList.toggle('is-active', active);
       btn.setAttribute('aria-pressed', String(active));
     });
+    mobileTabs.forEach((tab) => {
+      tab.setAttribute('aria-selected', String(tab.dataset.storyTab === name));
+    });
     panels.forEach((panel) => {
       panel.hidden = panel.dataset.simPanel !== name;
     });
@@ -87,7 +96,7 @@ export function initInteractiveApp(): void {
     const dockMap: Record<string, string> = {
       timelines: 'home',
       threads: 'threads',
-      composer: 'home',
+      composer: 'composer',
       explore: 'explore',
     };
     const activeDock = dockMap[name] ?? 'home';
@@ -103,6 +112,23 @@ export function initInteractiveApp(): void {
     btn.addEventListener('click', () => {
       const target = btn.dataset.storyChapter;
       if (target) selectChapter(target, true);
+    });
+  });
+
+  mobileTabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.storyTab;
+      if (target) selectChapter(target, true);
+    });
+    tab.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+      event.preventDefault();
+      const step = event.key === 'ArrowRight' ? 1 : -1;
+      const next = mobileTabs[(index + step + mobileTabs.length) % mobileTabs.length];
+      if (!next) return;
+      const target = next.dataset.storyTab;
+      if (target) selectChapter(target, true);
+      next.focus();
     });
   });
 
@@ -362,11 +388,23 @@ export function initInteractiveApp(): void {
 
   // C. Multi-Account Sanctuary Switcher
   const sanctuaryCards = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-sanctuary-card]'));
+  function renderSanctuaryPills(): void {
+    const lang = getLanguage();
+    sanctuaryCards.forEach((item) => {
+      const active = item.getAttribute('aria-pressed') === 'true';
+      const pill = item.querySelector<HTMLElement>('.sanctuary-pill');
+      if (pill) {
+        pill.textContent = SANCTUARY_PILLS[active ? 'active' : 'switch'][lang];
+      }
+    });
+  }
   sanctuaryCards.forEach((card) => {
     card.addEventListener('click', () => {
       sanctuaryCards.forEach((item) => item.setAttribute('aria-pressed', String(item === card)));
+      renderSanctuaryPills();
     });
   });
+  onLanguageChange(renderSanctuaryPills);
 
   // D. Keyword Filter Shield Toggle
   const filterBtn = document.querySelector<HTMLButtonElement>('[data-filter-toggle]');

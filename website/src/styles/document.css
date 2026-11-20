@@ -2,6 +2,7 @@
 .doc-main {
   width: min(100% - var(--pad) * 2, 52rem);
   margin-inline: auto;
+  padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
   padding-block: clamp(2.75rem, 6.5vw, 5.5rem) clamp(4rem, 7vw, 6.5rem);
 }
 
@@ -12,7 +13,7 @@
 }
 
 .doc-header h1 {
-  font-size: clamp(2.5rem, 5.5vw, 4.4rem);
+  font-size: clamp(2.15rem, 6.2vw, 4.4rem);
   line-height: 1.04;
 }
 
@@ -46,15 +47,18 @@
 }
 
 .doc-contact-copy {
-  flex: 1 1 20rem;
+  flex: 1 1 16rem;
+  min-width: 0;
 }
 
 .doc-contact-mail {
+  display: inline-block;
   font-family: var(--font-mono);
-  font-size: 1.05rem;
+  font-size: clamp(0.88rem, 3.6vw, 1.05rem);
   font-weight: 700;
   color: var(--vermilion);
   text-decoration: none;
+  overflow-wrap: anywhere;
 }
 
 .doc-contact-mail:hover {
@@ -100,7 +104,6 @@
 
 .doc-faq details {
   border-bottom: 1px solid var(--line);
-  padding: 1rem 0;
 }
 
 .doc-faq summary {
@@ -110,6 +113,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  padding: 1rem 0;
+  min-height: 3rem;
   font-weight: 660;
   color: var(--ink);
 }
@@ -123,6 +128,7 @@
   font-family: var(--font-mono);
   font-size: 1.2rem;
   color: var(--vermilion);
+  flex-shrink: 0;
   transition: transform var(--dur-fast) var(--ease-smooth);
 }
 
@@ -131,6 +137,35 @@
 }
 
 .doc-faq details p {
-  margin: 0.75rem 0 0.15rem;
+  margin: 0;
+  padding: 0 0 1rem;
   color: var(--ink-muted);
+}
+
+@media (max-width: 560px) {
+  .doc-main {
+    padding-block: 2rem 3.25rem;
+  }
+  .doc-header {
+    padding-bottom: 1.45rem;
+    margin-bottom: 1.6rem;
+  }
+  .doc-intro {
+    font-size: 1rem;
+  }
+  .doc-contact-card {
+    padding: 1.2rem;
+    margin-bottom: 1.85rem;
+    gap: 1rem;
+  }
+  .doc-contact-card > div:last-child,
+  .doc-contact-card .btn {
+    width: 100%;
+  }
+  .doc-contact-card .doc-meta {
+    text-align: center;
+  }
+  .doc-body h2 {
+    margin: 2rem 0 0.6rem;
+  }
 }
