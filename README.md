@@ -48,7 +48,7 @@ To run on a physical device, select your Apple developer team in Xcode. After ed
 
 Shared tests cover OAuth, account isolation, pagination, media handling, response limits, and timeline state. Platform tests also cover Android Keystore, iOS Keychain, and migration of credentials from the earlier Flutter app.
 
-See the [migration notes](docs/MIGRATION.md) for migration coverage and verification scope, and the [architecture guide](docs/ARCHITECTURE.md) for module responsibilities.
+See the [architecture guide](docs/ARCHITECTURE.md) for module responsibilities.
 
 ## License
 
