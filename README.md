@@ -49,3 +49,7 @@ xcodebuild -project iosApp/QuanToot.xcodeproj \
 共享测试检查 OAuth、账户隔离、分页、媒体处理、响应限制和时间线状态。原生测试还检查 Android Keystore、iOS Keychain 及旧 Flutter 凭据的迁移。
 
 迁移覆盖和验证边界见 [迁移记录](docs/MIGRATION.md)。模块职责见 [架构说明](docs/ARCHITECTURE.md)。
+
+## 许可证
+
+QuanToot 使用 [MIT 许可证](LICENSE)。
