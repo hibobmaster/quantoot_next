@@ -1,35 +1,35 @@
 # QuanToot
 
-QuanToot 是使用 Kotlin Multiplatform 和 Compose Multiplatform 重构的 Mastodon 客户端。Android 和 iOS 共用界面、网络、账户状态与业务逻辑。
+QuanToot is a Mastodon client built with Kotlin Multiplatform and Compose Multiplatform. Its Android and iOS apps share the user interface, networking, account state, and application logic.
 
-用户自行选择实例。应用支持公开浏览、OAuth 登录、多账户、时间线、搜索、通知、发帖、媒体、投票、个人资料和账户设置。
+Choose your Mastodon instance and browse public timelines without signing in. Sign in with OAuth to use multiple accounts, follow timelines, search, view notifications, publish posts with media and polls, and manage profiles and account settings.
 
-## 开发环境
+## Development requirements
 
-- JDK 17。
-- Android SDK 37。
-- macOS 和 Xcode，用于构建 iOS。最低 iOS 版本为 15.0。
-- Android 最低版本为 API 26。
+- JDK 17
+- Android SDK 37
+- macOS and Xcode for iOS builds
+- Android API 26 or later and iOS 15.0 or later on target devices
 
-仓库固定 Kotlin 2.4.21、Compose Multiplatform 1.12.2、AGP 9.3.3 和 Gradle 9.5.0。版本定义位于 `gradle/libs.versions.toml`。
+The project pins Kotlin 2.4.21, Compose Multiplatform 1.12.2, and Android Gradle Plugin 9.3.3 in `gradle/libs.versions.toml`. The Gradle Wrapper pins Gradle 9.9.1 in `gradle/wrapper/gradle-wrapper.properties`.
 
-版本依据为 [Kotlin 发布记录](https://kotlinlang.org/docs/releases.html)、[Compose 兼容性说明](https://kotlinlang.org/docs/multiplatform/compose-compatibility-and-versioning.html)和 [AGP 9.3 发布说明](https://developer.android.com/build/releases/agp-9-3-0-release-notes)。
+See the [Kotlin release notes](https://kotlinlang.org/docs/releases.html), [Compose compatibility guide](https://kotlinlang.org/docs/multiplatform/compose-compatibility-and-versioning.html), and [AGP 9.3 release notes](https://developer.android.com/build/releases/agp-9-3-0-release-notes) for version compatibility.
 
-## 构建 Android
+## Build for Android
 
-将 `ANDROID_HOME` 指向 Android SDK，或者在未提交的 `local.properties` 中配置 `sdk.dir`。
+Set `ANDROID_HOME` to the Android SDK directory or set `sdk.dir` in your local `local.properties` file.
 
 ```sh
 ./gradlew :shared:testAndroidHostTest :androidApp:assembleDebug
 ```
 
-调试 APK 输出到 `androidApp/build/outputs/apk/debug/androidApp-debug.apk`。在 Android Studio 中打开仓库，选择 `androidApp` 运行。
+The debug APK is written to `androidApp/build/outputs/apk/debug/androidApp-debug.apk`. To run the app from Android Studio, open the repository and select the `androidApp` run configuration.
 
-发布包需要配置自己的签名。仓库不包含签名密钥，也不为 release 构建使用 debug 签名。
+Configure your own signing key for release builds. Keep signing keys outside the repository and use a release signing configuration.
 
-## 构建 iOS
+## Build for iOS
 
-打开 `iosApp/QuanToot.xcodeproj`，选择 `QuanToot` scheme 和 iOS 模拟器，然后运行。构建阶段会自动调用 Gradle 生成共享 framework。
+Open `iosApp/QuanToot.xcodeproj` in Xcode, select the `QuanToot` scheme and an iOS simulator, then run the app. Xcode invokes Gradle during the build to generate the shared framework.
 
 ```sh
 xcodebuild -project iosApp/QuanToot.xcodeproj \
@@ -37,19 +37,19 @@ xcodebuild -project iosApp/QuanToot.xcodeproj \
   CODE_SIGNING_ALLOWED=NO build
 ```
 
-真机运行需要在 Xcode 中设置自己的开发团队。修改 `iosApp/project.yml` 后，运行 `xcodegen generate --spec iosApp/project.yml` 更新工程。
+To run on a physical device, select your Apple developer team in Xcode. After editing `iosApp/project.yml`, regenerate the project with `xcodegen generate --spec iosApp/project.yml`.
 
-## 验证
+## Verification
 
 ```sh
 ./scripts/verify.sh
 ./scripts/verify.sh --ios
 ```
 
-共享测试检查 OAuth、账户隔离、分页、媒体处理、响应限制和时间线状态。原生测试还检查 Android Keystore、iOS Keychain 及旧 Flutter 凭据的迁移。
+Shared tests cover OAuth, account isolation, pagination, media handling, response limits, and timeline state. Platform tests also cover Android Keystore, iOS Keychain, and migration of credentials from the earlier Flutter app.
 
-迁移覆盖和验证边界见 [迁移记录](docs/MIGRATION.md)。模块职责见 [架构说明](docs/ARCHITECTURE.md)。
+See the [migration notes](docs/MIGRATION.md) for migration coverage and verification scope, and the [architecture guide](docs/ARCHITECTURE.md) for module responsibilities.
 
-## 许可证
+## License
 
-QuanToot 使用 [MIT 许可证](LICENSE)。
+QuanToot is licensed under the [MIT License](LICENSE).
