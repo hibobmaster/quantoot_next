@@ -151,7 +151,7 @@ class MastodonApi(
         } catch (error: ApiException) {
             throw error
         } catch (_: Exception) {
-            throw ApiException(-1, "Unable to contact the server")
+            throw ApiException(-1, SERVER_UNREACHABLE_MESSAGE)
         }
     }
 

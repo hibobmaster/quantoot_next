@@ -5,6 +5,8 @@ import io.ktor.http.Url
 
 class ApiException(val statusCode: Int, override val message: String) : Exception(message)
 
+internal const val SERVER_UNREACHABLE_MESSAGE = "Unable to contact the server"
+
 fun normalizeInstance(input: String): String {
     val value = input.trim()
     require(value.isNotEmpty() && value.none { it.isWhitespace() || it.code < 32 || it == '\\' }) {

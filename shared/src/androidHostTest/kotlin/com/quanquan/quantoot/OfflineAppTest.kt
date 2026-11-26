@@ -23,6 +23,7 @@ import io.ktor.http.*
 import java.util.TimeZone
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
@@ -91,6 +92,53 @@ class OfflineAppTest {
         assertEquals(updatedName, server.account.value.displayName)
         compose.onNode(editProfile).performClick()
         compose.onNode(hasSetTextAction() and hasText(updatedName)).assertIsDisplayed()
+    }
+
+    @Test
+    fun offlineHomeKeepsPostsAndShowsOneRetryWhenTheUnreadCheckAlsoFails() {
+        val server = OfflineMastodon()
+        val text = "Post loaded before going offline"
+        server.posts.value = listOf(Status(id = "42", account = server.account.value, content = text))
+        openApp(server)
+        compose.onNode(waitFor(hasText(text))).assertIsDisplayed()
+
+        server.platform.foreground.value = false
+        compose.waitForIdle()
+        server.connectionFailure = CompletableDeferred()
+        server.platform.foreground.value = true
+
+        val error = "Unable to contact the server"
+        waitFor(hasText(error))
+        compose.waitUntil(5_000) { server.connectionFailure?.isCompleted == true }
+        compose.onAllNodesWithText(error).assertCountEquals(1)
+        compose.onAllNodesWithText("Retry").assertCountEquals(1)
+        compose.onNodeWithText(text).assertIsDisplayed()
+
+        server.connectionFailure = null
+        server.posts.value = listOf(server.posts.value.single().copy(content = "Post refreshed after retry"))
+        compose.onNodeWithText("Retry").performClick()
+        compose.onNode(waitFor(hasText("Post refreshed after retry"))).assertIsDisplayed()
+        compose.onNodeWithText(error).assertDoesNotExist()
+    }
+
+    @Test
+    fun visibleConnectionErrorFollowsChangesToTheAppLanguage() {
+        val server = OfflineMastodon()
+        server.connectionFailure = CompletableDeferred()
+        val store = openApp(server)
+
+        val english = "Unable to contact the server"
+        val simplified = "无法连接到服务器"
+        val traditional = "無法連線至伺服器"
+        compose.onNode(waitFor(hasText(english))).assertIsDisplayed()
+
+        runBlocking { store.setLocale("zh") }
+        compose.onNode(waitFor(hasText(simplified))).assertIsDisplayed()
+        compose.onNodeWithText(english).assertDoesNotExist()
+
+        runBlocking { store.setLocale("zh-TW") }
+        compose.onNode(waitFor(hasText(traditional))).assertIsDisplayed()
+        compose.onNodeWithText(simplified).assertDoesNotExist()
     }
 
     @Test
@@ -165,13 +213,14 @@ class OfflineAppTest {
 
     private val width = mutableIntStateOf(390)
 
-    private fun openApp(server: OfflineMastodon, initialWidth: Int = 390, signedIn: Boolean = true) {
+    private fun openApp(server: OfflineMastodon, initialWidth: Int = 390, signedIn: Boolean = true): AccountStore {
         width.intValue = initialWidth
         val store = server.store(signedIn)
         compose.setContent {
             Box(Modifier.width(width.intValue.dp).fillMaxHeight()) { QuanTootApp(store, AdaptiveWindow()) }
         }
         waitFor(hasText(if (signedIn) "Home" else "Explore") and isSelected())
+        return store
     }
 
     private fun waitFor(matcher: SemanticsMatcher): SemanticsMatcher {
@@ -193,6 +242,7 @@ private class OfflineMastodon(private val metadata: CompletableDeferred<String>?
     val platform = FakePlatform()
     val account = MutableStateFlow(Account(id = "1", username = "qa", acct = "qa", displayName = "Offline QA"))
     val posts = MutableStateFlow(emptyList<Status>())
+    @Volatile var connectionFailure: CompletableDeferred<Unit>? = null
 
     fun store(signedIn: Boolean): AccountStore {
         platform.preferences.values["app_locale"] = "en"
@@ -210,6 +260,11 @@ private class OfflineMastodon(private val metadata: CompletableDeferred<String>?
     private fun client() = HttpClient(MockEngine { request ->
         check(request.url.host == INSTANCE)
         val path = request.url.encodedPath
+        connectionFailure?.let { failure ->
+            if (path == "/api/v2/notifications/unread_count") failure.complete(Unit)
+            if (path == "/api/v2/notifications/unread_count" || path == "/api/v1/timelines/home")
+                throw IllegalStateException("Offline")
+        }
         val body = when (path) {
             "/api/v2/instance" -> metadata?.await() ?: PUBLIC_TIMELINES
             "/api/v1/accounts/1", "/api/v1/accounts/verify_credentials" -> Json.encodeToString(account.value)

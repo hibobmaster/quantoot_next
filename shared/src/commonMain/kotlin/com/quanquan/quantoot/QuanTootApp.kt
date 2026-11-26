@@ -182,7 +182,15 @@ private fun AppShell(
     val foreground by platform.foreground.collectAsState()
     LaunchedEffect(api, foreground) {
         if (ui.me != null && foreground) {
-            ui.run { unread = api.unreadCount() }
+            launch {
+                try {
+                    unread = api.unreadCount()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    // Keep the current badge when this background request fails.
+                }
+            }
             try {
                 api.events(StreamSource.User).collect { event ->
                     if (event is StreamEvent.Notify && (tab != MainTab.Notifications || routes.isNotEmpty())) unread++

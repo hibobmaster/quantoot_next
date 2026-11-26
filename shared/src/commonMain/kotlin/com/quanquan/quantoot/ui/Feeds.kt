@@ -339,17 +339,12 @@ internal fun FeedScreen(
                             pager.refreshing -> Unit
                             pager.busy || !pager.ready -> Loading()
                             pager.rows.isEmpty() && pager.error == null -> Empty()
-                            !pager.exhausted && pager.rows.isNotEmpty() ->
+                            pager.error == null && !pager.exhausted && pager.rows.isNotEmpty() ->
                                 OutlinedButton(
                                     onClick = { pager.load(true) },
                                     modifier = Modifier.fillMaxWidth().padding(16.dp),
                                 ) {
-                                    Text(
-                                        tr(
-                                            if (pager.error != null) "mastodon_retry"
-                                            else "mastodon_posts"
-                                        )
-                                    )
+                                    Text(tr("mastodon_posts"))
                                 }
                         }
                     }

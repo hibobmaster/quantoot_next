@@ -1,5 +1,7 @@
 package com.quanquan.quantoot.ui
 
+import com.quanquan.quantoot.data.SERVER_UNREACHABLE_MESSAGE
+
 class Strings(val locale: String, val systemLanguage: String) {
     private val selected = if (locale == "system") systemLanguage else locale
     private val catalog = when {
@@ -79,6 +81,7 @@ private fun english0(): Map<String, String> = mapOf(
     "mastodon_load_failed" to "Load failed",
     "mastodon_unknown_error" to "Unknown error",
     "mastodon_retry" to "Retry",
+    "mastodon_server_unreachable" to SERVER_UNREACHABLE_MESSAGE,
     "mastodon_login_required" to "Please log in to Mastodon first",
     "mastodon_publish" to "Publish",
     "mastodon_content" to "Content",
@@ -475,6 +478,7 @@ private fun chinese0(): Map<String, String> = mapOf(
     "mastodon_load_failed" to "加载失败",
     "mastodon_unknown_error" to "未知错误",
     "mastodon_retry" to "重试",
+    "mastodon_server_unreachable" to "无法连接到服务器",
     "mastodon_login_required" to "请先登录 Mastodon",
     "mastodon_publish" to "发布",
     "mastodon_content" to "内容",
@@ -871,6 +875,7 @@ private fun traditional0(): Map<String, String> = mapOf(
     "mastodon_load_failed" to "載入失敗",
     "mastodon_unknown_error" to "未知錯誤",
     "mastodon_retry" to "再試一次",
+    "mastodon_server_unreachable" to "無法連線至伺服器",
     "mastodon_login_required" to "請先登入 Mastodon",
     "mastodon_publish" to "發佈",
     "mastodon_content" to "內容",

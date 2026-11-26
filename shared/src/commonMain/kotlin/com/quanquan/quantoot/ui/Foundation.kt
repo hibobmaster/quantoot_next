@@ -10,6 +10,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.Saver
@@ -17,8 +18,10 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
@@ -196,17 +199,30 @@ internal fun routesAfterPublish(routes: List<Screen>, compose: Screen.Compose, s
 
 @Composable
 fun ErrorNotice(error: String?, retry: (() -> Unit)? = null) {
-    if (error != null)
-        Surface(
-            color = MaterialTheme.colorScheme.errorContainer,
-            shape = MaterialTheme.shapes.medium,
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
+    if (error == null) return
+    val message = if (error == SERVER_UNREACHABLE_MESSAGE) tr("mastodon_server_unreachable") else error
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        color = colors.surfaceContainerLow,
+        contentColor = colors.onSurface,
+        border = BorderStroke(Dp.Hairline, colors.outlineVariant),
+        shape = MaterialTheme.shapes.medium,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 12.dp, end = if (retry == null) 12.dp else 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(Modifier.padding(12.dp)) {
-                Text(error)
-                if (retry != null) TextButton(onClick = retry) { Text(tr("mastodon_retry")) }
-            }
+            Icon(Icons.Default.Warning, contentDescription = null, Modifier.size(18.dp), tint = colors.error)
+            Text(
+                message,
+                Modifier.weight(1f).padding(vertical = 12.dp).semantics { liveRegion = LiveRegionMode.Polite },
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            if (retry != null) TextButton(onClick = retry) { Text(tr("mastodon_retry")) }
         }
+    }
 }
 
 @Composable
